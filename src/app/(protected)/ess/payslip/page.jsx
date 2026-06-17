@@ -10,32 +10,35 @@ export default function PayslipPage() {
   const { payslips }      = usePayrollStore()
   const [selected, setSelected] = useState(null)
 
-  const mine = payslips
-    .filter(p => p.userId === currentUser?.id && p.status === 'Published')
-    .sort((a, b) => b.period.localeCompare(a.period))
+  const mine = currentUser
+    ? payslips
+        .filter(p => p.userId === currentUser.id && p.status === 'Published')
+        .sort((a, b) => b.period.localeCompare(a.period))
+    : []
 
   const detail = mine.find(p => p.id === selected) || mine[0]
 
   const rows = detail ? [
-    { label: 'Gaji Pokok',    value: detail.basic,      type: 'income'    },
-    { label: 'Tunjangan',     value: detail.allowance,   type: 'income'    },
-    { label: 'Potongan',      value: detail.deduction,   type: 'deduction' },
+    { label: t('Gaji Pokok','Basic Salary'), value: detail.basic,     type: 'income'    },
+    { label: t('Tunjangan','Allowance'),     value: detail.allowance,  type: 'income'    },
+    { label: t('Potongan','Deduction'),      value: detail.deduction,  type: 'deduction' },
   ] : []
 
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Payslip</h1>
-      <p className='text-gray-500 text-sm mb-6'>Slip gaji bulanan kamu.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Slip gaji bulanan kamu.','Your monthly payslip.')}</p>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         {/* Period list */}
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>📅 Periode</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>📅 {t('Periode','Period')}</h2>
           <div className='flex flex-col gap-2'>
             {mine.length ? mine.map(p => (
               <button
                 key={p.id}
                 onClick={() => setSelected(p.id)}
+                aria-label={`${t('Pilih periode','Select period')} ${p.period}`}
                 className={`text-left px-4 py-3 rounded-lg text-sm font-medium transition ${
                   (selected === p.id || (!selected && p.id === mine[0]?.id))
                     ? 'bg-red-600 text-white'
@@ -45,7 +48,7 @@ export default function PayslipPage() {
                 {p.period}
               </button>
             )) : (
-              <p className='text-sm text-gray-400'>Belum ada slip gaji.</p>
+              <p className='text-sm text-gray-400'>{t('Belum ada slip gaji.','No payslip available.')}</p>
             )}
           </div>
         </div>
@@ -56,37 +59,39 @@ export default function PayslipPage() {
             <div className='flex justify-between items-start mb-6'>
               <div>
                 <h2 className='text-lg font-bold text-gray-800'>{detail.name}</h2>
-                <p className='text-sm text-gray-500'>Periode: {detail.period}</p>
+                <p className='text-sm text-gray-500'>{t('Periode','Period')}: {detail.period}</p>
               </div>
               <span className='text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700'>
-                Published
+                {t('Dipublish','Published')}
               </span>
             </div>
 
-            <table className='w-full text-sm mb-6'>
-              <thead>
-                <tr className='bg-gray-50'>
-                  <th className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500'>Komponen</th>
-                  <th className='text-right px-4 py-2.5 text-xs font-semibold text-gray-500'>Jumlah</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={i} className='border-t border-gray-100'>
-                    <td className='px-4 py-2.5 text-gray-700'>{r.label}</td>
-                    <td className={`px-4 py-2.5 text-right font-medium ${r.type === 'deduction' ? 'text-red-600' : 'text-gray-800'}`}>
-                      {r.type === 'deduction' ? `- ${formatRp(r.value)}` : formatRp(r.value)}
+            <div className='overflow-x-auto'>
+              <table className='w-full text-sm mb-6'>
+                <thead>
+                  <tr className='bg-gray-50'>
+                    <th scope='col' className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500'>{t('Komponen','Component')}</th>
+                    <th scope='col' className='text-right px-4 py-2.5 text-xs font-semibold text-gray-500'>{t('Jumlah','Amount')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r, i) => (
+                    <tr key={i} className='border-t border-gray-100'>
+                      <td className='px-4 py-2.5 text-gray-700'>{r.label}</td>
+                      <td className={`px-4 py-2.5 text-right font-medium ${r.type === 'deduction' ? 'text-red-600' : 'text-gray-800'}`}>
+                        {r.type === 'deduction' ? `- ${formatRp(r.value)}` : formatRp(r.value)}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className='border-t-2 border-gray-200'>
+                    <td className='px-4 py-3 font-bold text-gray-800'>{t('Total Take-Home','Total Take-Home')}</td>
+                    <td className='px-4 py-3 text-right font-bold text-red-600 text-base'>
+                      {formatRp(detail.net)}
                     </td>
                   </tr>
-                ))}
-                <tr className='border-t-2 border-gray-200'>
-                  <td className='px-4 py-3 font-bold text-gray-800'>Total Take-Home</td>
-                  <td className='px-4 py-3 text-right font-bold text-red-600 text-base'>
-                    {formatRp(detail.net)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
