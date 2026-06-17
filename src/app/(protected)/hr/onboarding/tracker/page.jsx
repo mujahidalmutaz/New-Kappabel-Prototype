@@ -7,7 +7,7 @@ import { useOnboardingStore }    from '@/store/onboardingStore'
 import { useMasterOnboardingStore } from '@/store/masterOnboardingStore'
 import { useStructureStore }     from '@/store/structureStore'
 import { useCourseBatchStore }   from '@/store/courseBatchStore'
-import { useT }                  from '@/store/languageStore'
+import { useT, useLanguageStore } from '@/store/languageStore'
 
 const PROBATION_OPTIONS = ['0', '3', '6', '12']
 const EMPLOYMENT_STATUS = ['New Hire', 'Existing Employee']
@@ -102,6 +102,8 @@ function migrateOnboarding(ob) {
 
 export default function OnboardingTrackerPage() {
   const t                                           = useT()
+  const lang                                        = useLanguageStore(s => s.lang)
+  const locale                                      = lang === 'id' ? 'id-ID' : 'en-GB'
   const { currentUser }                             = useAuthStore()
   const { employees }                               = useEmployeeStore()
   const { positions }                               = useStructureStore()
@@ -550,7 +552,7 @@ export default function OnboardingTrackerPage() {
                                 ? <span className='text-xs text-gray-600'>{item.type || '—'}</span>
                                 : <select value={item.type || ''} onChange={e => patchMsItem(ms.id, item.id, { type: e.target.value, link: '' })}
                                     className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
-                                    <option value=''>— Pilih —</option>
+                                    <option value=''>— {t('Pilih','Select')} —</option>
                                     {TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
                                   </select>
                               }
@@ -561,7 +563,7 @@ export default function OnboardingTrackerPage() {
                                 : item.type === 'Learning Course'
                                   ? <select value={item.link || ''} onChange={e => updateMsItem(ms.id, item.id, 'link', e.target.value)}
                                       className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[180px]'>
-                                      <option value=''>— Pilih Batch —</option>
+                                      <option value=''>— {t('Pilih Batch','Select Batch')} —</option>
                                       {batches.map(b => <option key={b.id} value={b.batch_name}>{b.batch_name}</option>)}
                                     </select>
                                   : <InputCell value={item.link || ''} onChange={v => updateMsItem(ms.id, item.id, 'link', v)} placeholder='https://…' />
@@ -576,7 +578,7 @@ export default function OnboardingTrackerPage() {
                                     patchMsItem(ms.id, item.id, { mentorEmpId: e.target.value, mentorName: emp?.name ?? '', mentorPosition: pos?.name ?? '' })
                                   }}
                                     className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
-                                    <option value=''>— Pilih Mentor —</option>
+                                    <option value=''>— {t('Pilih Mentor','Select Mentor')} —</option>
                                     {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
                                   </select>
                               }
@@ -670,7 +672,7 @@ export default function OnboardingTrackerPage() {
                                 patchReview(item.id, { reviewerEmpId: e.target.value, reviewerName: emp?.name ?? '', reviewerPosition: pos?.name ?? '' })
                               }}
                                 className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
-                                <option value=''>— Pilih Reviewer —</option>
+                                <option value=''>— {t('Pilih Reviewer','Select Reviewer')} —</option>
                                 {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
                               </select>
                           }
@@ -879,7 +881,7 @@ export default function OnboardingTrackerPage() {
                       </span>
                     </td>
                     <td className='px-4 py-3 text-gray-500 text-xs'>
-                      {ob.createdAt ? new Date(ob.createdAt).toLocaleDateString('id-ID') : '—'}
+                      {ob.createdAt ? new Date(ob.createdAt).toLocaleDateString(locale) : '—'}
                     </td>
                     <td className='px-4 py-3'>
                       <div className='flex gap-2'>

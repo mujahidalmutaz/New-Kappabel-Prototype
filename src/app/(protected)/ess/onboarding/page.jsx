@@ -178,7 +178,7 @@ export default function EssOnboardingPage() {
           <div className='grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-3'>
             {[
               [t('Nama','Name'),                         myOnboarding.employeeName],
-              ['Department',                               myOnboarding.department || '—'],
+              [t('Departemen','Department'),               myOnboarding.department || '—'],
               [t('Nama / Posisi Atasan','Supervisor'),    `${myOnboarding.supervisorName || '—'} / ${myOnboarding.supervisorPosition || '—'}`],
               [t('Status Karyawan','Employee Status'),    myOnboarding.employmentStatus],
               [t('Masa Probation/Orientasi','Probation'), `${myOnboarding.probationPeriod} ${t('Bulan','Month(s)')}`],
