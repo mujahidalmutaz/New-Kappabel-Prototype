@@ -94,6 +94,7 @@ export default function DivisionPage() {
         {/* Table */}
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
           <h2 className='text-sm font-bold text-gray-700 mb-4'>{t('🏛️ Daftar Division','🏛️ Division List')}</h2>
+          <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead><tr className='bg-gray-50'>
               {[t('Kode','Code'),t('Nama Division','Division Name'),'Enterprise','Division Head','Status',t('Aksi','Action')].map((h,i)=>(
@@ -118,10 +119,11 @@ export default function DivisionPage() {
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={6} className='px-4 py-8 text-center text-gray-400 text-sm'>Belum ada division.</td></tr>
+                <tr><td colSpan={6} className='px-4 py-8 text-center text-gray-400 text-sm'>{t('Belum ada division.','No divisions yet.')}</td></tr>
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

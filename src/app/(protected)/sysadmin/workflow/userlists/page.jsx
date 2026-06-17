@@ -57,10 +57,10 @@ export default function UserlistsPage() {
     if (userlists.length <= 1) return
     const remaining = userlists.filter(l => l.id !== id)
     deleteUserlist(id)
-    if (selected === id) setSelected(remaining[0].id)
+    if (selected === id) setSelected(remaining.length > 0 ? remaining[0].id : null)
   }
 
-  const handleSave = () => flash('Userlist disimpan.')
+  const handleSave = () => flash(t('Userlist disimpan.','Userlist saved.'))
 
   const filteredEmps = employees.filter(e =>
     e.name.toLowerCase().includes(empSearch.toLowerCase()) ||
@@ -80,7 +80,7 @@ export default function UserlistsPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Userlists</h1>
-      <p className='text-gray-500 text-sm mb-6'>Definisikan daftar user yang digunakan dalam konfigurasi workflow approval.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Definisikan daftar user yang digunakan dalam konfigurasi workflow approval.','Define user lists used in approval workflow configuration.')}</p>
 
       {msg && (
         <div className={`text-sm px-4 py-2.5 rounded-lg mb-4 inline-block ${
@@ -285,7 +285,7 @@ export default function UserlistsPage() {
                     )
                   })}
                   {filteredEmps.length === 0 && (
-                    <p className='text-sm text-gray-400 text-center py-4'>Tidak ada karyawan ditemukan.</p>
+                    <p className='text-sm text-gray-400 text-center py-4'>{t('Tidak ada karyawan ditemukan.','No employees found.')}</p>
                   )}
                 </div>
               </div>

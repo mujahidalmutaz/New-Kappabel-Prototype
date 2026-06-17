@@ -20,6 +20,7 @@ let _id = 10
 
 // ── Employee LOV modal ────────────────────────────────────────────────────────
 function EmployeeLOV({ employees, departments, positions, onSelect, onClose }) {
+  const t = useT()
   const [search, setSearch] = useState('')
 
   const getDept = (id) => departments.find(d => d.id === id)?.name ?? '—'
@@ -44,7 +45,7 @@ function EmployeeLOV({ employees, departments, positions, onSelect, onClose }) {
 
         {/* Header */}
         <div className='flex items-center justify-between px-5 py-4 border-b border-gray-100'>
-          <h3 className='text-sm font-bold text-gray-800'>🔍 Pilih Karyawan</h3>
+          <h3 className='text-sm font-bold text-gray-800'>🔍 {t('Pilih Karyawan','Select Employee')}</h3>
           <button onClick={onClose}
             className='w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 text-xs font-bold'>
             ✕

@@ -55,16 +55,16 @@ export default function LoginThemePage() {
   // ── save ──────────────────────────────────────────────────────
   const handleSave = () => {
     if (!form.name || !form.startDate || !form.endDate)
-      return flash('Nama, tanggal mulai dan selesai wajib diisi.','error')
+      return flash(t('Nama, tanggal mulai dan selesai wajib diisi.','Name, start and end dates are required.'),'error')
     if (!form.image && !editing)
-      return flash('Background image wajib diupload.','error')
+      return flash(t('Background image wajib diupload.','Background image is required.'),'error')
     if (form.endDate < form.startDate)
-      return flash('Tanggal selesai tidak boleh sebelum tanggal mulai.','error')
+      return flash(t('Tanggal selesai tidak boleh sebelum tanggal mulai.','End date cannot be before start date.'),'error')
 
     if (editing) {
-      updateTheme(editing, form); setEditing(null); flash('Theme diperbarui.')
+      updateTheme(editing, form); setEditing(null); flash(t('Theme diperbarui.','Theme updated.'))
     } else {
-      addTheme(form); flash('Theme ditambahkan.')
+      addTheme(form); flash(t('Theme ditambahkan.','Theme added.'))
     }
     setForm(BLANK); setErr(null)
   }
@@ -83,7 +83,7 @@ export default function LoginThemePage() {
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Login Theme</h1>
       <p className='text-gray-500 text-sm mb-6'>
-        Atur background halaman login sesuai event kalender atau tanggal kustom.
+        {t('Atur background halaman login sesuai event kalender atau tanggal kustom.','Set the login page background for calendar events or custom date ranges.')}
       </p>
 
       {msg && (
@@ -97,7 +97,7 @@ export default function LoginThemePage() {
         {/* ── Form ── */}
         <div className='bg-white rounded-xl p-6 shadow-sm'>
           <h2 className='text-sm font-bold text-gray-700 mb-4'>
-            {editing ? '✏️ Edit Theme' : '➕ Tambah Theme'}
+            {editing ? `✏️ ${t('Edit Theme','Edit Theme')}` : `➕ ${t('Tambah Theme','Add Theme')}`}
           </h2>
 
           {/* Preset quick-fill */}
@@ -121,19 +121,19 @@ export default function LoginThemePage() {
 
           <div className='flex flex-col gap-3'>
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Theme</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Nama Theme','Theme Name')}</label>
               <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}
-                placeholder='mis. Selamat Hari Raya'
+                placeholder={t('mis. Selamat Hari Raya','e.g. Happy Holiday')}
                 className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             </div>
             <div className='grid grid-cols-2 gap-2'>
               <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>Tanggal Mulai</label>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Tanggal Mulai','Start Date')}</label>
                 <input type='date' value={form.startDate} onChange={e=>setForm(f=>({...f,startDate:e.target.value}))}
                   className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
               </div>
               <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>Tanggal Selesai</label>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Tanggal Selesai','End Date')}</label>
                 <input type='date' value={form.endDate} onChange={e=>setForm(f=>({...f,endDate:e.target.value}))}
                   className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
               </div>
@@ -141,7 +141,7 @@ export default function LoginThemePage() {
 
             {/* Image upload */}
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>Background Image</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Background Image','Background Image')}</label>
               {/* Constraints */}
               <div className='flex flex-wrap gap-1.5 mb-2'>
                 {[`📐 Maks. ${C.maxWidth}×${C.maxHeight}px`,`💾 Maks. ${C.maxSizeMB} MB`,`📄 ${C.acceptedExt}`].map(t=>(
@@ -156,7 +156,7 @@ export default function LoginThemePage() {
                   ? <img src={form.image} alt='' className='w-full h-24 object-cover rounded-lg' />
                   : <>
                       <span className='text-2xl'>🌄</span>
-                      <p className='text-xs text-gray-400 text-center'>Klik untuk upload<br/>atau drag & drop</p>
+                      <p className='text-xs text-gray-400 text-center'>{t('Klik untuk upload','Click to upload')}<br/>{t('atau drag & drop','or drag & drop')}</p>
                     </>
                 }
               </div>
@@ -165,7 +165,7 @@ export default function LoginThemePage() {
               {form.image && (
                 <button onClick={()=>setForm(f=>({...f,image:null}))}
                   className='text-xs text-red-500 hover:text-red-700 mt-1 font-semibold'>
-                  🗑️ Hapus gambar
+                  🗑️ {t('Hapus gambar','Remove image')}
                 </button>
               )}
               {err && <p className='text-xs text-red-600 mt-1'>⚠️ {err}</p>}
@@ -180,7 +180,7 @@ export default function LoginThemePage() {
               {editing && (
                 <button onClick={()=>{setEditing(null);setForm(BLANK);setErr(null)}}
                   className='px-4 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-lg'>
-                  Batal
+                  {t('Batal','Cancel')}
                 </button>
               )}
             </div>
@@ -197,7 +197,7 @@ export default function LoginThemePage() {
               <div className='flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-5 py-3'>
                 <span className='text-xl'>✅</span>
                 <div>
-                  <p className='text-sm font-bold text-green-700'>Theme Aktif Sekarang</p>
+                  <p className='text-sm font-bold text-green-700'>{t('Theme Aktif Sekarang','Active Theme Now')}</p>
                   <p className='text-xs text-green-600'>{active.name} · {active.startDate} – {active.endDate}</p>
                 </div>
                 {active.image && (
@@ -207,7 +207,7 @@ export default function LoginThemePage() {
             ) : (
               <div className='flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-5 py-3'>
                 <span className='text-xl'>ℹ️</span>
-                <p className='text-sm text-gray-500'>Tidak ada theme aktif hari ini. Background default akan digunakan.</p>
+                <p className='text-sm text-gray-500'>{t('Tidak ada theme aktif hari ini. Background default akan digunakan.','No active theme today. The default background will be used.')}</p>
               </div>
             )
           })()}
@@ -215,7 +215,7 @@ export default function LoginThemePage() {
           {/* Theme cards */}
           {loginThemes.length === 0 ? (
             <div className='bg-white rounded-xl p-10 shadow-sm text-center text-gray-400 text-sm'>
-              Belum ada theme. Tambahkan dari form di kiri.
+              {t('Belum ada theme. Tambahkan dari form di kiri.','No themes yet. Add one from the form on the left.')}
             </div>
           ) : (
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -253,7 +253,7 @@ export default function LoginThemePage() {
                       <label className='flex items-center gap-1.5 cursor-pointer flex-shrink-0'>
                         <input type='checkbox' checked={t.active} onChange={()=>toggleTheme(t.id)}
                           className='w-3.5 h-3.5 accent-red-600' />
-                        <span className='text-xs text-gray-500'>Aktif</span>
+                        <span className='text-xs text-gray-500'>{t('Aktif','Active')}</span>
                       </label>
                     </div>
                     <p className='text-xs text-gray-400 mb-3'>📅 {t.startDate} – {t.endDate}</p>
@@ -262,9 +262,9 @@ export default function LoginThemePage() {
                         className='flex-1 py-1.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>
                         Edit
                       </button>
-                      <button onClick={() => { if(confirm(`Hapus theme "${t.name}"?`)) deleteTheme(t.id) }}
+                      <button onClick={() => deleteTheme(t.id)}
                         className='flex-1 py-1.5 bg-red-50 text-red-500 text-xs font-semibold rounded-lg hover:bg-red-100'>
-                        Hapus
+                        {t('Hapus','Delete')}
                       </button>
                     </div>
                   </div>
@@ -296,7 +296,7 @@ export default function LoginThemePage() {
               <p className='text-xs text-gray-400 italic'>Preview: {t.name}</p>
               <button onClick={() => setPreview(null)}
                 className='mt-4 text-xs text-gray-400 hover:text-gray-600 underline'>
-                Tutup Preview
+                {t('Tutup Preview','Close Preview')}
               </button>
             </div>
           </div>

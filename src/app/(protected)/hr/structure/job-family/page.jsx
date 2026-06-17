@@ -77,6 +77,7 @@ export default function JobFamilyPage() {
         {/* Table */}
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
           <h2 className='text-sm font-bold text-gray-700 mb-4'>{t('🧩 Daftar Job Family','🧩 Job Family List')}</h2>
+          <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead><tr className='bg-gray-50'>
               {[t('Kode','Code'),t('Nama','Name'),t('Deskripsi','Description'),'Status',t('Aksi','Action')].map((h,i)=>(
@@ -100,10 +101,11 @@ export default function JobFamilyPage() {
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={5} className='px-4 py-8 text-center text-gray-400 text-sm'>Belum ada job family.</td></tr>
+                <tr><td colSpan={5} className='px-4 py-8 text-center text-gray-400 text-sm'>{t('Belum ada job family.','No job families yet.')}</td></tr>
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

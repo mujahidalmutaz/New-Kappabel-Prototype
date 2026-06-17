@@ -232,7 +232,7 @@ const SEED_POSITIONS = [
   { id:55, departmentId:8,  jobFamilyId:1, gradeId:5,  code:'POS055', name:'Clerk',                          status:'Active' },
 ]
 
-let _eId=2, _dId=4, _coId=4, _bId=9, _dpId=11, _jfId=5, _posId=56
+let _eId=2, _dId=4, _coId=4, _bId=9, _dpId=11, _jfId=5, _posId=56, _gId=73
 
 export const useStructureStore = create((set) => ({
   enterprises:   SEED_ENTERPRISES.map(x=>({...x})),

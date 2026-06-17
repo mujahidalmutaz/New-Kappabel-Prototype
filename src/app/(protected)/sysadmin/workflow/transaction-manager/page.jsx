@@ -5,7 +5,7 @@ import { useEmployeeStore } from '@/store/employeeStore'
 import { useAuthStore }     from '@/store/authStore'
 import { useWorkflowStore } from '@/store/workflowStore'
 import { daysBetween }      from '@/utils/dateUtils'
-import { useT } from '@/store/languageStore'
+import { useT, useLanguageStore } from '@/store/languageStore'
 
 // ── Shared helpers ───────────────────────────────────────────────────────────
 const STATUS_CFG = {
@@ -20,10 +20,10 @@ const STEP_BORDER = {
   Rejected: 'border-red-300',   Waiting: 'border-gray-200', Withdrawn: 'border-gray-200',
 }
 const txnId = (id) => `TXN-${String(id).padStart(6, '0')}`
-const fmtTs = (ts) => {
+const makeFmtTs = (locale) => (ts) => {
   if (!ts) return '—'
   try {
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat(locale, {
       year: 'numeric', month: '2-digit', day: '2-digit',
       hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
     }).format(new Date(ts))
@@ -33,6 +33,9 @@ const fmtTs = (ts) => {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function TransactionManagerPage() {
   const t = useT()
+  const lang   = useLanguageStore(s => s.lang)
+  const locale = lang === 'id' ? 'id-ID' : 'en-GB'
+  const fmtTs  = makeFmtTs(locale)
   const { leaves, approveStep, rejectStep, delegateStep } = useLeaveStore()
   const { employees }   = useEmployeeStore()
   const { currentUser } = useAuthStore()
@@ -202,7 +205,7 @@ export default function TransactionManagerPage() {
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={10} className='px-4 py-12 text-center text-gray-400 text-sm'>
-                      Tidak ada transaksi ditemukan.
+                      {t('Tidak ada transaksi ditemukan.','No transactions found.')}
                     </td>
                   </tr>
                 )}
