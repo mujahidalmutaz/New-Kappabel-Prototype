@@ -2,43 +2,38 @@
 import { useAuthStore }  from '@/store/authStore'
 import { useLeaveStore } from '@/store/leaveStore'
 import { daysBetween }   from '@/utils/dateUtils'
-import { useT } from '@/store/languageStore'
+import { calcLeaveUsed, LEAVE_STATUS_BADGE } from '@/utils/leaveUtils'
+import { useT }          from '@/store/languageStore'
 
 export default function LeaveBalancePage() {
   const t = useT()
-  const { currentUser }           = useAuthStore()
-  const { leaves, leaveTypes }    = useLeaveStore()
+  const { currentUser }        = useAuthStore()
+  const { leaves, leaveTypes } = useLeaveStore()
 
-  const myLeaves = leaves.filter(l => l.userId === currentUser?.id)
-
-  const used = (typeName) =>
-    myLeaves
-      .filter(l => l.type === typeName && l.status === 'Approved')
-      .reduce((sum, l) => sum + daysBetween(l.start, l.end), 0)
-
-  const badge = (s) => ({
-    Approved: 'bg-green-100 text-green-700',
-    Pending:  'bg-yellow-100 text-yellow-700',
-    Rejected: 'bg-red-100 text-red-700',
-  }[s] || '')
+  const thisYear = new Date().getFullYear()
+  const myLeaves = leaves.filter(l =>
+    l.userId === currentUser?.id &&
+    new Date(l.start).getFullYear() === thisYear
+  )
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Leave Balance</h1>
-      <p className='text-gray-500 text-sm mb-6'>{t('Saldo dan riwayat cuti kamu tahun ini.','Your leave balance and history for this year.')}</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Leave Balance', 'Leave Balance')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Saldo dan riwayat cuti kamu tahun ini.', 'Your leave balance and history for this year.')}</p>
 
       {/* Balance cards */}
       <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-8'>
-        {leaveTypes.filter(t => t.active).map(lt => {
-          const u    = used(lt.name)
-          const sisa = lt.maxDays - u
-          const pct  = Math.min(100, Math.round((u / lt.maxDays) * 100))
+        {leaveTypes.filter(lt => lt.active).map(lt => {
+          const { approved, pending } = calcLeaveUsed(leaves, currentUser?.id, lt.name)
+          const reserved = approved + pending
+          const sisa = lt.maxDays - reserved
+          const pct  = Math.min(100, Math.round((reserved / lt.maxDays) * 100))
           return (
             <div key={lt.id} className='bg-white rounded-xl p-5 shadow-sm'>
               <div className='text-xs font-semibold text-gray-500 mb-1'>{lt.name}</div>
               <div className='flex items-end gap-1 mb-2'>
                 <span className='text-3xl font-bold text-gray-800'>{sisa}</span>
-                <span className='text-sm text-gray-400 mb-1'>/ {lt.maxDays} {t('hari','days')}</span>
+                <span className='text-sm text-gray-400 mb-1'>/ {lt.maxDays} {t('hari', 'days')}</span>
               </div>
               <div className='h-2 bg-gray-100 rounded-full'>
                 <div
@@ -50,9 +45,12 @@ export default function LeaveBalancePage() {
                 />
               </div>
               <div className='flex justify-between text-xs text-gray-400 mt-1'>
-                <span>{t('Terpakai:','Used:')} {u}</span>
-                <span>{t('Sisa:','Remaining:')} {sisa}</span>
+                <span>{t('Terpakai:', 'Used:')} {approved}</span>
+                <span>{t('Sisa:', 'Remaining:')} {sisa}</span>
               </div>
+              {pending > 0 && (
+                <div className='text-xs text-amber-500 mt-0.5'>{t('Pending:', 'Pending:')} {pending} {t('hari', 'days')}</div>
+              )}
             </div>
           )
         })}
@@ -60,12 +58,12 @@ export default function LeaveBalancePage() {
 
       {/* History */}
       <div className='bg-white rounded-xl p-6 shadow-sm'>
-        <h2 className='text-sm font-bold text-gray-700 mb-4'>📄 Riwayat Cuti</h2>
+        <h2 className='text-sm font-bold text-gray-700 mb-4'>{t('📄 Riwayat Cuti', '📄 Leave History')}</h2>
         <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead>
               <tr className='bg-gray-50'>
-                {['Jenis','Mulai','Selesai','Hari','Keterangan','Status'].map(h => (
+                {[t('Jenis','Type'), t('Mulai','Start'), t('Selesai','End'), t('Hari','Days'), t('Keterangan','Note'), 'Status'].map(h => (
                   <th key={h} className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
                 ))}
               </tr>
@@ -79,7 +77,7 @@ export default function LeaveBalancePage() {
                   <td className='px-4 py-2.5 text-gray-600'>{daysBetween(l.start, l.end)}</td>
                   <td className='px-4 py-2.5 text-gray-500'>{l.note || '-'}</td>
                   <td className='px-4 py-2.5'>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badge(l.status)}`}>
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${LEAVE_STATUS_BADGE[l.status] || ''}`}>
                       {l.status}
                     </span>
                   </td>
@@ -87,7 +85,7 @@ export default function LeaveBalancePage() {
               )) : (
                 <tr>
                   <td colSpan={6} className='px-4 py-8 text-center text-gray-400 text-sm'>
-                    Belum ada riwayat cuti.
+                    {t('Belum ada riwayat cuti.', 'No leave history yet.')}
                   </td>
                 </tr>
               )}
