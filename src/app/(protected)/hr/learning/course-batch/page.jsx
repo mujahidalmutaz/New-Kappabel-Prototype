@@ -20,26 +20,26 @@ export default function CourseBatchPage() {
   const filtered = batches.filter(d => d.batch_name.toLowerCase().includes(search.toLowerCase()) || d.course.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.batch_name || !form.course) return flash('Nama batch dan course wajib diisi.', 'error')
+    if (!form.batch_name || !form.course) return flash(t('Nama batch dan course wajib diisi.','Batch name and course are required.'), 'error')
     if (editing) {
       updateBatch(editing, { ...form, capacity: Number(form.capacity) })
-      flash('Batch diperbarui.'); setEditing(null)
+      flash(t('Batch diperbarui.','Batch updated.')); setEditing(null)
     } else {
       addBatch({ ...form, capacity: Number(form.capacity) })
-      flash('Batch ditambahkan.')
+      flash(t('Batch ditambahkan.','Batch added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ batch_name:item.batch_name, course:item.course, method:item.method, start_date:item.start_date, end_date:item.end_date, instructor:item.instructor, location:item.location, capacity:String(item.capacity), status:item.status }) }
-  const handleDelete = (id) => { deleteBatch(id); flash('Batch dihapus.') }
+  const handleDelete = (id) => { deleteBatch(id); flash(t('Batch dihapus.','Batch deleted.')) }
 
   const statusColor = (s) => ({ Open:'bg-green-50 text-green-700', 'In Progress':'bg-blue-50 text-blue-700', Completed:'bg-gray-100 text-gray-600', Cancelled:'bg-red-50 text-red-700', Full:'bg-yellow-50 text-yellow-700' }[s])
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Course — Batch & Activities</h1>
-      <p className='text-gray-500 text-sm mb-6'>Pengelolaan batch/sesi pelaksanaan course — jadwal, instruktur, lokasi, metode, dan peserta.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Course — Batch & Activities','Course — Batch & Activities')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Pengelolaan batch/sesi pelaksanaan course — jadwal, instruktur, lokasi, metode, dan peserta.','Manage course batches/sessions — schedule, instructor, location, method, and participants.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Batch', batches.length, '📦', '#8B1A1A'],['Open', batches.filter(d=>d.status==='Open').length, '🟢', '#059669'],['In Progress', batches.filter(d=>d.status==='In Progress').length, '🔵', '#2563eb'],['Completed', batches.filter(d=>d.status==='Completed').length, '✅', '#6b7280']].map(([l,v,i,c])=>(
@@ -52,7 +52,7 @@ export default function CourseBatchPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Batch':'➕ Tambah Batch'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?`✏️ ${t('Edit Batch','Edit Batch')}`:`➕ ${t('Tambah Batch','Add Batch')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Batch','batch_name'],['Nama Course','course'],['Instructor','instructor'],['Lokasi/Platform','location']].map(([l,k])=>(
@@ -85,7 +85,7 @@ export default function CourseBatchPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari batch...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari batch...','Search batch...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>
