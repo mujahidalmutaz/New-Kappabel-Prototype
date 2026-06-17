@@ -6,6 +6,10 @@ import { useWorkflowStore }  from '@/store/workflowStore'
 import { daysBetween }       from '@/utils/dateUtils'
 import WorkflowMonitor       from '@/components/WorkflowMonitor'
 import { useT } from '@/store/languageStore'
+import {
+  PageHeader, SectionCard, DataTable, Tr, Td, StatusBadge,
+  ActionButton, FormField, Input, Select, EmptyState,
+} from '@/components/ui'
 
 export default function ApplyLeavePage() {
   const t = useT()
@@ -74,25 +78,27 @@ export default function ApplyLeavePage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Apply Leave</h1>
-      <p className='text-gray-500 text-sm mb-6'>{t('Ajukan cuti dan lihat riwayat pengajuanmu.','Submit leave and view your submission history.')}</p>
+      <PageHeader
+        icon='📝'
+        title='Apply Leave'
+        subtitle={t('Ajukan cuti dan lihat riwayat pengajuanmu.','Submit leave and view your submission history.')}
+      />
 
       {/* Saldo */}
-      <div className='bg-white rounded-xl p-6 shadow-sm mb-6'>
-        <h2 className='text-sm font-bold text-gray-700 mb-4'>{t('📊 Saldo Cuti','📊 Leave Balance')}</h2>
+      <SectionCard icon='📊' title={t('Saldo Cuti','Leave Balance')} className='mb-6'>
         <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
           {activeTypes.map(lt => {
             const used = leaveUsed(lt.name)
             const sisa = lt.maxDays - used
             const pct  = Math.round((used / lt.maxDays) * 100)
             return (
-              <div key={lt.id} className='border border-gray-100 rounded-lg p-4'>
+              <div key={lt.id} className='rounded-xl bg-gray-50/70 p-4 ring-1 ring-gray-100'>
                 <div className='text-xs font-semibold text-gray-500 mb-1'>{lt.name}</div>
-                <div className='text-2xl font-bold text-gray-800'>{sisa}
+                <div className='text-2xl font-bold text-gray-900'>{sisa}
                   <span className='text-sm font-normal text-gray-400'> / {lt.maxDays}</span>
                 </div>
-                <div className='h-1.5 bg-gray-100 rounded-full mt-2'>
-                  <div className='h-1.5 rounded-full' style={{
+                <div className='h-1.5 bg-gray-200 rounded-full mt-2 overflow-hidden'>
+                  <div className='h-1.5 rounded-full transition-all' style={{
                     width: `${pct}%`,
                     background: pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#10b981'
                   }} />
@@ -102,94 +108,75 @@ export default function ApplyLeavePage() {
             )
           })}
         </div>
-      </div>
+      </SectionCard>
 
       {/* Form */}
-      <div className='bg-white rounded-xl p-6 shadow-sm mb-6'>
-        <h2 className='text-sm font-bold text-gray-700 mb-4'>{t('📝 Ajukan Cuti','📝 Submit Leave')}</h2>
+      <SectionCard icon='📝' title={t('Ajukan Cuti','Submit Leave')} className='mb-6'>
         {msg && (
-          <div className={`text-sm px-4 py-2.5 rounded-lg mb-4 ${msg.type === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
+          <div className={`text-sm px-4 py-2.5 rounded-xl mb-4 ${msg.type === 'error' ? 'bg-red-50 text-red-600 ring-1 ring-red-200' : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'}`}>
             {msg.text}
           </div>
         )}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <div>
-            <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Jenis Cuti','Leave Type')}</label>
-            <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-              className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
+          <FormField label={t('Jenis Cuti','Leave Type')}>
+            <Select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
               <option value=''>{t('-- Pilih Jenis Cuti --','-- Select Leave Type --')}</option>
               {activeTypes.map(lt => <option key={lt.id} value={lt.name}>{lt.name} ({t('sisa','remaining')}: {lt.maxDays - leaveUsed(lt.name)} {t('hari','days')})</option>)}
-            </select>
-          </div>
-          <div>
-            <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Keterangan','Note')}</label>
-            <input value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
-              className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'
+            </Select>
+          </FormField>
+          <FormField label={t('Keterangan','Note')}>
+            <Input value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
               placeholder={t('Opsional','Optional')} />
-          </div>
-          <div>
-            <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Tanggal Mulai','Start Date')}</label>
-            <input type='date' value={form.start} onChange={e => setForm(f => ({ ...f, start: e.target.value }))}
-              className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-          </div>
-          <div>
-            <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Tanggal Selesai','End Date')}</label>
-            <input type='date' value={form.end} onChange={e => setForm(f => ({ ...f, end: e.target.value }))}
-              className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-          </div>
+          </FormField>
+          <FormField label={t('Tanggal Mulai','Start Date')}>
+            <Input type='date' value={form.start} onChange={e => setForm(f => ({ ...f, start: e.target.value }))} />
+          </FormField>
+          <FormField label={t('Tanggal Selesai','End Date')}>
+            <Input type='date' value={form.end} onChange={e => setForm(f => ({ ...f, end: e.target.value }))} />
+          </FormField>
         </div>
-        <button onClick={handleSubmit}
-          className='mt-4 px-6 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
-          style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+        <ActionButton onClick={handleSubmit} className='mt-4'>
           {t('Ajukan Cuti','Submit Leave')}
-        </button>
-      </div>
+        </ActionButton>
+      </SectionCard>
 
       {/* History */}
-      <div className='bg-white rounded-xl p-6 shadow-sm'>
-        <h2 className='text-sm font-bold text-gray-700 mb-4'>{t('📄 Riwayat Pengajuan','📄 Submission History')}</h2>
-        <div className='overflow-x-auto'>
-          <table className='w-full text-sm'>
-            <thead>
-              <tr className='bg-gray-50'>
-                {[t('Jenis','Type'),t('Mulai','Start'),t('Selesai','End'),t('Hari','Days'),t('Keterangan','Note'),'Status',''].map((h,i) => (
-                  <th key={i} className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {myLeaves.length ? myLeaves.map(l => (
-                <tr key={l.id}
-                  onClick={() => setSelectedLeaveId(l.id)}
-                  className={`border-t border-gray-100 cursor-pointer transition ${
-                    selectedLeaveId === l.id
-                      ? 'bg-red-50 border-l-2 border-l-red-400'
-                      : 'hover:bg-gray-50'
-                  }`}>
-                  <td className='px-4 py-2.5'>{l.type}</td>
-                  <td className='px-4 py-2.5'>{l.start}</td>
-                  <td className='px-4 py-2.5'>{l.end}</td>
-                  <td className='px-4 py-2.5'>{daysBetween(l.start, l.end)}</td>
-                  <td className='px-4 py-2.5 text-gray-500'>{l.note || '-'}</td>
-                  <td className='px-4 py-2.5'>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badge(l.status)}`}>{l.status}</span>
-                  </td>
-                  <td className='px-4 py-2.5'>
-                    {canWithdraw(l) && (
-                      <button onClick={() => handleWithdraw(l)}
-                        className='text-xs font-semibold text-orange-500 hover:text-orange-700 border border-orange-200 hover:border-orange-400 px-2.5 py-1 rounded-lg hover:bg-orange-50 transition'>
-                        ↩ Withdraw
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              )) : (
-                <tr><td colSpan={7} className='px-4 py-8 text-center text-gray-400 text-sm'>{t('Belum ada pengajuan.','No submissions yet.')}</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <SectionCard icon='📄' title={t('Riwayat Pengajuan','Submission History')} bodyClass='p-0'>
+        {myLeaves.length ? (
+          <DataTable columns={[
+            { label: t('Jenis','Type') },
+            { label: t('Mulai','Start') },
+            { label: t('Selesai','End') },
+            { label: t('Hari','Days') },
+            { label: t('Keterangan','Note') },
+            { label: 'Status' },
+            { label: '' },
+          ]}>
+            {myLeaves.map(l => (
+              <Tr key={l.id} onClick={() => setSelectedLeaveId(l.id)} active={selectedLeaveId === l.id}>
+                <Td className='font-medium text-gray-800'>{l.type}</Td>
+                <Td>{l.start}</Td>
+                <Td>{l.end}</Td>
+                <Td>{daysBetween(l.start, l.end)}</Td>
+                <Td className='text-gray-500'>{l.note || '-'}</Td>
+                <Td><StatusBadge status={l.status} /></Td>
+                <Td>
+                  {canWithdraw(l) && (
+                    <button onClick={(e) => { e.stopPropagation(); handleWithdraw(l) }}
+                      className='text-xs font-semibold text-orange-500 hover:text-orange-700 border border-orange-200 hover:border-orange-400 px-2.5 py-1 rounded-lg hover:bg-orange-50 transition'>
+                      ↩ Withdraw
+                    </button>
+                  )}
+                </Td>
+              </Tr>
+            ))}
+          </DataTable>
+        ) : (
+          <div className='p-5'>
+            <EmptyState icon='🗓️' title={t('Belum ada pengajuan.','No submissions yet.')} />
+          </div>
+        )}
+      </SectionCard>
 
       {/* Workflow Monitor — hanya tampil untuk row yang dipilih */}
       {selectedLeaveId && (() => {
