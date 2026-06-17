@@ -1,11 +1,11 @@
 ﻿'use client'
-import { useState }         from 'react'
-import Link                 from 'next/link'
-import { usePathname }      from 'next/navigation'
-import { useAuthStore }     from '@/store/authStore'
-import { useEmployeeStore } from '@/store/employeeStore'
-import SidebarSection       from './SidebarSection'
-import SidebarSubModule     from './SidebarSubModule'
+import { useState, useEffect } from 'react'
+import Link                    from 'next/link'
+import { usePathname }         from 'next/navigation'
+import { useAuthStore }        from '@/store/authStore'
+import { useEmployeeStore }    from '@/store/employeeStore'
+import SidebarSection          from './SidebarSection'
+import SidebarSubModule        from './SidebarSubModule'
 
 function NavItem({ icon, label, href }) {
   const pathname = usePathname()
@@ -45,8 +45,35 @@ export default function Sidebar() {
   const hasSubordinates = employees.some(e => e.managerId === currentUser?.id)
   const canMgr = r === 'manager' || r === 'superadmin' || hasSubordinates
 
+  const pathname = usePathname()
+
   const [openSection,   setOpenSection  ] = useState(null)
   const [openSubModule, setOpenSubModule] = useState(null)
+
+  // Auto-expand the correct section and submodule based on current URL
+  useEffect(() => {
+    if (pathname.startsWith('/ess'))        { setOpenSection('ess'); return }
+    if (pathname.startsWith('/mss'))        { setOpenSection('mss'); return }
+    if (pathname.startsWith('/hr'))         { setOpenSection('hr');  return }
+    if (pathname.startsWith('/sysadmin'))   { setOpenSection('sysadmin'); return }
+  }, [pathname])
+
+  useEffect(() => {
+    if (pathname.startsWith('/ess/learning'))                         { setOpenSubModule('ess-learning'); return }
+    if (pathname.startsWith('/mss/personnel-action'))                 { setOpenSubModule('mss-pa'); return }
+    if (pathname.startsWith('/mss/learning'))                         { setOpenSubModule('mss-learning'); return }
+    if (pathname.startsWith('/hr/onboarding') || pathname.startsWith('/hr/evaluation')) { setOpenSubModule('onboarding'); return }
+    if (pathname.startsWith('/hr/structure') || pathname.startsWith('/hr/org'))         { setOpenSubModule('structure'); return }
+    if (pathname === '/hr/employee' || pathname.startsWith('/hr/apply-leave'))          { setOpenSubModule('employee'); return }
+    if (pathname.startsWith('/hr/employee/personnel-action'))         { setOpenSubModule('personnel-action'); return }
+    if (pathname.startsWith('/hr/time-labour'))                       { setOpenSubModule('time-labour'); return }
+    if (pathname.startsWith('/hr/absence'))                           { setOpenSubModule('absence'); return }
+    if (pathname.startsWith('/hr/payroll'))                           { setOpenSubModule('payroll'); return }
+    if (pathname.startsWith('/hr/learning/master-content') || pathname.startsWith('/hr/learning/master-instructor') || pathname.startsWith('/hr/learning/master-classroom') || pathname.startsWith('/hr/learning/master-supplier')) { setOpenSubModule('hr-lrn-resources'); return }
+    if (pathname.startsWith('/sysadmin/workflow'))                    { setOpenSubModule('workflow'); return }
+    if (pathname.startsWith('/sysadmin/branding'))                    { setOpenSubModule('branding'); return }
+    if (pathname === '/sysadmin/users' || pathname === '/sysadmin/leave-workflow') { setOpenSubModule('settings'); return }
+  }, [pathname])
 
   const toggleSection = (key) => {
     setOpenSection(s => s === key ? null : key)
