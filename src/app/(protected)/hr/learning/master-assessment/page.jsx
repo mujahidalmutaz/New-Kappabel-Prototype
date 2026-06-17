@@ -27,24 +27,24 @@ export default function MasterAssessmentPage() {
   const filtered = data.filter(d => d.title.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.title) return flash('Judul assessment wajib diisi.', 'error')
+    if (!form.title) return flash(t('Judul assessment wajib diisi.','Assessment title is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,questions:Number(form.questions),passing_score:Number(form.passing_score),duration:Number(form.duration)}:d))
-      flash('Assessment diperbarui.'); setEditing(null)
+      flash(t('Assessment diperbarui.','Assessment updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,questions:Number(form.questions),passing_score:Number(form.passing_score),duration:Number(form.duration)}])
-      flash('Assessment ditambahkan.')
+      flash(t('Assessment ditambahkan.','Assessment added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ title:item.title, type:item.type, questions:String(item.questions), passing_score:String(item.passing_score), duration:String(item.duration), randomize:item.randomize, course:item.course, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Assessment dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Assessment dihapus.','Assessment deleted.')) }
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Assessment</h1>
-      <p className='text-gray-500 text-sm mb-6'>Kelola Pre-Test, Post-Test, Quiz, Assignment, dan Certification Exam.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Assessment','Master Assessment')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Kelola Pre-Test, Post-Test, Quiz, Assignment, dan Certification Exam.','Manage Pre-Tests, Post-Tests, Quizzes, Assignments, and Certification Exams.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Assessment', data.length, '📝', '#8B1A1A'],['Active', data.filter(d=>d.status==='Active').length, '✅', '#059669'],['Draft', data.filter(d=>d.status==='Draft').length, '📄', '#d97706'],['Avg Passing Score', Math.round(data.reduce((a,d)=>a+d.passing_score,0)/data.length)+'%', '🎯', '#7c3aed']].map(([l,v,i,c])=>(
@@ -57,7 +57,7 @@ export default function MasterAssessmentPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Assessment':'➕ Tambah Assessment'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Assessment','✏️ Edit Assessment'):`➕ ${t('Tambah Assessment','Add Assessment')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Judul Assessment','title'],['Nama Course/Program','course']].map(([l,k])=>(
@@ -91,7 +91,7 @@ export default function MasterAssessmentPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari assessment...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari assessment...','Search assessment...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>

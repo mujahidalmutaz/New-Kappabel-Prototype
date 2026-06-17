@@ -27,26 +27,26 @@ export default function LearningCommunitiesPage() {
   const filtered = data.filter(d => d.name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.name) return flash('Nama komunitas wajib diisi.', 'error')
+    if (!form.name) return flash(t('Nama komunitas wajib diisi.','Community name is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form}:d))
-      flash('Komunitas diperbarui.'); setEditing(null)
+      flash(t('Komunitas diperbarui.','Community updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,member_count:0,post_count:0,created:new Date().toISOString().slice(0,10)}])
-      flash('Komunitas ditambahkan.')
+      flash(t('Komunitas ditambahkan.','Community added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ name:item.name, category:item.category, type:item.type, facilitator:item.facilitator, description:item.description||'', status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Komunitas dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Komunitas dihapus.','Community deleted.')) }
 
   const CATEGORIES = ['Leadership & Management','Technical Skills','Compliance & Regulasi','Soft Skills','K3 & Safety','Digital Literacy','HR & People Management','Finance & Accounting']
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Learning Communities</h1>
-      <p className='text-gray-500 text-sm mb-6'>Kelola komunitas pembelajaran — forum diskusi, knowledge sharing, dan kolaborasi antar karyawan.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Learning Communities','Master Learning Communities')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Kelola komunitas pembelajaran — forum diskusi, knowledge sharing, dan kolaborasi antar karyawan.','Manage learning communities — discussion forums, knowledge sharing, and employee collaboration.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Komunitas', data.length, '🌐', '#8B1A1A'],['Total Member', data.reduce((a,d)=>a+d.member_count,0), '👥', '#059669'],['Total Post', data.reduce((a,d)=>a+d.post_count,0), '💬', '#7c3aed'],['Active', data.filter(d=>d.status==='Active').length, '✅', '#d97706']].map(([l,v,i,c])=>(
@@ -59,7 +59,7 @@ export default function LearningCommunitiesPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Komunitas':'➕ Tambah Komunitas'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Komunitas','✏️ Edit Community'):`➕ ${t('Tambah Komunitas','Add Community')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Komunitas','name'],['Facilitator/Moderator','facilitator']].map(([l,k])=>(
@@ -85,7 +85,7 @@ export default function LearningCommunitiesPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari komunitas...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari komunitas...','Search community...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>

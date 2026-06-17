@@ -28,24 +28,24 @@ export default function MasterGamificationPage() {
   const filtered = data.filter(d => d.rule_name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.rule_name) return flash('Nama rule wajib diisi.', 'error')
+    if (!form.rule_name) return flash(t('Nama rule wajib diisi.','Rule name is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,points:Number(form.points)}:d))
-      flash('Gamification rule diperbarui.'); setEditing(null)
+      flash(t('Gamification rule diperbarui.','Gamification rule updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,points:Number(form.points)}])
-      flash('Gamification rule ditambahkan.')
+      flash(t('Gamification rule ditambahkan.','Gamification rule added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ rule_name:item.rule_name, trigger:item.trigger, points:String(item.points), badge:item.badge, reward_type:item.reward_type, description:item.description, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Rule dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Rule dihapus.','Rule deleted.')) }
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Gamification Rules</h1>
-      <p className='text-gray-500 text-sm mb-6'>Pengaturan sistem gamification — poin, badge, level, dan reward untuk meningkatkan engagement learner.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Gamification Rules','Master Gamification Rules')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Pengaturan sistem gamification — poin, badge, level, dan reward untuk meningkatkan engagement learner.','Configure the gamification system — points, badges, levels, and rewards to boost learner engagement.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Rules', data.length, '🎮', '#8B1A1A'],['Active Rules', data.filter(d=>d.status==='Active').length, '✅', '#059669'],['Total Poin Max', data.reduce((a,d)=>a+d.points,0), '⭐', '#d97706'],['Badge Tersedia', data.filter(d=>d.badge).length, '🏆', '#7c3aed']].map(([l,v,i,c])=>(
@@ -58,7 +58,7 @@ export default function MasterGamificationPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Rule':'➕ Tambah Rule'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Rule','✏️ Edit Rule'):`➕ ${t('Tambah Rule','Add Rule')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Rule','rule_name'],['Badge (emoji + nama)','badge']].map(([l,k])=>(
@@ -87,7 +87,7 @@ export default function MasterGamificationPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari gamification rule...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari gamification rule...','Search gamification rule...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>

@@ -26,24 +26,24 @@ export default function SpecializationsPage() {
   const filtered = data.filter(d => d.name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.name) return flash('Nama specialization wajib diisi.', 'error')
+    if (!form.name) return flash(t('Nama specialization wajib diisi.','Specialization name is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,course_count:Number(form.course_count),duration_weeks:Number(form.duration_weeks)}:d))
-      flash('Specialization diperbarui.'); setEditing(null)
+      flash(t('Specialization diperbarui.','Specialization updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,course_count:Number(form.course_count),duration_weeks:Number(form.duration_weeks),enrolled:0,completion_rate:0}])
-      flash('Specialization ditambahkan.')
+      flash(t('Specialization ditambahkan.','Specialization added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ name:item.name, category:item.category, course_count:String(item.course_count), duration_weeks:String(item.duration_weeks), target_role:item.target_role, description:item.description||'', status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Specialization dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Specialization dihapus.','Specialization deleted.')) }
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Specializations</h1>
-      <p className='text-gray-500 text-sm mb-6'>Jalur spesialisasi pembelajaran — kumpulan course yang disusun menjadi satu jalur keahlian terstruktur.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Specializations','Specializations')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Jalur spesialisasi pembelajaran — kumpulan course yang disusun menjadi satu jalur keahlian terstruktur.','Learning specialisation paths — a collection of courses structured into a single skill track.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Specialization', data.length, '🛤️', '#8B1A1A'],['Total Enrolled', data.reduce((a,d)=>a+d.enrolled,0), '👥', '#059669'],['Avg Completion', Math.round(data.reduce((a,d)=>a+d.completion_rate,0)/data.length)+'%', '📈', '#7c3aed'],['Active', data.filter(d=>d.status==='Active').length, '✅', '#d97706']].map(([l,v,i,c])=>(
@@ -56,7 +56,7 @@ export default function SpecializationsPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Specialization':'➕ Tambah Specialization'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing ? `✏️ ${t('Edit Specialization','Edit Specialization')}` : `➕ ${t('Tambah Specialization','Add Specialization')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Specialization','name'],['Target Role/Audience','target_role']].map(([l,k])=>(
@@ -87,7 +87,7 @@ export default function SpecializationsPage() {
         </div>
 
         <div className='lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 content-start'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari specialization...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari specialization...','Search specialization...')}
             className='md:col-span-2 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
           {filtered.map(d=>(
             <div key={d.id} className='bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition'>

@@ -48,8 +48,8 @@ export default function HrLearningCalendarPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Learning Calendar</h1>
-      <p className='text-gray-500 text-sm mb-6'>Jadwal seluruh kegiatan pembelajaran — otomatis dari data course batch dan sesi yang dijadwalkan.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Learning Calendar','Master Learning Calendar')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Jadwal seluruh kegiatan pembelajaran — otomatis dari data course batch dan sesi yang dijadwalkan.','Schedule of all learning activities — automatically generated from course batch and session data.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
@@ -88,7 +88,7 @@ export default function HrLearningCalendarPage() {
         <button onClick={()=>setShowForm(true)}
           className='ml-auto px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90'
           style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-          + Tambah Event
+          {t('+ Tambah Event','+ Add Event')}
         </button>
       </div>
 
@@ -149,7 +149,7 @@ export default function HrLearningCalendarPage() {
                       <span className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${TYPE_DOT[ev.type]}`}></span>
                       <div>
                         <div className='text-xs font-semibold text-gray-700 line-clamp-1'>{ev.title}</div>
-                        <div className='text-xs text-gray-400'>{ev.date.slice(8)} {MONTHS[month]} · {ev.enrolled} peserta</div>
+                        <div className='text-xs text-gray-400'>{ev.date.slice(8)} {MONTHS[month]} · {ev.enrolled} {t('peserta','participants')}</div>
                       </div>
                       <span className={`ml-auto text-xs px-1.5 py-0.5 rounded font-semibold ${ev.status==='Published'?'text-green-700':'text-yellow-700'}`}>{ev.status}</span>
                     </div>

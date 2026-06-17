@@ -32,18 +32,18 @@ export default function SkillQualificationPage() {
   const openEdit = (item) => { setForm({...item}); setEditItem(item.id); setShowForm(true) }
 
   const handleSave = () => {
-    if (!form.name || !form.issuedBy) return flash('Nama dan penerbit wajib diisi.')
+    if (!form.name || !form.issuedBy) return flash(t('Nama dan penerbit wajib diisi.','Name and issuer are required.'))
     if (editItem) {
       setData(prev=>prev.map(d=>d.id===editItem?{...form,id:editItem,status:'Active'}:d))
-      flash('Item berhasil diperbarui.')
+      flash(t('Item berhasil diperbarui.','Item updated.'))
     } else {
       setData(prev=>[...prev,{...form,id:Date.now(),status:'Active'}])
-      flash('Item berhasil ditambahkan.')
+      flash(t('Item berhasil ditambahkan.','Item added.'))
     }
     setShowForm(false)
   }
 
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Item berhasil dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Item berhasil dihapus.','Item deleted.')) }
 
   const filtered = data.filter(d=>
     (filterCat==='Semua'||d.category===filterCat) &&
@@ -52,18 +52,18 @@ export default function SkillQualificationPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Skill & Qualification</h1>
-      <p className='text-gray-500 text-sm mb-6'>Kelola daftar keterampilan, sertifikasi, dan kualifikasi yang diakui perusahaan dalam LMS.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Skill & Qualification','Master Skill & Qualification')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Kelola daftar keterampilan, sertifikasi, dan kualifikasi yang diakui perusahaan dalam LMS.','Manage the list of skills, certifications, and qualifications recognised by the company in the LMS.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
       <div className='flex items-center gap-3 mb-4 flex-wrap'>
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari nama skill/sertifikasi...'
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari nama skill/sertifikasi...','Search skill/certification name...')}
           className='flex-1 min-w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
         <button onClick={openAdd}
           className='px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90'
           style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-          + Tambah Item
+          + {t('Tambah Item','Add Item')}
         </button>
       </div>
 
@@ -79,7 +79,7 @@ export default function SkillQualificationPage() {
 
       {showForm && (
         <div className='bg-white rounded-xl p-6 shadow-sm border border-red-200 mb-6'>
-          <h3 className='font-bold text-gray-700 mb-4'>{editItem?'Edit':'Tambah'} Skill / Qualification</h3>
+          <h3 className='font-bold text-gray-700 mb-4'>{editItem ? `✏️ ${t('Edit Skill / Qualification','Edit Skill / Qualification')}` : `➕ ${t('Tambah Skill / Qualification','Add Skill / Qualification')}`}</h3>
           <div className='grid grid-cols-2 gap-4 mb-4'>
             <div className='col-span-2'>
               <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Nama <span className='text-red-500'>*</span></label>
@@ -111,7 +111,7 @@ export default function SkillQualificationPage() {
             </div>
           </div>
           <div className='flex gap-3'>
-            <button onClick={handleSave} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>Simpan</button>
+            <button onClick={handleSave} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>{editItem ? t('Simpan','Save') : t('Tambah','Add')}</button>
             <button onClick={()=>setShowForm(false)} className='px-6 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200'>{t('Batal','Cancel')}</button>
           </div>
         </div>

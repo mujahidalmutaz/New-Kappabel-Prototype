@@ -35,27 +35,27 @@ export default function CourseLearnersPage() {
   )
 
   const handleSave = () => {
-    if (!form.learner || !form.course) return flash('Nama learner dan course wajib diisi.', 'error')
+    if (!form.learner || !form.course) return flash(t('Nama learner dan course wajib diisi.','Learner name and course are required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form}:d))
-      flash('Data learner diperbarui.'); setEditing(null)
+      flash(t('Data learner diperbarui.','Learner data updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,progress:0,score:null,completed:''}])
-      flash('Learner ditambahkan.')
+      flash(t('Learner ditambahkan.','Learner added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ learner:item.learner, nik:item.nik, course:item.course, batch:item.batch, assignment:item.assignment, enrolled:item.enrolled, due:item.due, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Learner dihapus dari course.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Learner dihapus dari course.','Learner removed from course.')) }
 
   const statusColor = (s) => ({ 'Not Started':'bg-gray-100 text-gray-500', 'In Progress':'bg-blue-50 text-blue-700', Completed:'bg-green-50 text-green-700', Overdue:'bg-red-50 text-red-700', Withdrawn:'bg-orange-50 text-orange-700' }[s])
   const assignColor = (a) => ({ Required:'bg-red-50 text-red-700', Voluntary:'bg-blue-50 text-blue-700', Recommendation:'bg-yellow-50 text-yellow-700' }[a])
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Course — Learners Management</h1>
-      <p className='text-gray-500 text-sm mb-6'>Kelola peserta course — assignment, progress, completion, dan mass action.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Course — Learners Management','Course — Learners Management')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Kelola peserta course — assignment, progress, completion, dan mass action.','Manage course participants — assignment, progress, completion, and mass actions.')}</p>
 
       <div className='grid grid-cols-5 gap-3 mb-6'>
         {[['Total Peserta', data.length, '👥', '#8B1A1A'],['Completed', data.filter(d=>d.status==='Completed').length, '✅', '#059669'],['In Progress', data.filter(d=>d.status==='In Progress').length, '🔵', '#2563eb'],['Overdue', data.filter(d=>d.status==='Overdue').length, '⚠️', '#dc2626'],['Not Started', data.filter(d=>d.status==='Not Started').length, '⭕', '#6b7280']].map(([l,v,i,c])=>(
@@ -68,7 +68,7 @@ export default function CourseLearnersPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Learner':'➕ Tambah Learner'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Learner','✏️ Edit Learner'):`➕ ${t('Tambah Learner','Add Learner')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Learner','learner'],['NIK','nik'],['Course','course'],['Batch/Sesi','batch']].map(([l,k])=>(
@@ -99,7 +99,7 @@ export default function CourseLearnersPage() {
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
           <div className='flex flex-wrap gap-2 mb-4'>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari learner atau course...'
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari learner atau course...','Search learner or course...')}
               className='flex-1 min-w-40 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}
               className='px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none'>

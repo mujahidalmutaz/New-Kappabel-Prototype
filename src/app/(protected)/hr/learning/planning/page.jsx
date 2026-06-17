@@ -27,26 +27,26 @@ export default function MasterLearningPlanningPage() {
   const filtered = data.filter(d => d.plan_name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.plan_name) return flash('Nama program wajib diisi.', 'error')
+    if (!form.plan_name) return flash(t('Nama program wajib diisi.','Programme name is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,course_count:Number(form.course_count)}:d))
-      flash('Program diperbarui.'); setEditing(null)
+      flash(t('Program diperbarui.','Programme updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,course_count:Number(form.course_count),completion_rate:0}])
-      flash('Program ditambahkan.')
+      flash(t('Program ditambahkan.','Programme added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ plan_name:item.plan_name, type:item.type, target:item.target, course_count:String(item.course_count), start_date:item.start_date, end_date:item.end_date, description:item.description||'', status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Program dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Program dihapus.','Programme deleted.')) }
 
   const statusColor = (s) => ({ Draft:'bg-gray-100 text-gray-500', Published:'bg-blue-50 text-blue-700', 'In Progress':'bg-yellow-50 text-yellow-700', Completed:'bg-green-50 text-green-700', Archived:'bg-gray-100 text-gray-400' }[s])
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Learning Planning</h1>
-      <p className='text-gray-500 text-sm mb-6'>Susun program dan rencana pembelajaran karyawan — IDP, mandatory training, onboarding, dan succession plan.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Learning Planning','Master Learning Planning')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Susun program dan rencana pembelajaran karyawan — IDP, mandatory training, onboarding, dan succession plan.','Build employee learning programmes and plans — IDP, mandatory training, onboarding, and succession planning.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Program', data.length, '📋', '#8B1A1A'],['In Progress', data.filter(d=>d.status==='In Progress').length, '🔵', '#2563eb'],['Avg Completion', Math.round(data.reduce((a,d)=>a+d.completion_rate,0)/data.length)+'%', '📈', '#059669'],['Draft', data.filter(d=>d.status==='Draft').length, '📝', '#d97706']].map(([l,v,i,c])=>(
@@ -59,7 +59,7 @@ export default function MasterLearningPlanningPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Program':'➕ Tambah Program'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Program','✏️ Edit Programme'):`➕ ${t('Tambah Program','Add Programme')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Program','plan_name'],['Target Peserta','target']].map(([l,k])=>(
@@ -95,7 +95,7 @@ export default function MasterLearningPlanningPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari program...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari program...','Search programme...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='flex flex-col gap-4'>
             {filtered.map(d=>(

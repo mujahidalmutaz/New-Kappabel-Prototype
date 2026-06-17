@@ -36,26 +36,26 @@ export default function QuestionLibraryPage() {
   )
 
   const handleSave = () => {
-    if (!form.question) return flash('Pertanyaan wajib diisi.', 'error')
+    if (!form.question) return flash(t('Pertanyaan wajib diisi.','Question is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,options:Number(form.options)||0}:d))
-      flash('Soal diperbarui.'); setEditing(null)
+      flash(t('Soal diperbarui.','Question updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,options:Number(form.options)||0}])
-      flash('Soal ditambahkan.')
+      flash(t('Soal ditambahkan.','Question added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ question:item.question, type:item.type, category:item.category, difficulty:item.difficulty, options:String(item.options), answer:item.answer||'', status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Soal dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Soal dihapus.','Question deleted.')) }
 
   const diffColor = (d) => ({ Easy:'bg-green-50 text-green-700', Medium:'bg-yellow-50 text-yellow-700', Hard:'bg-red-50 text-red-700' }[d])
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Question Library</h1>
-      <p className='text-gray-500 text-sm mb-6'>Bank soal terpusat — dapat digunakan untuk quiz, assessment, certification, dan survey.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Question Library','Master Question Library')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Bank soal terpusat — dapat digunakan untuk quiz, assessment, certification, dan survey.','Centralised question bank — usable for quizzes, assessments, certifications, and surveys.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Soal', data.length, '📋', '#8B1A1A'],['Easy', data.filter(d=>d.difficulty==='Easy').length, '🟢', '#059669'],['Medium', data.filter(d=>d.difficulty==='Medium').length, '🟡', '#d97706'],['Hard', data.filter(d=>d.difficulty==='Hard').length, '🔴', '#dc2626']].map(([l,v,i,c])=>(
@@ -68,7 +68,7 @@ export default function QuestionLibraryPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Soal':'➕ Tambah Soal'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Soal','✏️ Edit Question'):`➕ ${t('Tambah Soal','Add Question')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Pertanyaan</label>
@@ -95,7 +95,7 @@ export default function QuestionLibraryPage() {
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
           <div className='flex flex-wrap gap-2 mb-4'>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari soal...'
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari soal...','Search question...')}
               className='flex-1 min-w-40 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
               className='px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-400'>

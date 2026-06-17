@@ -35,13 +35,13 @@ export default function LearnersTrackerPage() {
   const handleMarkComplete = () => {
     if (!selected.length) return
     setData(prev => prev.map(d => selected.includes(d.id) ? { ...d, status:'Completed', progress:100, completed:new Date().toISOString().slice(0,10) } : d))
-    flash(`${selected.length} learner ditandai Completed.`)
+    flash(t(`${selected.length} learner ditandai Completed.`,`${selected.length} learner(s) marked Completed.`))
     setSelected([])
   }
 
   const handleSendReminder = () => {
     if (!selected.length) return
-    flash(`Reminder terkirim ke ${selected.length} learner.`)
+    flash(t(`Reminder terkirim ke ${selected.length} learner.`,`Reminder sent to ${selected.length} learner(s).`))
     setSelected([])
   }
 
@@ -52,8 +52,8 @@ export default function LearnersTrackerPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Learners Tracker</h1>
-      <p className='text-gray-500 text-sm mb-6'>Monitoring assignment dan progress learning seluruh learner — bulk action, reminder, dan completion tracking.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Learners Tracker','Learners Tracker')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Monitoring assignment dan progress learning seluruh learner — bulk action, reminder, dan completion tracking.','Monitor learning assignments and progress for all learners — bulk actions, reminders, and completion tracking.')}</p>
 
       {msg && <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
 
@@ -68,7 +68,7 @@ export default function LearnersTrackerPage() {
 
       <div className='bg-white rounded-xl p-6 shadow-sm'>
         <div className='flex flex-wrap gap-3 mb-4 items-center'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari learner, course, atau departemen...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari learner, course, atau departemen...','Search learner, course, or department...')}
             className='flex-1 min-w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
           <div className='flex gap-1 flex-wrap'>
             {['All',...TRACK_STATUS].map(s=>(
@@ -81,8 +81,8 @@ export default function LearnersTrackerPage() {
         {selected.length > 0 && (
           <div className='flex items-center gap-3 mb-4 px-4 py-3 bg-red-50 rounded-lg'>
             <span className='text-sm font-semibold text-red-700'>{selected.length} dipilih</span>
-            <button onClick={handleMarkComplete} className='px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700'>Mark Completed</button>
-            <button onClick={handleSendReminder} className='px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700'>Kirim Reminder</button>
+            <button onClick={handleMarkComplete} className='px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700'>{t('Mark Completed','Mark Completed')}</button>
+            <button onClick={handleSendReminder} className='px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700'>{t('Kirim Reminder','Send Reminder')}</button>
             <button onClick={()=>setSelected([])} className='px-3 py-1.5 bg-gray-200 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-300'>{t('Batal','Cancel')}</button>
           </div>
         )}
@@ -105,7 +105,7 @@ export default function LearnersTrackerPage() {
                 <td className='px-3 py-2.5 text-xs text-gray-500 whitespace-nowrap'>{d.due}</td>
                 <td className='px-3 py-2.5'>
                   <div className='flex items-center gap-2'>
-                    <div className='w-14 bg-gray-200 rounded-full h-1.5'><div className={`h-1.5 rounded-full ${d.status==='Overdue'?'bg-red-500':'bg-red-500'}`} style={{ width:`${d.progress}%` }}></div></div>
+                    <div className='w-14 bg-gray-200 rounded-full h-1.5'><div className={`h-1.5 rounded-full ${d.status==='Completed'?'bg-green-500':'bg-red-500'}`} style={{ width:`${d.progress}%` }}></div></div>
                     <span className='text-xs text-gray-500'>{d.progress}%</span>
                   </div>
                 </td>
