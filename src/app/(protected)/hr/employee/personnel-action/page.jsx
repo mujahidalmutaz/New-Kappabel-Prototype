@@ -89,7 +89,7 @@ export default function PersonnelActionIndex() {
                 <tr><td colSpan={6} className='text-center py-10 text-gray-400 text-sm'>{t('Belum ada Personnel Action', 'No Personnel Actions yet')}</td></tr>
               ) : [...pas].sort((a,b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 10).map(pa => {
                 const e = employees.find(x => x.id === pa.employeeId)
-                const act = ACTIONS.find(x => x.key === pa.action)
+                const act = ACTIONS(t).find(x => x.key === pa.action)
                 return (
                   <tr key={pa.id} className='hover:bg-gray-50/50'>
                     <td className='px-4 py-3'>
