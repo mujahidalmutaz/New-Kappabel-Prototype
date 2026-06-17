@@ -1,0 +1,109 @@
+'use client'
+import { useState } from 'react'
+import { useT } from '@/store/languageStore'
+
+const RECOMMENDATIONS = [
+  { id:1, employee:'Ahmad Fauzi', basis:'Competency Gap: Leadership', course:'Leadership Fundamentals L1', type:'Development', priority:'High', reason:'Gap 2 level pada kompetensi Leadership. Required untuk target jabatan Finance Manager.', duration:'20 jam', status:'Pending' },
+  { id:2, employee:'Ahmad Fauzi', basis:'IDP Goal: Data Analytics', course:'Python for Data Analysis', type:'Development', priority:'Medium', reason:'Sesuai tujuan IDP Q3 2025 untuk meningkatkan kemampuan analisis data.', duration:'25 jam', status:'Pending' },
+  { id:3, employee:'Rizky Pratama', basis:'Competency Gap: Communication', course:'Business Communication & Presentation', type:'Development', priority:'High', reason:'Score komunikasi sangat rendah (2/5). Kritikal untuk career progression.', duration:'12 jam', status:'Assigned' },
+  { id:4, employee:'Budi Rahayu', basis:'Mandatory Overdue', course:'K3 & Keselamatan Kerja Dasar', type:'Mandatory', priority:'Critical', reason:'Training K3 sudah overdue 4 bulan. Wajib diselesaikan segera.', duration:'8 jam', status:'Pending' },
+  { id:5, employee:'Siti Nurhaliza', basis:'Skill Gap: Digital Marketing', course:'Digital Marketing Advanced', type:'Development', priority:'Medium', reason:'Mendukung peningkatan performa kampanye Q4.', duration:'18 jam', status:'Assigned' },
+  { id:6, employee:'Dewi Sari', basis:'Certification Track', course:'SHRM-CP Certification Preparation', type:'Certification', priority:'Medium', reason:'Persiapan sertifikasi SHRM untuk profesionalisme HR.', duration:'30 jam', status:'Pending' },
+]
+
+const PRIORITY_COLOR = { Critical:'bg-red-100 text-red-700 border-red-200', High:'bg-orange-50 text-orange-700 border-orange-200', Medium:'bg-blue-50 text-blue-700 border-blue-200', Low:'bg-gray-100 text-gray-600 border-gray-200' }
+const TYPE_COLOR = { Mandatory:'bg-red-50 text-red-700', Development:'bg-red-50 text-red-700', Certification:'bg-green-50 text-green-700', Elective:'bg-gray-100 text-gray-600' }
+
+export default function RecommendationPage() {
+  const t = useT()
+  const [recs, setRecs] = useState(RECOMMENDATIONS)
+  const [filter, setFilter] = useState('Semua')
+  const [msg, setMsg] = useState(null)
+
+  const flash = (text) => { setMsg(text); setTimeout(()=>setMsg(null), 3000) }
+
+  const handleAssign = (id) => {
+    setRecs(prev=>prev.map(r=>r.id===id?{...r,status:'Assigned'}:r))
+    flash('Rekomendasi berhasil di-assign ke karyawan.')
+  }
+
+  const handleIgnore = (id) => {
+    setRecs(prev=>prev.map(r=>r.id===id?{...r,status:'Dismissed'}:r))
+  }
+
+  const employees = [...new Set(RECOMMENDATIONS.map(r=>r.employee))]
+  const filtered = recs.filter(r=>(filter==='Semua'||r.employee===filter) && r.status!=='Dismissed')
+
+  return (
+    <div>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Learning Recommendation</h1>
+      <p className='text-gray-500 text-sm mb-6'>Rekomendasi kursus yang dihasilkan sistem berdasarkan gap kompetensi dan IDP anggota tim.</p>
+
+      {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
+
+      <div className='grid grid-cols-4 gap-4 mb-6'>
+        {[['Critical', recs.filter(r=>r.priority==='Critical'&&r.status!=='Dismissed').length,'🚨','#dc2626'],
+          ['High Priority', recs.filter(r=>r.priority==='High'&&r.status!=='Dismissed').length,'⚠️','#d97706'],
+          ['Sudah Assigned', recs.filter(r=>r.status==='Assigned').length,'✅','#059669'],
+          ['Total Rekomendasi', recs.filter(r=>r.status!=='Dismissed').length,'📋','#8B1A1A']].map(([l,v,i,c])=>(
+          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
+            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
+            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
+          </div>
+        ))}
+      </div>
+
+      <div className='flex gap-2 mb-6 flex-wrap'>
+        {['Semua', ...employees].map(e=>(
+          <button key={e} onClick={()=>setFilter(e)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${filter===e?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+            style={filter===e?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
+            {e}
+          </button>
+        ))}
+      </div>
+
+      <div className='space-y-3'>
+        {filtered.map(r=>(
+          <div key={r.id} className={`bg-white rounded-xl p-5 shadow-sm border ${PRIORITY_COLOR[r.priority]}`}>
+            <div className='flex items-start justify-between mb-2'>
+              <div>
+                <div className='flex items-center gap-2 mb-1'>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${PRIORITY_COLOR[r.priority]}`}>{r.priority}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${TYPE_COLOR[r.type]}`}>{r.type}</span>
+                  {r.status==='Assigned' && <span className='text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-semibold'>✅ Assigned</span>}
+                </div>
+                <div className='font-bold text-gray-800'>{r.course}</div>
+                <div className='text-sm text-gray-500'>untuk <span className='font-semibold text-red-700'>{r.employee}</span></div>
+              </div>
+              <div className='text-xs text-gray-400 text-right'>
+                <div>Durasi: {r.duration}</div>
+                <div className='mt-0.5 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold'>🎯 {r.basis}</div>
+              </div>
+            </div>
+            <p className='text-xs text-gray-600 mb-3'>💡 {r.reason}</p>
+            {r.status==='Pending' && (
+              <div className='flex gap-2'>
+                <button onClick={()=>handleAssign(r.id)}
+                  className='px-4 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90'
+                  style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
+                  ✅ Assign ke Karyawan
+                </button>
+                <button onClick={()=>handleIgnore(r.id)}
+                  className='px-4 py-1.5 text-xs font-semibold text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200'>
+                  Abaikan
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className='text-center py-12 text-gray-400'>
+            <div className='text-4xl mb-2'>🎉</div>
+            <p>Tidak ada rekomendasi untuk {filter}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,168 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── AUTH & USERS ─────────────────────────────
+model User {
+  id       Int     @id @default(autoincrement())
+  username String  @unique
+  password String
+  name     String
+  role     String  // employee | manager | hr | superadmin
+  dept     String
+  position String
+  email    String
+  salary   Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leaves   Leave[]
+}
+
+// ─── EMPLOYEE ─────────────────────────────────
+model Employee {
+  id       Int     @id @default(autoincrement())
+  nik      String  @unique
+  name     String
+  dept     String
+  position String
+  role     String
+  status   String  @default("Active")
+  joinDate String
+  email    String
+  salary   Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payroll     Payroll?
+  assignments ScheduleAssignment[]
+  attendance  Attendance[]
+}
+
+// ─── LEAVE ────────────────────────────────────
+model LeaveType {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  maxDays     Int
+  requireDoc  Boolean @default(false)
+  levels      String  // JSON string: ["Manager","HR"]
+  autoApprove Boolean @default(false)
+  active      Boolean @default(true)
+
+  leaves Leave[]
+}
+
+model Leave {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  typeId    Int
+  leaveType LeaveType @relation(fields: [typeId], references: [id])
+  typeName  String
+  startDate String
+  endDate   String
+  note      String?
+  status    String    @default("Pending") // Pending | Approved | Rejected
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// ─── HOLIDAY ──────────────────────────────────
+model Holiday {
+  id        Int     @id @default(autoincrement())
+  country   String
+  name      String
+  date      String
+  type      String  @default("National") // National | Optional | Company
+  recurring Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ─── SHIFT ────────────────────────────────────
+model Shift {
+  id         Int     @id @default(autoincrement())
+  name       String
+  code       String  @unique
+  startTime  String
+  endTime    String
+  breakMins  Int     @default(60)
+  color      String  @default("#3b82f6")
+  type       String  @default("Regular") // Regular | Off | Flexible
+  overnight  Boolean @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model ShiftPattern {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  days        String  // JSON: {"1":4,"2":4,...,"7":5} shiftId per day
+  createdAt   DateTime @default(now())
+
+  workSchedules WorkSchedule[]
+}
+
+model WorkSchedule {
+  id            Int          @id @default(autoincrement())
+  name          String
+  patternId     Int
+  pattern       ShiftPattern @relation(fields: [patternId], references: [id])
+  effectiveDate String
+  endDate       String?
+  timezone      String       @default("WIB (UTC+7)")
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  assignments ScheduleAssignment[]
+}
+
+model ScheduleAssignment {
+  id            Int          @id @default(autoincrement())
+  empId         Int
+  employee      Employee     @relation(fields: [empId], references: [id])
+  wsId          Int
+  workSchedule  WorkSchedule @relation(fields: [wsId], references: [id])
+  effectiveDate String
+  endDate       String?
+  createdAt     DateTime     @default(now())
+}
+
+// ─── ATTENDANCE ───────────────────────────────
+model Attendance {
+  id       Int      @id @default(autoincrement())
+  empId    Int
+  employee Employee @relation(fields: [empId], references: [id])
+  date     String   // YYYY-MM-DD
+  status   String   // P | A | L | H
+  note     String?
+  createdAt DateTime @default(now())
+
+  @@unique([empId, date])
+}
+
+// ─── PAYROLL ──────────────────────────────────
+model Payroll {
+  id         Int      @id @default(autoincrement())
+  empId      Int      @unique
+  employee   Employee @relation(fields: [empId], references: [id])
+  month      Int
+  year       Int
+  basic      Int
+  allowance  Int      @default(0)
+  overtime   Int      @default(0)
+  deduction  Int      @default(0)
+  bpjsHealth Int      @default(0)
+  bpjsTk     Int      @default(0)
+  pph21      Int      @default(0)
+  paid       Boolean  @default(false)
+  paidAt     DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

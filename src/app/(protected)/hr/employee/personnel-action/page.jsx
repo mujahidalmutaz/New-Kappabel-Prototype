@@ -1,0 +1,126 @@
+'use client'
+import Link from 'next/link'
+import { usePersonnelActionStore, PA_ACTION_COLOR, PA_ACTION_ICON, PA_STATUS_COLOR } from '@/store/personnelActionStore'
+import { useEmployeeStore } from '@/store/employeeStore'
+import { useT } from '@/store/languageStore'
+
+const ACTIONS = [
+  { key: 'Promote',                href: 'promote',                desc: 'Kenaikan posisi & grade karyawan',          color: 'border-red-200 hover:border-red-400' },
+  { key: 'Transfer',               href: 'transfer',               desc: 'Mutasi antar departemen (satu perusahaan)', color: 'border-blue-200 hover:border-blue-400' },
+  { key: 'Demote',                 href: 'demote',                 desc: 'Penurunan posisi atau grade karyawan',      color: 'border-orange-200 hover:border-orange-400' },
+  { key: 'Transfer Across Company',href: 'transfer-across-company',desc: 'Mutasi lintas perusahaan dalam group',      color: 'border-indigo-200 hover:border-indigo-400' },
+  { key: 'Terminate',              href: 'terminate',              desc: 'Pemutusan hubungan kerja',                  color: 'border-red-200 hover:border-red-400' },
+  { key: 'Rehire',                 href: 'rehire',                 desc: 'Rekrutmen kembali mantan karyawan',         color: 'border-green-200 hover:border-green-400' },
+  { key: 'Change Employment Type', href: 'change-employment-type', desc: 'Ubah jenis kepegawaian (kontrak ↔ tetap)',  color: 'border-cyan-200 hover:border-cyan-400' },
+  { key: 'Extend Contract',        href: 'extend-contract',        desc: 'Perpanjangan kontrak kerja',               color: 'border-teal-200 hover:border-teal-400' },
+]
+
+export default function PersonnelActionIndex() {
+  const t = useT()
+  const { pas }      = usePersonnelActionStore()
+  const { employees } = useEmployeeStore()
+
+  const total   = pas.length
+  const draft   = pas.filter(p => p.status === 'Draft').length
+  const pending = pas.filter(p => p.status === 'Submitted').length
+  const applied = pas.filter(p => p.status === 'Applied').length
+
+  return (
+    <div className='min-h-screen bg-gray-50'>
+      {/* Header */}
+      <div className='bg-gradient-to-r from-violet-700 to-red-600 text-white px-8 py-6'>
+        <h1 className='text-2xl font-bold'>Personnel Action</h1>
+        <p className='text-violet-200 text-sm mt-0.5'>Employee Movement — pilih jenis aksi yang ingin diproses</p>
+        <div className='grid grid-cols-4 gap-4 mt-5'>
+          {[['Total PA', total, 'bg-white/20'], ['Draft', draft, 'bg-gray-400/30'], ['Pending', pending, 'bg-yellow-400/30'], ['Applied', applied, 'bg-green-400/30']].map(([l,v,c]) => (
+            <div key={l} className={`${c} rounded-xl px-4 py-3`}>
+              <p className='text-xs text-violet-100'>{l}</p>
+              <p className='text-2xl font-bold'>{v}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Action cards */}
+      <div className='px-8 py-6'>
+        <div className='grid grid-cols-4 gap-4'>
+          {ACTIONS.map(a => {
+            const count = pas.filter(p => p.action === a.key).length
+            const draftCount = pas.filter(p => p.action === a.key && p.status === 'Draft').length
+            const submittedCount = pas.filter(p => p.action === a.key && p.status === 'Submitted').length
+            return (
+              <Link key={a.key} href={`/hr/employee/personnel-action/${a.href}`}
+                className={`bg-white rounded-2xl border-2 ${a.color} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-5 flex flex-col gap-3`}>
+                <div className='flex items-start justify-between'>
+                  <span className='text-3xl'>{PA_ACTION_ICON[a.key]}</span>
+                  <div className='flex flex-col items-end gap-1'>
+                    {draftCount > 0 && <span className='text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full'>{draftCount} draft</span>}
+                    {submittedCount > 0 && <span className='text-xs font-semibold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full'>{submittedCount} pending</span>}
+                  </div>
+                </div>
+                <div>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full inline-block mb-1.5 ${PA_ACTION_COLOR[a.key]}`}>{a.key}</span>
+                  <p className='text-xs text-gray-500 leading-relaxed'>{a.desc}</p>
+                </div>
+                <p className='text-xl font-bold text-gray-900 mt-auto'>{count} <span className='text-sm font-normal text-gray-400'>PA</span></p>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Recent activity */}
+      <div className='px-8 pb-8'>
+        <div className='bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden'>
+          <div className='px-5 py-4 border-b border-gray-50 flex items-center justify-between'>
+            <p className='font-bold text-gray-900'>Aktivitas Terbaru</p>
+            <p className='text-xs text-gray-400'>10 PA terakhir</p>
+          </div>
+          <table className='w-full text-sm'>
+            <thead>
+              <tr className='bg-gray-50 border-b'>
+                {['PA Number','Karyawan','Action','Effective Date','Status','Dibuat'].map(h => (
+                  <th key={h} className='text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide'>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className='divide-y divide-gray-50'>
+              {pas.length === 0 ? (
+                <tr><td colSpan={6} className='text-center py-10 text-gray-400 text-sm'>Belum ada Personnel Action</td></tr>
+              ) : [...pas].sort((a,b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 10).map(pa => {
+                const e = employees.find(x => x.id === pa.employeeId)
+                const act = ACTIONS.find(x => x.key === pa.action)
+                return (
+                  <tr key={pa.id} className='hover:bg-gray-50/50'>
+                    <td className='px-4 py-3'>
+                      <Link href={`/hr/employee/personnel-action/${act?.href || ''}`}
+                        className='font-mono text-xs font-semibold text-violet-700 bg-violet-50 px-2 py-0.5 rounded hover:bg-violet-100 transition-colors'>
+                        {pa.paNumber}
+                      </Link>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <div className='flex items-center gap-2'>
+                        <span>{e?.gender === 'Female' ? '👩' : '👨'}</span>
+                        <span className='font-medium text-gray-800'>{e?.name || '—'}</span>
+                      </div>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${PA_ACTION_COLOR[pa.action] || 'bg-gray-100 text-gray-600'}`}>
+                        {PA_ACTION_ICON[pa.action]} {pa.action}
+                      </span>
+                    </td>
+                    <td className='px-4 py-3 text-xs text-gray-600'>{pa.effectiveDate || '—'}</td>
+                    <td className='px-4 py-3'>
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${PA_STATUS_COLOR[pa.status] || ''}`}>{pa.status}</span>
+                    </td>
+                    <td className='px-4 py-3 text-xs text-gray-400'>{pa.createdAt}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
