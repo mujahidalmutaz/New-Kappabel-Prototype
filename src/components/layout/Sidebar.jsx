@@ -30,8 +30,32 @@ function FlyItem({ label, href, onClick }) {
 }
 
 // ─── Flyout group ─────────────────────────────────────────────────────────────
-function FlyGroup({ title, items, onClose }) {
+function FlyGroup({ title, items, isParent, subGroups, onClose }) {
   const [open, setOpen] = useState(true)
+
+  if (isParent) {
+    return (
+      <div className='mb-1'>
+        <button onClick={() => setOpen(o => !o)}
+          className='w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-700 uppercase tracking-wider hover:text-gray-900 transition rounded-lg mx-1'
+          style={{ background: open ? '#fef2f2' : 'transparent' }}>
+          <span>{title}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+            style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }}>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        {open && (
+          <div className='pl-2 mt-1'>
+            {subGroups?.map((g, i) => (
+              <FlyGroup key={i} title={g.title} items={g.items} onClose={onClose} />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className='mb-2'>
       {title && (
@@ -170,42 +194,44 @@ const HR_GROUPS = [
   { title: 'Payroll', items: [
     { label: 'Payroll Run', href: '/hr/payroll/run' },
   ]},
-  { title: 'Learning — Resources', items: [
-    { label: 'Master Content',       href: '/hr/learning/master-content' },
-    { label: 'Master Instructors',   href: '/hr/learning/master-instructors' },
-    { label: 'Master Classroom',     href: '/hr/learning/master-classroom' },
-    { label: 'Training Suppliers',   href: '/hr/learning/master-suppliers' },
-  ]},
-  { title: 'Learning — Assessment', items: [
-    { label: 'Question Library',  href: '/hr/learning/question-library' },
-    { label: 'Master Assessment', href: '/hr/learning/master-assessment' },
-    { label: 'Master Evaluation', href: '/hr/learning/evaluation' },
-  ]},
-  { title: 'Learning — Certification', items: [
-    { label: 'Master Certificate', href: '/hr/learning/certificate' },
-  ]},
-  { title: 'Learning — Catalog', items: [
-    { label: 'Course',          href: '/hr/learning/course' },
-    { label: 'Course Batch',    href: '/hr/learning/course-batch' },
-    { label: 'Course Learners', href: '/hr/learning/course-learners' },
-    { label: 'Specializations', href: '/hr/learning/specializations' },
-    { label: 'Communities',     href: '/hr/learning/communities' },
-  ]},
-  { title: 'Learning — Assignment', items: [
-    { label: 'Master Cohort',    href: '/hr/learning/cohort' },
-    { label: 'Learners Tracker', href: '/hr/learning/learners-tracker' },
-  ]},
-  { title: 'Learning — Competency', items: [
-    { label: 'Competency Matrix',    href: '/hr/learning/competency-matrix' },
-    { label: 'Skill & Qualification',href: '/hr/learning/skill-qualification' },
-  ]},
-  { title: 'Learning — Config', items: [
-    { label: 'Learning Planning',     href: '/hr/learning/planning' },
-    { label: 'Learning Calendar',     href: '/hr/learning/calendar' },
-    { label: 'Questionnaires',        href: '/hr/learning/questionnaires' },
-    { label: 'Notification Template', href: '/hr/learning/notification-template' },
-    { label: 'Approval Workflow',     href: '/hr/learning/approval-workflow' },
-    { label: 'Gamification Rules',    href: '/hr/learning/gamification' },
+  { title: 'Learning Management', isParent: true, subGroups: [
+    { title: 'Resources', items: [
+      { label: 'Master Content',       href: '/hr/learning/master-content' },
+      { label: 'Master Instructors',   href: '/hr/learning/master-instructors' },
+      { label: 'Master Classroom',     href: '/hr/learning/master-classroom' },
+      { label: 'Training Suppliers',   href: '/hr/learning/master-suppliers' },
+    ]},
+    { title: 'Assessment', items: [
+      { label: 'Question Library',  href: '/hr/learning/question-library' },
+      { label: 'Master Assessment', href: '/hr/learning/master-assessment' },
+      { label: 'Master Evaluation', href: '/hr/learning/evaluation' },
+    ]},
+    { title: 'Certification', items: [
+      { label: 'Master Certificate', href: '/hr/learning/certificate' },
+    ]},
+    { title: 'Catalog', items: [
+      { label: 'Course',          href: '/hr/learning/course' },
+      { label: 'Course Batch',    href: '/hr/learning/course-batch' },
+      { label: 'Course Learners', href: '/hr/learning/course-learners' },
+      { label: 'Specializations', href: '/hr/learning/specializations' },
+      { label: 'Communities',     href: '/hr/learning/communities' },
+    ]},
+    { title: 'Assignment', items: [
+      { label: 'Master Cohort',    href: '/hr/learning/cohort' },
+      { label: 'Learners Tracker', href: '/hr/learning/learners-tracker' },
+    ]},
+    { title: 'Competency', items: [
+      { label: 'Competency Matrix',    href: '/hr/learning/competency-matrix' },
+      { label: 'Skill & Qualification',href: '/hr/learning/skill-qualification' },
+    ]},
+    { title: 'Config', items: [
+      { label: 'Learning Planning',     href: '/hr/learning/planning' },
+      { label: 'Learning Calendar',     href: '/hr/learning/calendar' },
+      { label: 'Questionnaires',        href: '/hr/learning/questionnaires' },
+      { label: 'Notification Template', href: '/hr/learning/notification-template' },
+      { label: 'Approval Workflow',     href: '/hr/learning/approval-workflow' },
+      { label: 'Gamification Rules',    href: '/hr/learning/gamification' },
+    ]},
   ]},
 ]
 
@@ -331,7 +357,7 @@ export default function Sidebar() {
           {/* Nav items */}
           <div className='py-3 px-1'>
             {activeSec.groups?.map((g, i) => (
-              <FlyGroup key={i} title={g.title} items={g.items} onClose={closeFlyout} />
+              <FlyGroup key={i} title={g.title} items={g.items} isParent={g.isParent} subGroups={g.subGroups} onClose={closeFlyout} />
             ))}
           </div>
         </div>
