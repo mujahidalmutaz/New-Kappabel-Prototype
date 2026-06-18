@@ -105,7 +105,7 @@ export default function MasterCertificatePage() {
     updateTemplateRtf,
   } = useCertificateStore()
 
-  const [tab, setTab] = useState('course')
+  const [tab, setTab] = useState('templates')
 
   // Course settings state
   const [courseForm,    setCourseForm   ] = useState(EMPTY_COURSE)
@@ -311,7 +311,7 @@ export default function MasterCertificatePage() {
 
       {/* Tabs */}
       <div className='flex gap-2 mb-6'>
-        {[['course','⚙️ Pengaturan Course'],['templates','📄 Template RTF per Perusahaan'],['variables','{ } Referensi Variabel']].map(([k,l])=>(
+        {[['templates','📄 Template RTF per Perusahaan'],['variables','{ } Referensi Variabel']].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)}
             className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition ${tab===k?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
             style={tab===k?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
