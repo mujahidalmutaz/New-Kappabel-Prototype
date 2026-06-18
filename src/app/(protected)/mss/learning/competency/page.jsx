@@ -106,7 +106,7 @@ export default function TeamCompetencyPage() {
                     <span>{Object.values(m.competencies).filter(v=>v<=2).length} {t('kompetensi perlu dikembangkan','competencies need development')}</span>
                   </div>
                   <button className='px-3 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-                    Lihat Rekomendasi Kursus →
+                    {t('Lihat Rekomendasi Kursus', 'View Course Recommendations')} →
                   </button>
                 </div>
               </div>

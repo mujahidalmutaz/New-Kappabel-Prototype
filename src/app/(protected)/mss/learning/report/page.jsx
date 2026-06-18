@@ -20,9 +20,9 @@ export default function TeamLearningReportPage() {
   const t = useT()
   const [period, setPeriod] = useState('2025')
 
-  const totalCPD = TEAM_DATA.reduce((a,t)=>a+t.cpd_points,0)
-  const avgScore = Math.round(TEAM_DATA.filter(t=>t.avg_score>0).reduce((a,t)=>a+t.avg_score,0)/TEAM_DATA.filter(t=>t.avg_score>0).length)
-  const complianceRate = Math.round(TEAM_DATA.filter(t=>t.mandatory_done===t.mandatory_total&&t.mandatory_total>0).length/TEAM_DATA.length*100)
+  const totalCPD = TEAM_DATA.reduce((a,row)=>a+row.cpd_points,0)
+  const avgScore = Math.round(TEAM_DATA.filter(row=>row.avg_score>0).reduce((a,row)=>a+row.avg_score,0)/TEAM_DATA.filter(row=>row.avg_score>0).length)
+  const complianceRate = Math.round(TEAM_DATA.filter(row=>row.mandatory_done===row.mandatory_total&&row.mandatory_total>0).length/TEAM_DATA.length*100)
 
   return (
     <div>
@@ -96,7 +96,7 @@ export default function TeamLearningReportPage() {
           <div className='mt-6 pt-4 border-t border-gray-100'>
             <h3 className='font-semibold text-gray-600 mb-3 text-sm'>{t('📊 Distribusi CPD Points','📊 CPD Points Distribution')}</h3>
             <div className='flex gap-3'>
-              {[['0-10 pts', TEAM_DATA.filter(t=>t.cpd_points<=10).length],['11-30 pts', TEAM_DATA.filter(t=>t.cpd_points>10&&t.cpd_points<=30).length],['>30 pts', TEAM_DATA.filter(t=>t.cpd_points>30).length]].map(([l,v])=>(
+              {[['0-10 pts', TEAM_DATA.filter(row=>row.cpd_points<=10).length],['11-30 pts', TEAM_DATA.filter(row=>row.cpd_points>10&&row.cpd_points<=30).length],['>30 pts', TEAM_DATA.filter(row=>row.cpd_points>30).length]].map(([l,v])=>(
                 <div key={l} className='flex-1 text-center bg-gray-50 rounded-lg p-3'>
                   <div className='text-lg font-bold text-gray-700'>{v}</div>
                   <div className='text-xs text-gray-500'>{l}</div>
