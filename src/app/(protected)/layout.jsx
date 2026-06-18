@@ -49,20 +49,18 @@ export default function ProtectedLayout({ children }) {
         {topbarLogo ? (
           <img src={topbarLogo} alt='Logo' className='object-contain flex-shrink-0' style={{ height: '42px', maxWidth: '160px' }} />
         ) : (
-          <div className='flex items-center gap-2 flex-shrink-0'>
-            {/* K icon */}
-            <div className='flex items-center justify-center rounded-md bg-white' style={{ width: 36, height: 36 }}>
-              <svg width='22' height='22' viewBox='0 0 24 24' fill='none'>
-                <path d='M5 3h4v7.5l6-7.5h5L12.5 12 20 21h-5l-6-7.5V21H5V3z' fill='#D7252B'/>
-              </svg>
-            </div>
+          <div className='flex items-center gap-1.5 flex-shrink-0'>
+            {/* K icon — white on transparent, no background box */}
+            <svg width='28' height='28' viewBox='0 0 24 24' fill='none'>
+              <path d='M5 3h4v7.5l6-7.5h5L12.5 12 20 21h-5l-6-7.5V21H5V3z' fill='white'/>
+            </svg>
             {/* Text */}
             <div className='leading-none'>
-              <div className='flex items-baseline gap-1'>
-                <span className='text-white font-bold text-lg tracking-tight'>appabel</span>
-                <span className='text-white/50 text-[10px] font-semibold border border-white/30 rounded px-1 py-0.5 leading-none'>Prototype</span>
+              <div className='flex items-baseline gap-1.5'>
+                <span className='text-white font-bold text-base tracking-tight'>appabel</span>
+                <span className='text-white/60 text-[9px] font-semibold border border-white/40 rounded px-1 py-0.5 leading-none'>Prototype</span>
               </div>
-              <div className='text-white/60 text-[10px] font-medium tracking-wide'>by Dexa Group</div>
+              <div className='text-white/60 text-[9px] font-medium tracking-wide'>by Dexa Group</div>
             </div>
           </div>
         )}
