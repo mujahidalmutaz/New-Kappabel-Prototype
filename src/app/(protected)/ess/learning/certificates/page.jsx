@@ -40,11 +40,10 @@ function buildCertificateHTML({
   positionName, deptName, theme,
   certNumber, approverName, approverTitle,
 }) {
-  const p  = theme.primary   // main accent — used for title, squares, corner
-  const a  = theme.accent    // secondary accent
+  const p  = theme.primary
+  const a  = theme.accent
   const tx = theme.text
 
-  // encode dot grid as data URI for the top-right decoration
   const dots = dotGrid(6, 5, 3, 14, '#cccccc')
   const dotUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(dots)}`
 
@@ -69,7 +68,6 @@ function buildCertificateHTML({
       overflow: hidden;
     }
 
-    /* ── Header ─────────────────────────────── */
     .hdr {
       display: flex;
       justify-content: space-between;
@@ -90,7 +88,6 @@ function buildCertificateHTML({
       text-align: right;
     }
 
-    /* ── Dot grid — top right ────────────────── */
     .dots {
       position: absolute;
       top: 28mm; right: 14mm;
@@ -98,7 +95,6 @@ function buildCertificateHTML({
       background: url('${dotUri}') no-repeat top right;
     }
 
-    /* ── Geometric deco squares ─────────────── */
     .sq-wrap {
       position: absolute;
       top: 58mm; left: 14mm;
@@ -115,10 +111,9 @@ function buildCertificateHTML({
       background: ${a};
     }
 
-    /* ── Title ──────────────────────────────── */
     .title-wrap {
       margin-top: 56mm;
-      padding: 0 14mm 0 44mm;  /* indent past sq-wrap */
+      padding: 0 14mm 0 44mm;
     }
     .cert-title {
       font-size: 26pt; font-weight: 900;
@@ -128,7 +123,6 @@ function buildCertificateHTML({
       line-height: 1.15;
     }
 
-    /* ── Square deco — right of title ─────── */
     .sq-title-right {
       position: absolute;
       top: 73mm; right: 22mm;
@@ -136,7 +130,6 @@ function buildCertificateHTML({
       background: #aaaaaa;
     }
 
-    /* ── Body ───────────────────────────────── */
     .awarded-to {
       text-align: center;
       font-size: 11pt; color: #666;
@@ -183,7 +176,6 @@ function buildCertificateHTML({
       margin-top: 6mm;
     }
 
-    /* ── Details chips ───────────────────────── */
     .chips {
       display: flex;
       justify-content: center;
@@ -202,7 +194,6 @@ function buildCertificateHTML({
     }
     .chip b { color: ${p}; }
 
-    /* ── Footer ─────────────────────────────── */
     .footer {
       position: absolute;
       bottom: 22mm; left: 0; right: 0;
@@ -225,7 +216,6 @@ function buildCertificateHTML({
     .sig-name  { font-size: 9pt; font-weight: 700; color: #333; }
     .sig-title { font-size: 7.5pt; color: #888; }
 
-    /* ── Bottom-right corner triangle ─────── */
     .corner-tr {
       position: absolute;
       bottom: 0; right: 0;
@@ -349,8 +339,8 @@ export default function CertificatesPage() {
   const handleDownload = async (cert) => {
     setDownloading(cert.id)
 
-    const template = templates.find(t => t.companyId === companyId) || templates[0]
-    const theme    = THEMES.find(t => t.id === template?.themeId)   || THEMES[0]
+    const template = templates.find(tmpl => tmpl.companyId === companyId) || templates[0]
+    const theme    = THEMES.find(tmpl => tmpl.id === template?.themeId)   || THEMES[0]
 
     const courseSetting = courseSettings.find(cs =>
       cert.course.toLowerCase().includes(cs.course.toLowerCase()) ||
@@ -386,13 +376,11 @@ export default function CertificatesPage() {
     }
 
     try {
-      // Load pdf libs on demand
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
         import('html2canvas'),
         import('jspdf'),
       ])
 
-      // ── Determine content, dimensions, margins ────────────────────────────
       let bodyHtml, bgHtml, pageW, pageH, landscape, mT, mB, mL, mR
 
       if (template?.rtfContent) {
@@ -406,7 +394,6 @@ export default function CertificatesPage() {
         mT = r.marginTop;    mB = r.marginBottom
         mL = r.marginLeft;   mR = r.marginRight
       } else {
-        // Fallback: plain HTML certificate (portrait A4)
         pageW = 210; pageH = 297; landscape = false
         mT = 25; mB = 25; mL = 25; mR = 25
         bgHtml = ''
@@ -418,12 +405,10 @@ export default function CertificatesPage() {
           deptName:     currentUser?.dept     || '-',
           theme, certNumber, approverName, approverTitle,
         })
-        // buildCertificateHTML returns a full HTML doc — extract body content
         const m = bodyHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i)
         bodyHtml = m ? m[1] : bodyHtml
       }
 
-      // ── Build off-screen DOM element ──────────────────────────────────────
       const wrapper = document.createElement('div')
       wrapper.style.cssText = 'position:fixed;left:-99999px;top:0;'
 
@@ -442,7 +427,6 @@ export default function CertificatesPage() {
       if (bgHtml) {
         const bgEl = document.createElement('div')
         bgEl.style.cssText = `position:absolute;top:0;left:0;width:${pxW}px;height:${pxH}px;z-index:0;overflow:hidden;`
-        // Re-size the img inside bgHtml to px dimensions
         bgEl.innerHTML = bgHtml.replace(
           /width:[^;]+mm[^;]*;[^"]*height:[^;]+mm/g,
           `width:${pxW}px;height:${pxH}px`
@@ -462,7 +446,6 @@ export default function CertificatesPage() {
       wrapper.appendChild(pageEl)
       document.body.appendChild(wrapper)
 
-      // Wait for all images to finish loading
       await Promise.all(
         [...pageEl.querySelectorAll('img')].map(img =>
           img.complete
@@ -471,7 +454,6 @@ export default function CertificatesPage() {
         )
       )
 
-      // ── Render to canvas ──────────────────────────────────────────────────
       const canvas = await html2canvas(pageEl, {
         scale: 2,
         useCORS: true,
@@ -484,7 +466,6 @@ export default function CertificatesPage() {
 
       document.body.removeChild(wrapper)
 
-      // ── Export as PDF ─────────────────────────────────────────────────────
       const pdf = new jsPDF({
         orientation: landscape ? 'l' : 'p',
         unit: 'mm',
@@ -505,11 +486,11 @@ export default function CertificatesPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Certificates</h1>
-      <p className='text-gray-500 text-sm mb-6'>Sertifikat yang telah Anda raih dan progress menuju sertifikat berikutnya.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Sertifikat yang telah Anda raih dan progress menuju sertifikat berikutnya.','Certificates you have earned and progress towards your next certificate.')}</p>
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
         {[
-          ['Sertifikat Diraih', CERTS.length,                              '🏆', '#d97706'],
+          [t('Sertifikat Diraih','Certificates Earned'), CERTS.length,                              '🏆', '#d97706'],
           ['Valid',             CERTS.filter(c=>c.status==='Valid').length, '✅', '#059669'],
           ['CPD Points',        CERTS.reduce((a,c)=>a+c.cpd_points, 0),   '⭐', '#7c3aed'],
         ].map(([l,v,i,c])=>(
@@ -521,7 +502,7 @@ export default function CertificatesPage() {
       </div>
 
       <div className='flex gap-2 mb-4'>
-        {[['earned','🏆 Sertifikat Diraih'],['progress','⏳ Dalam Proses']].map(([k,l])=>(
+        {[[`earned`,t('🏆 Sertifikat Diraih','🏆 Earned Certificates')],[`progress`,t('⏳ Dalam Proses','⏳ In Progress')]].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${tab===k?'bg-red-600 text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
             {l}
@@ -532,21 +513,17 @@ export default function CertificatesPage() {
       {tab==='earned' && (
         <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
           {CERTS.map(c=>{
-            const template = templates.find(t => t.companyId === companyId) || templates[0]
-            const theme    = THEMES.find(t => t.id === template?.themeId)  || THEMES[0]
+            const template = templates.find(tmpl => tmpl.companyId === companyId) || templates[0]
+            const theme    = THEMES.find(tmpl => tmpl.id === template?.themeId)  || THEMES[0]
             return (
               <div key={c.id} className='bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:border-red-200 transition'>
-                {/* mini certificate preview header */}
                 <div className='relative h-20 overflow-hidden' style={{ background:'white', borderBottom:'1px solid #f0f0f0' }}>
-                  {/* corner triangle */}
                   <div className='absolute bottom-0 right-0 w-0 h-0'
                     style={{ borderStyle:'solid', borderWidth:'0 0 40px 40px', borderColor:`transparent transparent ${theme.primary} transparent` }}></div>
                   <div className='absolute bottom-0 right-0 w-0 h-0'
                     style={{ borderStyle:'solid', borderWidth:'0 0 26px 26px', borderColor:`transparent transparent ${theme.accent} transparent` }}></div>
-                  {/* deco squares */}
                   <div className='absolute top-3 left-3 w-4 h-4 rounded-sm' style={{ background:'#ccc', opacity:0.6 }}></div>
                   <div className='absolute top-5 left-1 w-2.5 h-2.5 rounded-sm' style={{ background:theme.accent }}></div>
-                  {/* title */}
                   <div className='absolute inset-0 flex flex-col items-center justify-center'>
                     <div className='text-xs font-black tracking-widest uppercase' style={{ color:theme.primary }}>Certificate of Completion</div>
                     <div className='text-xs text-gray-400 mt-0.5'>{c.course}</div>
@@ -558,27 +535,27 @@ export default function CertificatesPage() {
                     <div>
                       <div className='font-bold text-gray-800'>{c.title}</div>
                       <div className='text-xs mt-0.5' style={{ color: theme.primary }}>
-                        {THEMES.find(t=>t.id===template?.themeId)?.label || 'Navy Corporate'} Theme
+                        {THEMES.find(tmpl=>tmpl.id===template?.themeId)?.label || 'Navy Corporate'} Theme
                       </div>
                     </div>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${c.status==='Valid'?'bg-green-50 text-green-700':'bg-red-50 text-red-700'}`}>{c.status}</span>
                   </div>
                   <div className='flex gap-3 flex-wrap text-xs text-gray-500 mb-4'>
-                    <span>📅 Terbit: {c.issued}</span>
-                    <span>⏰ {c.expires ? `Berlaku s/d ${c.expires}` : 'Selamanya'}</span>
+                    <span>📅 {t('Terbit','Issued')}: {c.issued}</span>
+                    <span>⏰ {c.expires ? t(`Berlaku s/d ${c.expires}`,`Valid until ${c.expires}`) : t('Selamanya','Permanent')}</span>
                     <span>⭐ {c.cpd_points} CPD</span>
-                    <span>📊 Nilai: <b className='text-gray-700'>{c.score} ({getGrade(c.score)})</b></span>
+                    <span>📊 {t('Nilai','Score')}: <b className='text-gray-700'>{c.score} ({getGrade(c.score)})</b></span>
                   </div>
                   <div className='flex gap-2'>
                     <button className='flex-1 py-2 bg-gray-50 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-100 border border-gray-200'>
-                      👁️ Lihat
+                      👁️ {t('Lihat','View')}
                     </button>
                     <button
                       onClick={() => handleDownload(c)}
                       disabled={downloading === c.id}
                       className='flex-1 py-2 text-white text-xs font-semibold rounded-lg hover:opacity-90 disabled:opacity-60 transition'
                       style={{ background:`linear-gradient(135deg,${theme.primary},${theme.accent})` }}>
-                      {downloading === c.id ? '⏳ Memproses...' : '⬇️ Download PDF'}
+                      {downloading === c.id ? t('⏳ Memproses...','⏳ Processing...') : t('⬇️ Download PDF','⬇️ Download PDF')}
                     </button>
                   </div>
                 </div>
@@ -595,13 +572,13 @@ export default function CertificatesPage() {
               <div className='flex items-start justify-between mb-3'>
                 <div>
                   <div className='font-semibold text-gray-700'>{c.title}</div>
-                  <div className='text-xs text-gray-500 mt-0.5'>Syarat: {c.requirements}</div>
+                  <div className='text-xs text-gray-500 mt-0.5'>{t('Syarat','Requirements')}: {c.requirements}</div>
                   <div className='text-xs text-gray-400 mt-0.5'>Due: {c.due}</div>
                 </div>
-                <span className='text-xs px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 font-semibold'>Dalam Proses</span>
+                <span className='text-xs px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 font-semibold'>{t('Dalam Proses','In Progress')}</span>
               </div>
               <div>
-                <div className='flex justify-between text-xs text-gray-500 mb-1'><span>Progress Course</span><span className='font-semibold'>{c.progress}%</span></div>
+                <div className='flex justify-between text-xs text-gray-500 mb-1'><span>{t('Progress Course','Course Progress')}</span><span className='font-semibold'>{c.progress}%</span></div>
                 <div className='w-full bg-gray-200 rounded-full h-2.5'><div className='h-2.5 rounded-full bg-red-500' style={{ width:`${c.progress}%` }}></div></div>
               </div>
             </div>

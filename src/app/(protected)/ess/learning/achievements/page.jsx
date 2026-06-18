@@ -1,4 +1,6 @@
 'use client'
+import { useT } from '@/store/languageStore'
+
 const BADGES = [
   { id:1, name:'Course Champion', icon:'🎓', desc:'Selesaikan 1 course', points:50, earned:true, date:'2025-01-15' },
   { id:2, name:'Top Scorer', icon:'⭐', desc:'Nilai assessment >= 90%', points:100, earned:true, date:'2025-01-15' },
@@ -26,10 +28,10 @@ export default function AchievementsPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Achievement & Badge</h1>
-      <p className='text-gray-500 text-sm mb-6'>Badge, poin, dan pencapaian learning Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Badge, poin, dan pencapaian learning Anda.','Your badges, points, and learning achievements.')}</p>
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[['Total Poin', myPoints+' pts', '⭐', '#d97706'],['Badge Diraih', myBadges, '🏆', '#059669'],['Ranking', '#4 / 850', '📊', '#7c3aed']].map(([l,v,i,c])=>(
+        {[[t('Total Poin','Total Points'),myPoints+' pts','⭐','#d97706'],[t('Badge Diraih','Badges Earned'),myBadges,'🏆','#059669'],['Ranking','#4 / 850','📊','#7c3aed']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
@@ -64,16 +66,16 @@ export default function AchievementsPage() {
         <div className='bg-white rounded-xl p-6 shadow-sm'>
           <h2 className='font-bold text-gray-700 mb-4'>🏅 Leaderboard</h2>
           <div className='space-y-3'>
-            {LEADERBOARD.map(l=>(
-              <div key={l.rank} className={`flex items-center gap-3 p-3 rounded-xl ${l.isMe?'bg-red-50 border border-red-200':'hover:bg-gray-50'}`}>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${l.rank===1?'bg-yellow-400 text-white':l.rank===2?'bg-gray-400 text-white':l.rank===3?'bg-orange-400 text-white':'bg-gray-200 text-gray-600'}`}>{l.rank}</div>
+            {LEADERBOARD.map(item=>(
+              <div key={item.rank} className={`flex items-center gap-3 p-3 rounded-xl ${item.isMe?'bg-red-50 border border-red-200':'hover:bg-gray-50'}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${item.rank===1?'bg-yellow-400 text-white':item.rank===2?'bg-gray-400 text-white':item.rank===3?'bg-orange-400 text-white':'bg-gray-200 text-gray-600'}`}>{item.rank}</div>
                 <div className='flex-1'>
-                  <div className={`text-sm font-semibold ${l.isMe?'text-red-700':'text-gray-700'}`}>{l.name} {l.isMe&&'(Anda)'}</div>
-                  <div className='text-xs text-gray-400'>{l.dept}</div>
+                  <div className={`text-sm font-semibold ${item.isMe?'text-red-700':'text-gray-700'}`}>{item.name} {item.isMe&&t('(Anda)','(You)')}</div>
+                  <div className='text-xs text-gray-400'>{item.dept}</div>
                 </div>
                 <div className='text-right'>
-                  <div className='text-sm font-bold text-gray-700'>{l.points} pts</div>
-                  <div className='text-xs text-gray-400'>{l.badges} badges</div>
+                  <div className='text-sm font-bold text-gray-700'>{item.points} pts</div>
+                  <div className='text-xs text-gray-400'>{item.badges} badges</div>
                 </div>
               </div>
             ))}
