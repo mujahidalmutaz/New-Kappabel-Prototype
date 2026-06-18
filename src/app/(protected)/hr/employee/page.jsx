@@ -4,6 +4,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEmployeeStore, HISTORY_ACTIONS, HISTORY_REASONS, ACTION_COLOR } from '@/store/employeeStore'
 import { useStructureStore, PC_CATEGORY_COLOR } from '@/store/structureStore'
 import { useT } from '@/store/languageStore'
+import {
+  PageHeader, StatCard, SectionCard, DataTable, Tr, Td,
+  SearchBar, FilterBar, FilterPill, StatusBadge, ActionButton,
+  EmptyState, FormField, Input as DSInput, Select as DSSelect, BRAND_GRADIENT,
+} from '@/components/ui'
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const TABS       = ['Employment','Bio','Dependent','Profile']
@@ -183,97 +188,76 @@ export default function EmployeeDataPage() {
             <p className='text-gray-500 text-sm mt-1'>{t('Tentukan parameter pencarian untuk melihat data karyawan.', 'Set search parameters to view employee data.')}</p>
           </div>
 
-          <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-6'>
+          <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6'>
             <h2 className='text-xs font-bold text-gray-500 uppercase tracking-wide mb-4'>
               🔍 {t('Parameter Pencarian', 'Search Parameters')}
             </h2>
 
             <div className='flex flex-col gap-4'>
               {/* Name / NIK */}
-              <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>
-                  {t('Nama / NIK', 'Name / NIK')}
-                </label>
-                <input
+              <FormField label={t('Nama / NIK', 'Name / NIK')}>
+                <SearchBar
                   value={draftFilters.q}
-                  onChange={e => setDraftFilters(f => ({ ...f, q: e.target.value }))}
-                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                  onChange={v => setDraftFilters(f => ({ ...f, q: v }))}
+                  onSubmit={handleSearch}
                   placeholder={t('Kosongkan untuk tampilkan semua', 'Leave blank to show all')}
-                  autoFocus
-                  className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'
                 />
-              </div>
+              </FormField>
 
               {/* Status */}
-              <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>
-                  {t('Status Karyawan', 'Employee Status')}
-                </label>
-                <div className='flex flex-wrap gap-2'>
+              <FormField label={t('Status Karyawan', 'Employee Status')}>
+                <FilterBar>
                   {STATUS_OPTS.map(o => (
-                    <button key={o.value}
-                      onClick={() => setDraftFilters(f => ({ ...f, status: o.value }))}
-                      className={`px-4 py-2 rounded-lg text-xs font-semibold border transition
-                        ${draftFilters.status === o.value
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'}`}>
+                    <FilterPill key={o.value}
+                      active={draftFilters.status === o.value}
+                      onClick={() => setDraftFilters(f => ({ ...f, status: o.value }))}>
                       {o.value === 'Active' && '🟢 '}
                       {o.value === 'Inactive' && '🔴 '}
                       {o.value === 'Terminated' && '⛔ '}
                       {o.value === 'Resigned' && '🚪 '}
                       {o.value === '' && '📋 '}
                       {o.label}
-                    </button>
+                    </FilterPill>
                   ))}
-                </div>
-              </div>
+                </FilterBar>
+              </FormField>
 
               {/* Department */}
-              <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>Department</label>
-                <select
+              <FormField label='Department'>
+                <DSSelect
                   value={draftFilters.dept}
-                  onChange={e => setDraftFilters(f => ({ ...f, dept: e.target.value }))}
-                  className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
+                  onChange={e => setDraftFilters(f => ({ ...f, dept: e.target.value }))}>
                   <option value=''>{t('— Semua Department —', '— All Departments —')}</option>
                   {structure.departments.map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
-                </select>
-              </div>
+                </DSSelect>
+              </FormField>
 
               {/* Employment Type */}
-              <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>
-                  {t('Tipe Kepegawaian', 'Employment Type')}
-                </label>
-                <select
+              <FormField label={t('Tipe Kepegawaian', 'Employment Type')}>
+                <DSSelect
                   value={draftFilters.empType}
-                  onChange={e => setDraftFilters(f => ({ ...f, empType: e.target.value }))}
-                  className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
+                  onChange={e => setDraftFilters(f => ({ ...f, empType: e.target.value }))}>
                   <option value=''>{t('— Semua Tipe —', '— All Types —')}</option>
                   {EMP_TYPES.map(tp => <option key={tp} value={tp}>{tp}</option>)}
-                </select>
-              </div>
+                </DSSelect>
+              </FormField>
             </div>
 
             <div className='mt-6 flex gap-3'>
-              <button
-                onClick={handleSearch}
-                className='flex-1 py-2.5 text-white text-sm font-bold rounded-xl hover:opacity-90 transition'
-                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                🔍 {t('Cari Karyawan', 'Search Employees')}
-              </button>
-              <button
-                onClick={() => { setDraftFilters({ q:'', status:'Active', dept:'', empType:'' }) }}
-                className='px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-200 transition'>
+              <ActionButton variant='primary' className='flex-1' icon='🔍' onClick={handleSearch}>
+                {t('Cari Karyawan', 'Search Employees')}
+              </ActionButton>
+              <ActionButton variant='secondary'
+                onClick={() => { setDraftFilters({ q:'', status:'Active', dept:'', empType:'' }) }}>
                 {t('Reset', 'Reset')}
-              </button>
+              </ActionButton>
             </div>
             <div className='mt-3'>
               <button
                 onClick={() => { setSearchMode(false); handleNew() }}
-                className='w-full py-2.5 text-sm font-bold rounded-xl border-2 border-red-300 text-red-700 hover:bg-red-50 transition'>
+                className='w-full py-2.5 text-sm font-bold rounded-xl border-2 border-red-200 text-red-700 hover:bg-red-50 transition'>
                 + {t('Tambah Karyawan Baru', 'Add New Employee')}
               </button>
             </div>
@@ -347,7 +331,7 @@ export default function EmployeeDataPage() {
     <div className='flex flex-col gap-3 h-[calc(100vh-5rem)]'>
 
       {/* ── Filter summary bar ── */}
-      <div className='flex items-center gap-3 bg-white rounded-xl shadow-sm px-4 py-2.5 flex-shrink-0'>
+      <div className='flex items-center gap-3 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 px-4 py-2.5 flex-shrink-0'>
         <div className='flex items-center gap-2 flex-wrap flex-1 min-w-0'>
           <span className='text-xs font-semibold text-gray-500'>{t('Filter aktif:', 'Active filters:')}</span>
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full
@@ -379,37 +363,36 @@ export default function EmployeeDataPage() {
         </div>
         <div className='flex items-center gap-2 flex-shrink-0'>
           {!showList && (
-            <button
-              onClick={() => { setSelectedId(null); setIsNew(false) }}
-              className='px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition'>
+            <ActionButton size='sm' variant='secondary'
+              onClick={() => { setSelectedId(null); setIsNew(false) }}>
               ← {t('Daftar', 'List')}
-            </button>
+            </ActionButton>
           )}
-          <button
-            onClick={() => { setDraftFilters({ ...activeFilters }); setSearchMode(true) }}
-            className='px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition'>
+          <ActionButton size='sm' variant='secondary'
+            className='!bg-red-50 !text-red-700 !border-red-100 hover:!bg-red-100'
+            onClick={() => { setDraftFilters({ ...activeFilters }); setSearchMode(true) }}>
             🔍 {t('Ubah Filter', 'Change Filter')}
-          </button>
-          <button
-            onClick={handleNew}
-            className='px-3 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition'
-            style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+          </ActionButton>
+          <ActionButton size='sm' variant='primary' onClick={handleNew}>
             + {t('Karyawan Baru', 'New Employee')}
-          </button>
+          </ActionButton>
         </div>
       </div>
 
       <div className='flex gap-4 flex-1 min-h-0'>
 
       {/* ── LEFT: employee list ────────────────────────────────── */}
-      {showList && <div className='w-64 flex-shrink-0 flex flex-col bg-white rounded-xl shadow-sm overflow-hidden'>
-        <div className='p-4 border-b border-gray-100'>
-          <input value={inlineQ} onChange={e => setInlineQ(e.target.value)}
-            placeholder={t('Cari nama / NIK…', 'Search name / NIK…')}
-            className='w-full px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-400' />
+      {showList && <div className='w-64 flex-shrink-0 flex flex-col bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
+        <div className='p-3 border-b border-gray-100'>
+          <SearchBar value={inlineQ} onChange={setInlineQ}
+            placeholder={t('Cari nama / NIK…', 'Search name / NIK…')} />
         </div>
         <div className='flex-1 overflow-y-auto'>
-          {list.map(e => (
+          {list.length === 0 ? (
+            <div className='p-4'>
+              <EmptyState icon='🔍' title={t('Tidak ada karyawan', 'No employees found')} />
+            </div>
+          ) : list.map(e => (
             <button key={e.id} onClick={()=>handleSelect(e.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 text-left transition border-l-2 ${
                 selectedId===e.id && !isNew
@@ -421,28 +404,26 @@ export default function EmployeeDataPage() {
               </div>
               <div className='min-w-0'>
                 <div className='text-xs font-semibold text-gray-800 truncate'>{e.name}</div>
-                <div className='text-xs text-gray-400'>{e.nik}</div>
-                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${e.status==='Active'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>
-                  {e.status}
-                </span>
+                <div className='text-xs text-gray-400 mb-1'>{e.nik}</div>
+                <StatusBadge status={e.status} />
               </div>
             </button>
           ))}
         </div>
         <div className='p-3 border-t border-gray-100'>
-          <button onClick={handleNew}
-            className='w-full py-2 text-white text-xs font-semibold rounded-lg hover:opacity-90'
-            style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-            {t('+ Karyawan Baru', '+ New Employee')}
-          </button>
+          <ActionButton size='sm' variant='primary' className='w-full' onClick={handleNew}>
+            + {t('Karyawan Baru', 'New Employee')}
+          </ActionButton>
         </div>
       </div>}
 
       {/* ── RIGHT: detail panel ────────────────────────────────── */}
-      <div className='flex-1 flex flex-col bg-white rounded-xl shadow-sm overflow-hidden min-w-0 min-h-0'>
+      <div className='flex-1 flex flex-col bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden min-w-0 min-h-0'>
         {(!emp && !isNew) ? (
-          <div className='flex-1 flex items-center justify-center text-gray-400 text-sm'>
-            {t('Pilih karyawan dari daftar', 'Select an employee from the list')}
+          <div className='flex-1 flex items-center justify-center p-6'>
+            <EmptyState icon='👤'
+              title={t('Pilih karyawan', 'Select an employee')}
+              description={t('Pilih karyawan dari daftar di sebelah kiri untuk melihat detail.', 'Select an employee from the list on the left to view details.')} />
           </div>
         ) : (
           <>
@@ -492,9 +473,7 @@ export default function EmployeeDataPage() {
                           {coCode(emp.companyId)}
                         </span>
                       )}
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${emp.status==='Active'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>
-                        {emp.status}
-                      </span>
+                      <StatusBadge status={emp.status} />
                     </div>
                   </>
                 )}
@@ -504,26 +483,25 @@ export default function EmployeeDataPage() {
               <div className='flex gap-2 flex-shrink-0'>
                 {isNew ? (
                   <>
-                    <button onClick={()=>setIsNew(false)}
-                      className='px-4 py-2 bg-gray-100 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-200'>
+                    <ActionButton size='sm' variant='secondary' onClick={()=>setIsNew(false)}>
                       {t('Batal', 'Cancel')}
-                    </button>
-                    <button onClick={handleSaveNew}
-                      className='px-4 py-2 text-white text-xs font-semibold rounded-lg hover:opacity-90'
-                      style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
+                    </ActionButton>
+                    <ActionButton size='sm' variant='primary' onClick={handleSaveNew}>
                       {t('Simpan', 'Save')}
-                    </button>
+                    </ActionButton>
                   </>
                 ) : (
                   <>
-                    <button onClick={()=>router.push(`/hr/org-chart?focus=${emp.id}`)}
-                      className='px-4 py-2 bg-green-50 text-green-700 text-xs font-semibold rounded-lg hover:bg-green-100 transition flex items-center gap-1.5'>
-                      🌳 <span>Org Chart</span>
-                    </button>
-                    <button onClick={()=>{ if(confirm(t(`Hapus ${emp.name}?`, `Delete ${emp.name}?`))) { deleteEmployee(emp.id); setSelectedId(null) } }}
-                      className='px-4 py-2 bg-red-50 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-100'>
+                    <ActionButton size='sm' variant='secondary'
+                      className='!bg-emerald-50 !text-emerald-700 !border-emerald-100 hover:!bg-emerald-100'
+                      onClick={()=>router.push(`/hr/org-chart?focus=${emp.id}`)}>
+                      🌳 Org Chart
+                    </ActionButton>
+                    <ActionButton size='sm' variant='secondary'
+                      className='!bg-red-50 !text-red-600 !border-red-100 hover:!bg-red-100'
+                      onClick={()=>{ if(confirm(t(`Hapus ${emp.name}?`, `Delete ${emp.name}?`))) { deleteEmployee(emp.id); setSelectedId(null) } }}>
                       🗑️ {t('Hapus', 'Delete')}
-                    </button>
+                    </ActionButton>
                   </>
                 )}
               </div>
@@ -531,15 +509,17 @@ export default function EmployeeDataPage() {
 
             {/* ── Tabs ── */}
             {!isNew && (
-              <div className='flex border-b border-gray-100 px-6'>
-                {TABS.map(t => (
-                  <button key={t} onClick={()=>setTab(t)}
-                    className={`px-4 py-3 text-xs font-semibold border-b-2 transition ${
-                      tab===t ? 'border-red-500 text-red-700' : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}>
-                    {t}
-                  </button>
-                ))}
+              <div className='border-b border-gray-100 px-6 py-3'>
+                <div className='inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1'>
+                  {TABS.map(tb => (
+                    <button key={tb} onClick={()=>setTab(tb)}
+                      className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
+                        tab===tb ? 'bg-white text-red-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      }`}>
+                      {tb}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -551,7 +531,7 @@ export default function EmployeeDataPage() {
             )}
 
             {/* ── Tab content ── */}
-            <div className='flex-1 overflow-y-auto p-6'>
+            <div className='flex-1 overflow-y-auto bg-gray-50/60 p-6'>
               {isNew
                 ? <NewEmployeeForm form={form} setForm={setForm} S={S} />
                 : tab==='Employment'  ? <TabEmployment  emp={emp} S={S} update={updateEmployee} grade={grade} flash={flash}
@@ -1428,9 +1408,9 @@ function HistorySection({ emp, S, grade, flash, addHistory, updateHistory, delet
 
 function Section({ title, children }) {
   return (
-    <div>
-      <h3 className='text-xs font-bold text-gray-500 uppercase tracking-wide mb-3'>{title}</h3>
+    <section className='rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100'>
+      <h3 className='mb-4 text-xs font-bold uppercase tracking-wide text-gray-500'>{title}</h3>
       {children}
-    </div>
+    </section>
   )
 }
