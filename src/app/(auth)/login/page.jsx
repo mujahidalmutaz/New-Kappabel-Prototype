@@ -73,11 +73,7 @@ export default function LoginPage() {
               <p className='text-sm text-gray-400'>Welcome!</p>
               <button onClick={() => setShowDemo(v => !v)}
                 className='flex items-center gap-1.5 text-xs text-gray-400 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:border-gray-400 transition'>
-                <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-                  <rect x='3' y='3' width='7' height='7'/><rect x='14' y='3' width='7' height='7'/>
-                  <rect x='3' y='14' width='7' height='7'/><path d='M14 14h3M17 14v3M14 17h3'/>
-                </svg>
-                QR
+                Demo Account
               </button>
             </div>
 
