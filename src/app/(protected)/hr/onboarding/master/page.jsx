@@ -4,7 +4,7 @@ import { useMasterOnboardingStore } from '@/store/masterOnboardingStore'
 import { useEmployeeStore }         from '@/store/employeeStore'
 import { useStructureStore }        from '@/store/structureStore'
 import { useCourseBatchStore }      from '@/store/courseBatchStore'
-import { useT, useLanguageStore }    from '@/store/languageStore'
+import { useT }                     from '@/store/languageStore'
 
 // ── Row factory helpers ───────────────────────────────────────────────────────
 const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', mentorEmpId: '', mentorName: '', mentorPosition: '', category })
@@ -74,7 +74,7 @@ function LinkCell({ type, value, onChange, batches }) {
     return (
       <select value={value} onChange={e => onChange(e.target.value)}
         className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white w-full min-w-[180px]'>
-        <option value=''>— Batch —</option>
+        <option value=''>— Pilih Batch…</option>
         {batches.map(b => <option key={b.id} value={b.batch_name}>{b.batch_name}</option>)}
       </select>
     )
@@ -96,7 +96,7 @@ function MentorSelect({ empId, employees, positions, onChange }) {
         onChange(e.target.value, emp?.name ?? '', pos?.name ?? '')
       }}
       className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white w-full min-w-[130px]'>
-      <option value=''>— Mentor —</option>
+      <option value=''>— Pilih Mentor…</option>
       {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
     </select>
   )
@@ -107,7 +107,7 @@ function RTC({ value, onChange }) {
   return (
     <select value={value} onChange={e => onChange(e.target.value)}
       className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white w-full min-w-[140px]'>
-      <option value=''>— Type —</option>
+      <option value=''>— Pilih Type…</option>
       {REVIEW_TYPE_LOV.map(opt => <option key={opt} value={opt}>{opt}</option>)}
     </select>
   )
@@ -148,9 +148,7 @@ function TableHead({ t }) {
 }
 
 export default function MasterOnboardingPage() {
-  const t      = useT()
-  const lang   = useLanguageStore(s => s.lang)
-  const locale = lang === 'id' ? 'id-ID' : 'en-GB'
+  const t = useT()
   const { templates, addTemplate, updateTemplate, deleteTemplate } = useMasterOnboardingStore()
   const { employees }  = useEmployeeStore()
   const { positions }  = useStructureStore()
@@ -360,7 +358,7 @@ export default function MasterOnboardingPage() {
               {/* ── Main Section LOV ── */}
               <div className='flex items-start gap-3'>
                 <label className='text-xs font-semibold text-gray-600 w-32 pt-2 flex-shrink-0'>
-                  {t('Main Section','Main Section')}
+                  Main Section
                 </label>
                 <div className='flex-1 space-y-2'>
                   {/* Added section chips */}
@@ -427,7 +425,7 @@ export default function MasterOnboardingPage() {
                 <div className='flex items-center gap-2 min-w-0'>
                   <div className='w-1 h-5 rounded-full flex-shrink-0' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
                   <span className='text-xs font-semibold text-gray-400 uppercase tracking-wide flex-shrink-0'>
-                    {t('Main Section','Main Section')}
+                    Main Section
                   </span>
                   <select
                     value={ms.type}
@@ -638,7 +636,7 @@ export default function MasterOnboardingPage() {
             <thead>
               <tr className='bg-gray-50 border-b border-gray-100'>
                 {[t('Nama Template','Template Name'), t('Deskripsi','Description'),
-                  t('Main Section','Main Section'),
+                  'Main Section',
                   'Status', t('Dibuat','Created'), t('Aksi','Action')].map((h, i) => (
                   <th key={i} className='text-left px-4 py-3 text-xs font-semibold text-gray-500'>{h}</th>
                 ))}
@@ -674,7 +672,7 @@ export default function MasterOnboardingPage() {
                     </span>
                   </td>
                   <td className='px-4 py-3 text-gray-400 text-xs'>
-                    {tpl.createdAt ? new Date(tpl.createdAt).toLocaleDateString(locale) : '—'}
+                    {tpl.createdAt ? new Date(tpl.createdAt).toLocaleDateString('id-ID') : '—'}
                   </td>
                   <td className='px-4 py-3'>
                     <div className='flex gap-2'>

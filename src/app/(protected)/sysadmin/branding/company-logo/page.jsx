@@ -72,7 +72,7 @@ function UploadZone({ current, label, hint, onUpload, onRemove }) {
           <div className='w-40 h-20 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200 overflow-hidden'>
             {current
               ? <img src={current} alt='logo' className='max-w-full max-h-full object-contain p-2' />
-              : <span className='text-gray-300 text-xs'>{t('Belum ada logo','No logo yet')}</span>
+              : <span className='text-gray-300 text-xs'>Belum ada logo</span>
             }
           </div>
           {current && (
@@ -101,7 +101,7 @@ export default function CompanyLogoPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Company Logo</h1>
-      <p className='text-gray-500 text-sm mb-6'>{t('Upload logo perusahaan untuk topbar aplikasi dan halaman login.','Upload company logos for the application topbar and login page.')}</p>
+      <p className='text-gray-500 text-sm mb-6'>Upload logo perusahaan untuk topbar aplikasi dan halaman login.</p>
 
       <div className='flex flex-col gap-6'>
 
@@ -123,7 +123,7 @@ export default function CompanyLogoPage() {
 
         {saved && (
           <div className='fixed bottom-6 right-6 bg-green-600 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg animate-bounce'>
-            ✅ {t('Logo berhasil disimpan!','Logo saved successfully!')}
+            ✅ Logo berhasil disimpan!
           </div>
         )}
 

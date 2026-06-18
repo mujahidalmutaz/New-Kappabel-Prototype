@@ -7,7 +7,7 @@ import { useStructureStore }    from '@/store/structureStore'
 import { useOnboardingStore }   from '@/store/onboardingStore'
 import { useCourseBatchStore }  from '@/store/courseBatchStore'
 import { useFeedbackStore }     from '@/store/feedbackStore'
-import { useT, useLanguageStore } from '@/store/languageStore'
+import { useT }                 from '@/store/languageStore'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TYPE_LOV        = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
@@ -108,7 +108,7 @@ function LinkCell({ type, value, onChange, batches }) {
     return (
       <select value={value} onChange={e => onChange(e.target.value)}
         className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[180px]'>
-        <option value=''>— {t('Pilih Batch','Select Batch')} —</option>
+        <option value=''>— Pilih Batch —</option>
         {batches.map(b => <option key={b.id} value={b.batch_name}>{b.batch_name}</option>)}
       </select>
     )
@@ -214,8 +214,6 @@ function FeedbackModal({ reviewItem, employeeId, employeeName, getFeedback, onCl
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ApproveOnboardingPage() {
   const t                                        = useT()
-  const lang                                     = useLanguageStore(s => s.lang)
-  const locale                                   = lang === 'id' ? 'id-ID' : 'en-GB'
   const router                                   = useRouter()
   const { currentUser }                          = useAuthStore()
   const { employees }                            = useEmployeeStore()
@@ -336,7 +334,7 @@ export default function ApproveOnboardingPage() {
             <table className='w-full text-sm'>
               <thead>
                 <tr className='bg-gray-50'>
-                  {[t('Karyawan','Employee'), t('Departemen','Department'),
+                  {[t('Karyawan','Employee'), 'Department',
                     t('Status Karyawan','Emp. Status'), t('Masa Probasi','Probation'),
                     t('Atasan','Supervisor'), 'Step',
                     t('Tanggal Submit','Submitted')].map((h, i) => (
@@ -367,7 +365,7 @@ export default function ApproveOnboardingPage() {
                         )}
                       </td>
                       <td className='px-4 py-3 text-gray-500 text-xs'>
-                        {ob.submittedAt ? new Date(ob.submittedAt).toLocaleDateString(locale) : '—'}
+                        {ob.submittedAt ? new Date(ob.submittedAt).toLocaleDateString('id-ID') : '—'}
                       </td>
                     </tr>
                   )
@@ -395,7 +393,7 @@ export default function ApproveOnboardingPage() {
             <table className='w-full text-sm'>
               <thead>
                 <tr className='bg-gray-50'>
-                  {[t('Karyawan','Employee'), t('Departemen','Department'),
+                  {[t('Karyawan','Employee'), 'Department',
                     t('Status Karyawan','Emp. Status'), t('Masa Probasi','Probation'),
                     t('Atasan','Supervisor'), t('Status Workflow','Workflow Status'),
                     t('Tanggal Submit','Submitted')].map((h, i) => (
@@ -422,7 +420,7 @@ export default function ApproveOnboardingPage() {
                       </span>
                     </td>
                     <td className='px-4 py-3 text-gray-500 text-xs'>
-                      {ob.submittedAt ? new Date(ob.submittedAt).toLocaleDateString(locale) : '—'}
+                      {ob.submittedAt ? new Date(ob.submittedAt).toLocaleDateString('id-ID') : '—'}
                     </td>
                   </tr>
                 )) : (
@@ -476,7 +474,7 @@ export default function ApproveOnboardingPage() {
           <div className='grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-3'>
             {[
               [t('Nama','Name'),                         selected.employeeName],
-              [t('Departemen','Department'),               selected.department || '—'],
+              ['Department',                               selected.department || '—'],
               [t('Nama / Posisi Atasan','Supervisor'),    `${selected.supervisorName || '—'} / ${selected.supervisorPosition || '—'}`],
               [t('Status Karyawan','Employee Status'),    selected.employmentStatus],
               [t('Masa Probation/Orientasi','Probation'), `${selected.probationPeriod} ${t('Bulan','Month(s)')}`],
@@ -528,7 +526,7 @@ export default function ApproveOnboardingPage() {
                         <td className='px-2 py-1.5 w-40'>
                           <select value={item.type || ''} onChange={e => patchG(item.id, { type: e.target.value, link: '' })}
                             className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
-                            <option value=''>— {t('Pilih','Select')} —</option>
+                            <option value=''>— Pilih —</option>
                             {TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
                           </select>
                         </td>
@@ -542,7 +540,7 @@ export default function ApproveOnboardingPage() {
                             patchG(item.id, { mentorEmpId: e.target.value, mentorName: emp?.name ?? '', mentorPosition: pos?.name ?? '' })
                           }}
                             className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
-                            <option value=''>— {t('Pilih Mentor','Select Mentor')} —</option>
+                            <option value=''>— Pilih Mentor —</option>
                             {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
                           </select>
                         </td>
@@ -603,7 +601,7 @@ export default function ApproveOnboardingPage() {
                         <td className='px-2 py-1.5 w-40'>
                           <select value={item.type || ''} onChange={e => patchT(item.id, { type: e.target.value, link: '' })}
                             className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
-                            <option value=''>— {t('Pilih','Select')} —</option>
+                            <option value=''>— Pilih —</option>
                             {TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
                           </select>
                         </td>
@@ -617,7 +615,7 @@ export default function ApproveOnboardingPage() {
                             patchT(item.id, { mentorEmpId: e.target.value, mentorName: emp?.name ?? '', mentorPosition: pos?.name ?? '' })
                           }}
                             className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
-                            <option value=''>— {t('Pilih Mentor','Select Mentor')} —</option>
+                            <option value=''>— Pilih Mentor —</option>
                             {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
                           </select>
                         </td>
@@ -695,7 +693,7 @@ export default function ApproveOnboardingPage() {
                           patchR(item.id, { reviewerEmpId: e.target.value, reviewerName: emp?.name ?? '', reviewerPosition: pos?.name ?? '' })
                         }}
                           className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
-                          <option value=''>— {t('Pilih Reviewer','Select Reviewer')} —</option>
+                          <option value=''>— Pilih Reviewer —</option>
                           {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
                         </select>
                       </td>
@@ -783,9 +781,9 @@ export default function ApproveOnboardingPage() {
                     patchBuddy({ programDurationUnit: unit, programEndDate: calcEndDate(localBuddy.programStartDate, localBuddy.programDuration, unit) })
                   }}
                   className='flex-1 px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-red-400 outline-none bg-white'>
-                  <option value='Hari'>{t('Hari','Days')}</option>
-                  <option value='Minggu'>{t('Minggu','Weeks')}</option>
-                  <option value='Bulan'>{t('Bulan','Months')}</option>
+                  <option value='Hari'>Hari</option>
+                  <option value='Minggu'>Minggu</option>
+                  <option value='Bulan'>Bulan</option>
                 </select>
               </div>
             </div>
@@ -854,7 +852,7 @@ export default function ApproveOnboardingPage() {
           <p className='text-xs text-gray-400 mt-0.5'>
             TXN-{String(selected.id).padStart(6, '0')} ·{' '}
             {t('Submitted oleh','Submitted by')} {selected.submittedByName ?? '—'} ·{' '}
-            {selected.submittedAt ? new Date(selected.submittedAt).toLocaleDateString(locale) : '—'}
+            {selected.submittedAt ? new Date(selected.submittedAt).toLocaleDateString('id-ID') : '—'}
           </p>
         </div>
         <div className='px-6 py-5 overflow-x-auto'>
@@ -867,7 +865,7 @@ export default function ApproveOnboardingPage() {
                   {selected.submittedByName ?? selected.employeeName}
                 </span>
                 <span className='text-xs text-gray-400 font-mono mt-0.5'>
-                  {selected.submittedAt ? new Date(selected.submittedAt).toLocaleDateString(locale) : '—'}
+                  {selected.submittedAt ? new Date(selected.submittedAt).toLocaleDateString('id-ID') : '—'}
                 </span>
                 <span className='mt-2 text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full'>✅ Done</span>
               </div>
@@ -891,7 +889,7 @@ export default function ApproveOnboardingPage() {
                         <div className='text-xs font-semibold text-gray-700'>{step.approverName}</div>
                         {step.actedAt && (
                           <div className='text-xs text-gray-400 font-mono'>
-                            {new Date(step.actedAt).toLocaleDateString(locale)}
+                            {new Date(step.actedAt).toLocaleDateString('id-ID')}
                           </div>
                         )}
                         {step.note && <div className='text-xs text-gray-500 mt-1 italic'>"{step.note}"</div>}
