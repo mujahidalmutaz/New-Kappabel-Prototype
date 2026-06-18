@@ -20,9 +20,9 @@ export default function MssRequestExternalPage() {
   const flash = (text) => { setMsg(text); setTimeout(()=>setMsg(null), 3000) }
 
   const handleSave = () => {
-    if (!form.employee || !form.course || !form.vendor || !form.date) return flash('Isi semua field yang wajib.')
+    if (!form.employee || !form.course || !form.vendor || !form.date) return flash(t('Isi semua field yang wajib.','Please fill in all required fields.'))
     setData(prev=>[...prev, { ...form, id:Date.now(), cost:Number(form.cost)||0, status:'Pending HR', submittedBy:'manager' }])
-    flash('Request external training berhasil dikirim ke HR.')
+    flash(t('Request external training berhasil dikirim ke HR.','External training request has been sent to HR.'))
     setShowForm(false)
     setForm({ employee:'', course:'', vendor:'', date:'', cost:'', justification:'' })
   }

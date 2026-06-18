@@ -4,6 +4,9 @@ import { useStructureStore }  from '@/store/structureStore'
 import { useEmployeeStore }   from '@/store/employeeStore'
 import { useUserlistStore }   from '@/store/userlistStore'
 import { useT } from '@/store/languageStore'
+import {
+  PageHeader, StatCard, ActionButton, FormField, Input,
+} from '@/components/ui'
 
 const SYSTEM_ROLES = [
   { value: 'employee',   label: 'Employee',        icon: '👤' },
@@ -79,24 +82,33 @@ export default function UserlistsPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Userlists</h1>
-      <p className='text-gray-500 text-sm mb-6'>Definisikan daftar user yang digunakan dalam konfigurasi workflow approval.</p>
+      <PageHeader
+        icon='📋'
+        title='Userlists'
+        subtitle='Definisikan daftar user yang digunakan dalam konfigurasi workflow approval.'
+      />
 
       {msg && (
         <div className={`text-sm px-4 py-2.5 rounded-lg mb-4 inline-block ${
           msg.type === 'error'
-            ? 'bg-red-50 text-red-600 border border-red-200'
-            : 'bg-green-50 text-green-600 border border-green-200'
+            ? 'bg-red-50 text-red-600'
+            : 'bg-emerald-50 text-emerald-600'
         }`}>
           {msg.text}
         </div>
       )}
 
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6'>
+        <StatCard label='Total Userlist' value={userlists.length} icon='📋' tone='brand' />
+        <StatCard label='Karyawan'       value={employees.length} icon='👥' tone='blue' />
+        {count !== null && <StatCard label='Resolved (terpilih)' value={count} icon='✅' tone='green' hint={ul?.name} />}
+      </div>
+
       <div className='flex gap-6'>
 
         {/* Left — list panel */}
         <div className='w-56 flex-shrink-0'>
-          <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
+          <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
             <div className='px-4 py-3 border-b border-gray-100 flex items-center justify-between'>
               <p className='text-xs font-bold text-gray-500 uppercase tracking-wide'>Userlists</p>
               <button onClick={addList}
@@ -136,7 +148,7 @@ export default function UserlistsPage() {
           <div className='flex-1 space-y-5 min-w-0'>
 
             {/* Name + type */}
-            <div className='bg-white rounded-xl p-5 shadow-sm'>
+            <div className='bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100'>
               <div className='flex items-start gap-4 flex-wrap'>
                 <div className='flex-1 min-w-48'>
                   <label className='block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5'>Nama Userlist</label>
@@ -178,7 +190,7 @@ export default function UserlistsPage() {
 
             {/* ── By Position ── */}
             {ul.type === 'position' && (
-              <div className='bg-white rounded-xl p-5 shadow-sm'>
+              <div className='bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100'>
                 <h3 className='text-sm font-bold text-gray-700 mb-3'>
                   📌 Pilih Position
                   <span className='ml-2 text-xs font-normal text-gray-400'>{ul.positionIds.length} dipilih</span>
@@ -207,7 +219,7 @@ export default function UserlistsPage() {
 
             {/* ── By Role ── */}
             {ul.type === 'role' && (
-              <div className='bg-white rounded-xl p-5 shadow-sm'>
+              <div className='bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100'>
                 <h3 className='text-sm font-bold text-gray-700 mb-3'>
                   🎭 Pilih Role Sistem
                   <span className='ml-2 text-xs font-normal text-gray-400'>{ul.roles.length} dipilih</span>
@@ -249,7 +261,7 @@ export default function UserlistsPage() {
 
             {/* ── By Employee ID ── */}
             {ul.type === 'employee' && (
-              <div className='bg-white rounded-xl p-5 shadow-sm'>
+              <div className='bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100'>
                 <h3 className='text-sm font-bold text-gray-700 mb-3'>
                   👤 Pilih Karyawan
                   <span className='ml-2 text-xs font-normal text-gray-400'>{ul.employeeIds.length} dipilih</span>
@@ -293,7 +305,7 @@ export default function UserlistsPage() {
 
             {/* ── By SQL ── */}
             {ul.type === 'sql' && (
-              <div className='bg-white rounded-xl p-5 shadow-sm'>
+              <div className='bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100'>
                 <h3 className='text-sm font-bold text-gray-700 mb-1'>🗄️ SELECT SQL Query</h3>
                 <p className='text-xs text-gray-400 mb-3'>
                   Query harus mengembalikan kolom <code className='bg-gray-100 px-1 rounded'>employee_id</code>. Gunakan tabel <code className='bg-gray-100 px-1 rounded'>employees</code>, <code className='bg-gray-100 px-1 rounded'>positions</code>, <code className='bg-gray-100 px-1 rounded'>departments</code>.
@@ -318,11 +330,7 @@ export default function UserlistsPage() {
             )}
 
             <div className='flex justify-end'>
-              <button onClick={handleSave}
-                className='px-6 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
-                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                💾 Simpan Userlist
-              </button>
+              <ActionButton onClick={handleSave}>💾 Simpan Userlist</ActionButton>
             </div>
 
           </div>

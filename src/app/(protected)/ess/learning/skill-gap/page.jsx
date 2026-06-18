@@ -35,10 +35,10 @@ export default function SkillGapPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Skill Gap & Recommendation</h1>
-      <p className='text-gray-500 text-sm mb-6'>Analisa gap kompetensi Anda dan rekomendasi learning untuk pengembangannya.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Analisa gap kompetensi Anda dan rekomendasi learning untuk pengembangannya.','Analyze your competency gaps and get learning recommendations for development.')}</p>
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[['Total Skill Dinilai', SKILL_DATA.length, '📊', '#8B1A1A'],['Skill Gap', hasGap.length, '⚠️', '#dc2626'],['Skill Tercapai', achieved.length, '✅', '#059669']].map(([l,v,i,c])=>(
+        {[[t('Total Skill Dinilai','Total Skills Assessed'), SKILL_DATA.length, '📊', '#8B1A1A'],[t('Skill Gap','Skill Gap'), hasGap.length, '⚠️', '#dc2626'],[t('Skill Tercapai','Skills Achieved'), achieved.length, '✅', '#059669']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
@@ -48,7 +48,7 @@ export default function SkillGapPage() {
 
       <div className='space-y-5'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='font-bold text-gray-700 mb-4'>⚠️ Skill dengan Gap — Perlu Ditingkatkan</h2>
+          <h2 className='font-bold text-gray-700 mb-4'>⚠️ {t('Skill dengan Gap — Perlu Ditingkatkan','Skills with Gap — Needs Improvement')}</h2>
           <div className='space-y-5'>
             {hasGap.map(s=>(
               <div key={s.skill} className='p-4 bg-red-50 rounded-xl border border-red-100'>
@@ -59,14 +59,14 @@ export default function SkillGapPage() {
                 <div className='mb-3'>{levelBar(s.current, s.target)}</div>
                 {s.recommended.length > 0 && (
                   <div>
-                    <div className='text-xs font-semibold text-gray-600 mb-2'>💡 Rekomendasi Learning:</div>
+                    <div className='text-xs font-semibold text-gray-600 mb-2'>💡 {t('Rekomendasi Learning:','Learning Recommendations:')}</div>
                     <div className='flex flex-wrap gap-2'>
                       {s.recommended.map(r=>(
                         <div key={r} className='flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5'>
                           <span className='text-xs text-gray-700 font-medium'>{r}</span>
                           <button onClick={()=>setEnrolled(prev=>prev.includes(r)?prev:[...prev,r])}
                             className={`text-xs px-2 py-0.5 rounded-full font-semibold transition ${enrolled.includes(r)?'bg-green-100 text-green-700':'bg-red-100 text-red-700 hover:bg-red-200'}`}>
-                            {enrolled.includes(r)?'✅ Enrolled':'+ Enroll'}
+                            {enrolled.includes(r)?t('✅ Enrolled','✅ Enrolled'):t('+ Enroll','+ Enroll')}
                           </button>
                         </div>
                       ))}
@@ -79,14 +79,14 @@ export default function SkillGapPage() {
         </div>
 
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='font-bold text-gray-700 mb-4'>✅ Skill Tercapai</h2>
+          <h2 className='font-bold text-gray-700 mb-4'>✅ {t('Skill Tercapai','Skills Achieved')}</h2>
           <div className='space-y-3'>
             {achieved.map(s=>(
               <div key={s.skill} className='p-3 bg-green-50 rounded-xl border border-green-100 flex items-center justify-between'>
                 <div className='font-medium text-gray-700'>{s.skill}</div>
                 <div className='flex items-center gap-3'>
                   {levelBar(s.current, s.target)}
-                  <span className='text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full whitespace-nowrap'>✅ Target Tercapai</span>
+                  <span className='text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full whitespace-nowrap'>✅ {t('Target Tercapai','Target Achieved')}</span>
                 </div>
               </div>
             ))}

@@ -4,6 +4,10 @@ import { useAuthStore }       from '@/store/authStore'
 import { useEmployeeStore }   from '@/store/employeeStore'
 import { useStructureStore }  from '@/store/structureStore'
 import { useT }               from '@/store/languageStore'
+import {
+  PageHeader, StatCard, SectionCard, DataTable, Tr, Td,
+  FormField, Input, Select, ActionButton, EmptyState, BRAND_GRADIENT,
+} from '@/components/ui'
 
 const ROLES = ['employee','manager','hr','superadmin']
 
@@ -172,16 +176,25 @@ export default function UserManagementPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>User Management</h1>
-      <p className='text-gray-500 text-sm mb-6'>Kelola akun dan hak akses pengguna sistem.</p>
+      <PageHeader
+        icon='👥'
+        title='User Management'
+        subtitle='Kelola akun dan hak akses pengguna sistem.'
+      />
+
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-4 mb-6'>
+        <StatCard label='Total User'  value={userList.length} icon='👥' tone='brand' />
+        <StatCard label='HR / Admin'  value={userList.filter(u => u.role === 'hr' || u.role === 'superadmin').length} icon='⚙️' tone='red' />
+        <StatCard label='Manager'     value={userList.filter(u => u.role === 'manager').length} icon='👔' tone='blue' />
+        <StatCard label='Terhubung'   value={userList.filter(u => u.employeeId).length} icon='🔗' tone='green' hint='ke data karyawan' />
+      </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
 
         {/* ── Form ── */}
-        <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing ? '✏️ Edit User' : '➕ Tambah User'}</h2>
+        <SectionCard title={editing ? '✏️ Edit User' : '➕ Tambah User'}>
           {msg && (
-            <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+            <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
               {msg.text}
             </div>
           )}
@@ -231,94 +244,86 @@ export default function UserManagementPage() {
               ['Departemen',  'text',     'dept'],
               ['Jabatan',     'text',     'position'],
             ].map(([lbl, type, key]) => (
-              <div key={key}>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>{lbl}</label>
-                <input type={type} value={form[key]}
+              <FormField key={key} label={lbl}>
+                <Input type={type} value={form[key]}
                   onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                  placeholder={editing && key === 'password' ? 'Kosongkan jika tidak diubah' : ''}
-                  className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-              </div>
+                  placeholder={editing && key === 'password' ? 'Kosongkan jika tidak diubah' : ''} />
+              </FormField>
             ))}
 
             {/* Role */}
-            <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>Role</label>
-              <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-                className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
+            <FormField label='Role'>
+              <Select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
                 {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
+              </Select>
+            </FormField>
 
             <div className='flex gap-2 pt-1'>
-              <button onClick={handleSave}
-                className='flex-1 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90'
-                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+              <ActionButton onClick={handleSave} className='flex-1'>
                 {editing ? t('Simpan', 'Save') : t('Tambah', 'Add')}
-              </button>
+              </ActionButton>
               {editing && (
-                <button onClick={handleCancel}
-                  className='px-4 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-lg'>
+                <ActionButton variant='secondary' onClick={handleCancel}>
                   {t('Batal', 'Cancel')}
-                </button>
+                </ActionButton>
               )}
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {/* ── Table ── */}
-        <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>👥 Daftar User</h2>
-          <div className='overflow-x-auto'>
-            <table className='w-full text-sm'>
-              <thead>
-                <tr className='bg-gray-50'>
-                  {['Username', 'Nama', 'Employee', 'Role', 'Departemen', 'Aksi'].map(h => (
-                    <th key={h} className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {userList.map(u => {
-                  const emp = u.employeeId ? employees.find(e => e.id === Number(u.employeeId)) : null
-                  return (
-                    <tr key={u.id} className='border-t border-gray-100 hover:bg-gray-50'>
-                      <td className='px-4 py-2.5 font-medium text-gray-700'>{u.username}</td>
-                      <td className='px-4 py-2.5 text-gray-700'>{u.name}</td>
-                      <td className='px-4 py-2.5'>
-                        {emp ? (
-                          <span className='text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-medium'>
-                            #{emp.id} {emp.name}
-                          </span>
-                        ) : (
-                          <span className='text-xs text-gray-400'>—</span>
-                        )}
-                      </td>
-                      <td className='px-4 py-2.5'>
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${ROLE_STYLE[u.role] || 'bg-gray-100'}`}>
-                          {u.role}
+        <div className='lg:col-span-2'>
+          {userList.length === 0 ? (
+            <EmptyState title='Belum ada user' description='Tambahkan user baru melalui form di sebelah kiri.' />
+          ) : (
+            <DataTable columns={[
+              { label: 'Username' },
+              { label: 'Nama' },
+              { label: 'Employee' },
+              { label: 'Role' },
+              { label: 'Departemen' },
+              { label: 'Aksi', align: 'right' },
+            ]}>
+              {userList.map(u => {
+                const emp = u.employeeId ? employees.find(e => e.id === Number(u.employeeId)) : null
+                return (
+                  <Tr key={u.id}>
+                    <Td className='font-medium text-gray-700'>{u.username}</Td>
+                    <Td>{u.name}</Td>
+                    <Td>
+                      {emp ? (
+                        <span className='text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-medium'>
+                          #{emp.id} {emp.name}
                         </span>
-                      </td>
-                      <td className='px-4 py-2.5 text-gray-500'>{u.dept || '—'}</td>
-                      <td className='px-4 py-2.5'>
-                        <div className='flex gap-2'>
-                          <button onClick={() => handleEdit(u)}
-                            className='px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>
-                            Edit
+                      ) : (
+                        <span className='text-xs text-gray-400'>—</span>
+                      )}
+                    </Td>
+                    <Td>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${ROLE_STYLE[u.role] || 'bg-gray-100'}`}>
+                        {u.role}
+                      </span>
+                    </Td>
+                    <Td className='text-gray-500'>{u.dept || '—'}</Td>
+                    <Td align='right'>
+                      <div className='flex gap-2 justify-end'>
+                        <button onClick={() => handleEdit(u)}
+                          className='px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200'>
+                          Edit
+                        </button>
+                        {u.id !== currentUser?.id && (
+                          <button onClick={() => deleteUser(u.id)}
+                            className='px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-100'>
+                            {t('Hapus', 'Delete')}
                           </button>
-                          {u.id !== currentUser?.id && (
-                            <button onClick={() => deleteUser(u.id)}
-                              className='px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-100'>
-                              {t('Hapus', 'Delete')}
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                        )}
+                      </div>
+                    </Td>
+                  </Tr>
+                )
+              })}
+            </DataTable>
+          )}
         </div>
       </div>
 

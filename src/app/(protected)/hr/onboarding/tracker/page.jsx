@@ -8,6 +8,7 @@ import { useMasterOnboardingStore } from '@/store/masterOnboardingStore'
 import { useStructureStore }     from '@/store/structureStore'
 import { useCourseBatchStore }   from '@/store/courseBatchStore'
 import { useT }                  from '@/store/languageStore'
+import { PageHeader, StatCard, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
 
 const PROBATION_OPTIONS = ['0', '3', '6', '12']
 const EMPLOYMENT_STATUS = ['New Hire', 'Existing Employee']
@@ -362,7 +363,8 @@ export default function OnboardingTrackerPage() {
 
         {/* ── Template LOV ─────────────────────────────────────────── */}
         {!editId && (
-          <div className='bg-white rounded-xl shadow-sm p-5 mb-4 flex flex-wrap items-end gap-4 border border-red-100'>
+          <div className='mb-4'>
+          <SectionCard title={t('Mulai dari Template', 'Start from Template')} icon='⚡' bodyClass='flex flex-wrap items-end gap-4'>
             <div className='flex items-center gap-2'>
               <span className='text-xs font-semibold text-gray-600 whitespace-nowrap'>
                 {t('Template Onboarding', 'Onboarding Template')} :
@@ -386,25 +388,23 @@ export default function OnboardingTrackerPage() {
                 })}
               </select>
             </div>
-            <button onClick={handleGenerateFromTemplate} disabled={!templateId}
-              className={`px-4 py-2 text-xs font-semibold rounded-lg text-white transition
-                ${templateId ? 'opacity-100 hover:opacity-90' : 'opacity-40 cursor-not-allowed'}`}
-              style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-              ⚡ {t('Generate Onboarding', 'Generate Onboarding')}
-            </button>
+            <ActionButton size='sm' icon='⚡' onClick={handleGenerateFromTemplate} disabled={!templateId}>
+              {t('Generate Onboarding', 'Generate Onboarding')}
+            </ActionButton>
             {templateId && (
               <span className='text-xs text-gray-400 italic'>
                 {t('Klik "Generate" untuk mengisi agenda dari template.', 'Click "Generate" to populate agenda from the template.')}
               </span>
             )}
+          </SectionCard>
           </div>
         )}
 
         {/* ── Form card ────────────────────────────────────────────── */}
-        <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
+        <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
 
           {/* ── HEADER: Employee info ─────────────────────────────── */}
-          <div style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }} className='px-6 py-4'>
+          <div style={{ background: BRAND_GRADIENT }} className='px-6 py-4'>
             <h2 className='text-sm font-bold text-white mb-3'>
               {t('FORMULIR ONBOARDING / INDUKSI KARYAWAN', 'EMPLOYEE ONBOARDING / INDUCTION FORM')}
             </h2>
@@ -795,19 +795,16 @@ export default function OnboardingTrackerPage() {
             </div>
           ) : (
             <div className='px-6 pb-6 flex gap-3'>
-              <button onClick={handleSaveDraft}
-                className='px-5 py-2 text-sm font-semibold rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition'>
-                💾 {savedStatus === 'Approved' ? t('Simpan', 'Save') : t('Simpan Draft', 'Save Draft')}
-              </button>
+              <ActionButton variant='secondary' icon='💾' onClick={handleSaveDraft}>
+                {savedStatus === 'Approved' ? t('Simpan', 'Save') : t('Simpan Draft', 'Save Draft')}
+              </ActionButton>
               {savedStatus !== 'Approved' && (
-                <button onClick={handleSubmit}
-                  className='px-5 py-2 text-sm font-semibold rounded-lg text-white transition'
-                  style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                  📤 {t('Submit untuk Approval', 'Submit for Approval')}
-                </button>
+                <ActionButton icon='📤' onClick={handleSubmit}>
+                  {t('Submit untuk Approval', 'Submit for Approval')}
+                </ActionButton>
               )}
               <button onClick={() => setView('list')}
-                className='px-5 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition ml-auto'>
+                className='px-5 py-2.5 text-sm font-semibold rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition ml-auto'>
                 {t('Batal', 'Cancel')}
               </button>
             </div>
@@ -818,19 +815,32 @@ export default function OnboardingTrackerPage() {
   }
 
   // ── LIST VIEW ──────────────────────────────────────────────────────────────
+  const kpis = {
+    total:    onboardings.length,
+    draft:    onboardings.filter(o => o.workflowStatus === 'Draft').length,
+    pending:  onboardings.filter(o => o.workflowStatus === 'Pending').length,
+    approved: onboardings.filter(o => o.workflowStatus === 'Approved').length,
+  }
+
   return (
     <div>
-      <div className='flex items-center justify-between mb-1'>
-        <h1 className='text-2xl font-bold text-gray-800'>{t('Onboarding Tracker', 'Onboarding Tracker')}</h1>
-        <button onClick={openNew}
-          className='px-4 py-2 text-sm font-semibold text-white rounded-lg transition'
-          style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-          + {t('Tambah Onboarding', 'New Onboarding')}
-        </button>
+      <PageHeader
+        icon='🚀'
+        title={t('Onboarding Tracker', 'Onboarding Tracker')}
+        subtitle={t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
+        actions={
+          <ActionButton icon='+' onClick={openNew}>
+            {t('Tambah Onboarding', 'New Onboarding')}
+          </ActionButton>
+        }
+      />
+
+      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
+        <StatCard label={t('Total', 'Total')} value={kpis.total} icon='📋' tone='brand' />
+        <StatCard label={t('Draft', 'Draft')} value={kpis.draft} icon='📝' tone='gray' />
+        <StatCard label={t('Pending', 'Pending')} value={kpis.pending} icon='⏳' tone='orange' />
+        <StatCard label={t('Approved', 'Approved')} value={kpis.approved} icon='✅' tone='green' />
       </div>
-      <p className='text-gray-500 text-sm mb-6'>
-        {t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
-      </p>
 
       {msg && (
         <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold
@@ -840,80 +850,71 @@ export default function OnboardingTrackerPage() {
         </div>
       )}
 
-      <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
-        {onboardings.length === 0 ? (
-          <div className='px-6 py-16 text-center text-gray-400 text-sm'>
-            {t('Belum ada data onboarding.', 'No onboarding records yet.')}
-          </div>
-        ) : (
-          <div className='overflow-x-auto'>
-            <table className='w-full text-sm'>
-              <thead>
-                <tr className='bg-gray-50 border-b border-gray-100'>
-                  {[t('Karyawan','Employee'), 'Department',
-                    t('Status Karyawan','Employment Status'),
-                    t('Masa Probasi','Probation'),
-                    t('Atasan','Supervisor'),
-                    t('Status Workflow','Workflow Status'),
-                    t('Tanggal Dibuat','Created'),
-                    t('Aksi','Action')].map((h, i) => (
-                    <th key={i} className='text-left px-4 py-3 text-xs font-semibold text-gray-500'>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className='divide-y divide-gray-100'>
-                {onboardings.map(ob => (
-                  <tr key={ob.id} className='hover:bg-gray-50 transition'>
-                    <td className='px-4 py-3 font-medium text-gray-800'>{ob.employeeName || '—'}</td>
-                    <td className='px-4 py-3 text-gray-600'>{ob.department || '—'}</td>
-                    <td className='px-4 py-3'>
-                      <span className='text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium'>
-                        {ob.employmentStatus}
-                      </span>
-                    </td>
-                    <td className='px-4 py-3 text-gray-600'>{ob.probationPeriod} {t('bln','mo')}</td>
-                    <td className='px-4 py-3 text-gray-600'>{ob.supervisorName || '—'}</td>
-                    <td className='px-4 py-3'>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_BADGE[ob.workflowStatus] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {ob.workflowStatus}
-                      </span>
-                    </td>
-                    <td className='px-4 py-3 text-gray-500 text-xs'>
-                      {ob.createdAt ? new Date(ob.createdAt).toLocaleDateString('id-ID') : '—'}
-                    </td>
-                    <td className='px-4 py-3'>
-                      <div className='flex gap-2'>
-                        <button onClick={() => ob.workflowStatus === 'Approved' ? openView(ob) : openEdit(ob)}
-                          className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
-                          {ob.workflowStatus === 'Draft' ? t('✏️ Edit','✏️ Edit') : t('👁 Lihat','👁 View')}
-                        </button>
-                        {ob.workflowStatus === 'Approved' && (
-                          <button onClick={() => openEdit(ob)}
-                            className='px-3 py-1.5 text-xs font-semibold bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition'>
-                            ✏️ {t('Edit','Edit')}
-                          </button>
-                        )}
-                        {ob.workflowStatus === 'Draft' && (
-                          <button onClick={() => handleSubmitExisting(ob)}
-                            className='px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition'>
-                            📤 {t('Submit','Submit')}
-                          </button>
-                        )}
-                        {ob.workflowStatus === 'Draft' && (
-                          <button onClick={() => setDelId(ob.id)}
-                            className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition'>
-                            🗑
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {onboardings.length === 0 ? (
+        <EmptyState
+          icon='🚀'
+          title={t('Belum ada data onboarding.', 'No onboarding records yet.')}
+          description={t('Buat onboarding pertama untuk memulai.', 'Create your first onboarding to get started.')}
+          action={<ActionButton size='sm' icon='+' onClick={openNew}>{t('Tambah Onboarding', 'New Onboarding')}</ActionButton>}
+        />
+      ) : (
+        <DataTable
+          columns={[
+            { label: t('Karyawan','Employee') },
+            { label: 'Department' },
+            { label: t('Status Karyawan','Employment Status') },
+            { label: t('Masa Probasi','Probation') },
+            { label: t('Atasan','Supervisor') },
+            { label: t('Status Workflow','Workflow Status') },
+            { label: t('Tanggal Dibuat','Created') },
+            { label: t('Aksi','Action'), align: 'right' },
+          ]}
+        >
+          {onboardings.map(ob => (
+            <Tr key={ob.id}>
+              <Td className='font-medium text-gray-800'>{ob.employeeName || '—'}</Td>
+              <Td>{ob.department || '—'}</Td>
+              <Td>
+                <StatusBadge tone='info'>{ob.employmentStatus}</StatusBadge>
+              </Td>
+              <Td>{ob.probationPeriod} {t('bln','mo')}</Td>
+              <Td>{ob.supervisorName || '—'}</Td>
+              <Td>
+                <StatusBadge status={ob.workflowStatus} />
+              </Td>
+              <Td className='text-gray-500 text-xs'>
+                {ob.createdAt ? new Date(ob.createdAt).toLocaleDateString('id-ID') : '—'}
+              </Td>
+              <Td align='right'>
+                <div className='flex gap-2 justify-end'>
+                  <button onClick={() => ob.workflowStatus === 'Approved' ? openView(ob) : openEdit(ob)}
+                    className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
+                    {ob.workflowStatus === 'Draft' ? t('✏️ Edit','✏️ Edit') : t('👁 Lihat','👁 View')}
+                  </button>
+                  {ob.workflowStatus === 'Approved' && (
+                    <button onClick={() => openEdit(ob)}
+                      className='px-3 py-1.5 text-xs font-semibold bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition'>
+                      ✏️ {t('Edit','Edit')}
+                    </button>
+                  )}
+                  {ob.workflowStatus === 'Draft' && (
+                    <button onClick={() => handleSubmitExisting(ob)}
+                      className='px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition'>
+                      📤 {t('Submit','Submit')}
+                    </button>
+                  )}
+                  {ob.workflowStatus === 'Draft' && (
+                    <button onClick={() => setDelId(ob.id)}
+                      className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition'>
+                      🗑
+                    </button>
+                  )}
+                </div>
+              </Td>
+            </Tr>
+          ))}
+        </DataTable>
+      )}
 
       {delId && (
         <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50'

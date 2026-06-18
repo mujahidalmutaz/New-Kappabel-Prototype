@@ -18,9 +18,9 @@ export default function RecordExternalPage() {
   const flash = (text) => { setMsg(text); setTimeout(()=>setMsg(null), 3000) }
 
   const handleSave = () => {
-    if (!form.title || !form.organizer || !form.date) return flash('Isi semua field yang wajib.')
+    if (!form.title || !form.organizer || !form.date) return flash(t('Isi semua field yang wajib.','Fill in all required fields.'))
     setData(prev=>[...prev,{...form, id:Date.now(), cost:Number(form.cost)||0, cpd:Number(form.cpd)||0, cert:null, status:'Pending Review'}])
-    flash('Record training eksternal berhasil disimpan.')
+    flash(t('Record training eksternal berhasil disimpan.','External training record saved successfully.'))
     setShowForm(false)
     setForm({ title:'', organizer:'', date:'', type:'Workshop', duration:'', cost:'', cpd:'' })
   }
@@ -33,12 +33,12 @@ export default function RecordExternalPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Record External Training</h1>
-      <p className='text-gray-500 text-sm mb-6'>Catat dan laporkan pelatihan/sertifikasi eksternal yang sudah Anda ikuti.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Catat dan laporkan pelatihan/sertifikasi eksternal yang sudah Anda ikuti.','Record and report external training/certifications you have attended.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[['CPD Terverifikasi', totalCPD+' pts', '⭐', '#7c3aed'],['Total Biaya', 'Rp '+totalCost.toLocaleString('id-ID'), '💰', '#8B1A1A'],['Training Tercatat', data.length, '📋', '#059669']].map(([l,v,i,c])=>(
+        {[[t('CPD Terverifikasi','Verified CPD'), totalCPD+' pts', '⭐', '#7c3aed'],[t('Total Biaya','Total Cost'), 'Rp '+totalCost.toLocaleString('id-ID'), '💰', '#8B1A1A'],[t('Training Tercatat','Recorded Trainings'), data.length, '📋', '#059669']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-lg font-bold text-gray-800'>{v}</p></div>
@@ -47,42 +47,42 @@ export default function RecordExternalPage() {
       </div>
 
       <div className='flex justify-between items-center mb-4'>
-        <h2 className='font-bold text-gray-700'>📋 Riwayat Training Eksternal</h2>
+        <h2 className='font-bold text-gray-700'>📋 {t('Riwayat Training Eksternal','External Training History')}</h2>
         <button onClick={()=>setShowForm(!showForm)}
           className='px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90'
           style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-          + Tambah Record
+          {t('+ Tambah Record','+ Add Record')}
         </button>
       </div>
 
       {showForm && (
         <div className='bg-white rounded-xl p-6 shadow-sm border border-red-200 mb-6'>
-          <h3 className='font-bold text-gray-700 mb-4'>Tambah Record Training Eksternal</h3>
+          <h3 className='font-bold text-gray-700 mb-4'>{t('Tambah Record Training Eksternal','Add External Training Record')}</h3>
           <div className='grid grid-cols-2 gap-4 mb-4'>
-            {[['Judul Training / Sertifikasi','title','text','Nama training atau ujian sertifikasi'],['Penyelenggara','organizer','text','Nama lembaga/institusi'],['Tanggal Pelaksanaan','date','date',''],['Durasi','duration','text','Contoh: 3 hari / 16 jam'],['Biaya (Rp)','cost','number','0'],['CPD Points','cpd','number','0']].map(([l,k,t,ph])=>(
+            {[[t('Judul Training / Sertifikasi','Training / Certification Title'),'title','text',t('Nama training atau ujian sertifikasi','Training name or certification exam')],[t('Penyelenggara','Organizer'),'organizer','text',t('Nama lembaga/institusi','Institution name')],[t('Tanggal Pelaksanaan','Date of Training'),'date','date',''],[t('Durasi','Duration'),'duration','text',t('Contoh: 3 hari / 16 jam','Example: 3 days / 16 hours')],[t('Biaya (Rp)','Cost (Rp)'),'cost','number','0'],['CPD Points','cpd','number','0']].map(([l,k,typ,ph])=>(
               <div key={k}>
                 <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{l}</label>
-                <input type={t} value={form[k]} onChange={e=>setForm(p=>({...p,[k]:e.target.value}))}
+                <input type={typ} value={form[k]} onChange={e=>setForm(p=>({...p,[k]:e.target.value}))}
                   placeholder={ph} className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
               </div>
             ))}
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Tipe Training</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Tipe Training','Training Type')}</label>
               <select value={form.type} onChange={e=>setForm(p=>({...p,type:e.target.value}))}
                 className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                {['Workshop','Seminar','Sertifikasi','Conference','Bootcamp','Webinar'].map(t=><option key={t}>{t}</option>)}
+                {['Workshop','Seminar','Sertifikasi','Conference','Bootcamp','Webinar'].map(typ=><option key={typ}>{typ}</option>)}
               </select>
             </div>
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Upload Sertifikat (PDF/JPG)</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Upload Sertifikat (PDF/JPG)','Upload Certificate (PDF/JPG)')}</label>
               <div className='border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-red-300 transition cursor-pointer'>
                 <div className='text-xl'>📎</div>
-                <p className='text-xs text-gray-400 mt-1'>Klik untuk upload</p>
+                <p className='text-xs text-gray-400 mt-1'>{t('Klik untuk upload','Click to upload')}</p>
               </div>
             </div>
           </div>
           <div className='flex gap-3'>
-            <button onClick={handleSave} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>Simpan</button>
+            <button onClick={handleSave} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>{t('Simpan','Save')}</button>
             <button onClick={()=>setShowForm(false)} className='px-6 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200'>{t('Batal','Cancel')}</button>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function RecordExternalPage() {
 
       <div className='bg-white rounded-xl p-6 shadow-sm overflow-x-auto'>
         <table className='w-full text-sm'>
-          <thead><tr className='bg-gray-50'>{['Judul Training','Penyelenggara','Tipe','Tanggal','Durasi','Biaya','CPD','Sertifikat','Status'].map(h=>(
+          <thead><tr className='bg-gray-50'>{[t('Judul Training','Training Title'),t('Penyelenggara','Organizer'),t('Tipe','Type'),t('Tanggal','Date'),t('Durasi','Duration'),t('Biaya','Cost'),'CPD',t('Sertifikat','Certificate'),'Status'].map(h=>(
             <th key={h} className='text-left px-3 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap'>{h}</th>
           ))}</tr></thead>
           <tbody>{data.map(d=>(

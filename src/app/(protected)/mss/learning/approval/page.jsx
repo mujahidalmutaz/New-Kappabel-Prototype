@@ -19,7 +19,7 @@ export default function TrainingApprovalPage() {
 
   const handleAction = (id, action) => {
     setData(prev=>prev.map(d=>d.id===id?{...d,status:action==='approve'?'Approved':'Rejected',note_manager:note[id]||''}:d))
-    flash(`Permintaan ${action==='approve'?'disetujui':'ditolak'}.`)
+    flash(t(`Permintaan ${action==='approve'?'disetujui':'ditolak'}.`,`Request ${action==='approve'?'approved':'rejected'}.`))
     setNote(prev=>{const n={...prev};delete n[id];return n})
   }
 
@@ -31,12 +31,12 @@ export default function TrainingApprovalPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Training Approval Center</h1>
-      <p className='text-gray-500 text-sm mb-6'>Review dan setujui/tolak permintaan training anggota tim Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Review dan setujui/tolak permintaan training anggota tim Anda.','Review and approve/reject training requests from your team members.')}</p>
 
       {msg && <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[['Menunggu Approval', pending.length, '⏳', '#d97706'],['Approved', data.filter(d=>d.status==='Approved').length, '✅', '#059669'],['Rejected', data.filter(d=>d.status==='Rejected').length, '❌', '#dc2626']].map(([l,v,i,c])=>(
+        {[[t('Menunggu Approval','Pending Approval'), pending.length, '⏳', '#d97706'],['Approved', data.filter(d=>d.status==='Approved').length, '✅', '#059669'],['Rejected', data.filter(d=>d.status==='Rejected').length, '❌', '#dc2626']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
@@ -46,7 +46,7 @@ export default function TrainingApprovalPage() {
 
       {pending.length > 0 && (
         <div className='mb-6'>
-          <h2 className='font-bold text-gray-700 mb-4 text-lg'>⏳ Menunggu Approval ({pending.length})</h2>
+          <h2 className='font-bold text-gray-700 mb-4 text-lg'>⏳ {t('Menunggu Approval','Pending Approval')} ({pending.length})</h2>
           <div className='space-y-4'>
             {pending.map(d=>(
               <div key={d.id} className='bg-white rounded-xl p-5 shadow-sm border border-yellow-200'>
@@ -70,13 +70,13 @@ export default function TrainingApprovalPage() {
                   <span>⏱️ {d.duration}</span>
                 </div>
                 <div className='bg-gray-50 rounded-lg p-3 mb-3'>
-                  <div className='text-xs font-semibold text-gray-600 mb-1'>Justifikasi:</div>
+                  <div className='text-xs font-semibold text-gray-600 mb-1'>{t('Justifikasi:','Justification:')}</div>
                   <div className='text-sm text-gray-600'>{d.justification}</div>
                 </div>
                 <div className='mb-3'>
-                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Catatan (opsional)</label>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Catatan (opsional)','Note (optional)')}</label>
                   <input value={note[d.id]||''} onChange={e=>setNote(prev=>({...prev,[d.id]:e.target.value}))}
-                    className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder='Tambahkan catatan untuk karyawan...' />
+                    className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder={t('Tambahkan catatan untuk karyawan...','Add a note for the employee...')} />
                 </div>
                 <div className='flex gap-3'>
                   <button onClick={()=>handleAction(d.id,'approve')} className='flex-1 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition'>✅ Approve</button>
@@ -90,10 +90,10 @@ export default function TrainingApprovalPage() {
 
       {history.length > 0 && (
         <div>
-          <h2 className='font-bold text-gray-700 mb-4 text-lg'>📋 Riwayat Approval</h2>
+          <h2 className='font-bold text-gray-700 mb-4 text-lg'>📋 {t('Riwayat Approval','Approval History')}</h2>
           <div className='bg-white rounded-xl p-6 shadow-sm overflow-x-auto'>
             <table className='w-full text-sm'>
-              <thead><tr className='bg-gray-50'>{['Karyawan','Course','Tipe','Biaya','Tgl Submit','Status','Catatan'].map(h=>(
+              <thead><tr className='bg-gray-50'>{[t('Karyawan','Employee'),t('Course','Course'),t('Tipe','Type'),t('Biaya','Cost'),t('Tgl Submit','Submit Date'),'Status',t('Catatan','Note')].map(h=>(
                 <th key={h} className='text-left px-3 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
               ))}</tr></thead>
               <tbody>{history.map(d=>(

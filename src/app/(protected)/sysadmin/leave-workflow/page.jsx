@@ -1,7 +1,11 @@
-﻿'use client'
+'use client'
 import { useState }      from 'react'
 import { useLeaveStore } from '@/store/leaveStore'
 import { useT } from '@/store/languageStore'
+import {
+  PageHeader, StatCard, SectionCard, DataTable, Tr, Td,
+  StatusBadge, ActionButton, Input, EmptyState,
+} from '@/components/ui'
 
 export default function LeaveWorkflowPage() {
   const t = useT()
@@ -18,61 +22,69 @@ export default function LeaveWorkflowPage() {
     flash('Pengaturan workflow disimpan.')
   }
 
+  const activeCount = types.filter(t => t.active).length
+  const totalDays   = types.reduce((s, t) => s + (Number(t.maxDays) || 0), 0)
+
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Leave Workflow</h1>
-      <p className='text-gray-500 text-sm mb-6'>Konfigurasi jenis cuti, kuota, dan alur persetujuan.</p>
+      <PageHeader
+        icon='🔀'
+        title='Leave Workflow'
+        subtitle='Konfigurasi jenis cuti, kuota, dan alur persetujuan.'
+      />
 
       {msg && (
-        <div className={`text-sm px-4 py-2.5 rounded-lg mb-4 inline-block ${msg.type==='error'?'bg-red-50 text-red-600 border border-red-200':'bg-green-50 text-green-600 border border-green-200'}`}>
+        <div className={`text-sm px-4 py-2.5 rounded-lg mb-4 inline-block ${msg.type==='error'?'bg-red-50 text-red-600':'bg-emerald-50 text-emerald-600'}`}>
           {msg.text}
         </div>
       )}
 
-      <div className='bg-white rounded-xl p-6 shadow-sm mb-6'>
-        <h2 className='text-sm font-bold text-gray-700 mb-4'>📅 Jenis Cuti & Kuota</h2>
-        <div className='overflow-x-auto'>
-          <table className='w-full text-sm'>
-            <thead>
-              <tr className='bg-gray-50'>
-                {['Nama Cuti','Maks. Hari','Aktif'].map(h=>(
-                  <th key={h} className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {types.map(t=>(
-                <tr key={t.id} className='border-t border-gray-100'>
-                  <td className='px-4 py-3 font-medium text-gray-700'>{t.name}</td>
-                  <td className='px-4 py-3'>
-                    <input type='number' value={t.maxDays} min={1} max={365}
-                      onChange={e=>update(t.id,'maxDays',+e.target.value)}
-                      className='w-20 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-                  </td>
-                  <td className='px-4 py-3'>
-                    <label className='flex items-center gap-2 cursor-pointer'>
-                      <input type='checkbox' checked={t.active} onChange={e=>update(t.id,'active',e.target.checked)}
-                        className='w-4 h-4 accent-red-600' />
-                      <span className={`text-xs font-semibold ${t.active?'text-green-600':'text-gray-400'}`}>
-                        {t.active ? 'Aktif' : 'Nonaktif'}
-                      </span>
-                    </label>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <button onClick={handleSave}
-          className='mt-4 px-6 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90'
-          style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-          💾 Simpan Perubahan
-        </button>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6'>
+        <StatCard label='Jenis Cuti'  value={types.length} icon='📅' tone='brand' />
+        <StatCard label='Aktif'       value={activeCount}  icon='✅' tone='green' hint={`${types.length - activeCount} nonaktif`} />
+        <StatCard label='Total Kuota' value={totalDays}    icon='📊' tone='blue'  hint='maks. hari (gabungan)' />
       </div>
 
+      <SectionCard title='Jenis Cuti & Kuota' icon='📅' className='mb-6'
+        actions={<ActionButton size='sm' onClick={handleSave}>💾 {t('Simpan','Save')}</ActionButton>}
+        bodyClass='p-0'>
+        {types.length === 0 ? (
+          <div className='p-5'>
+            <EmptyState title='Belum ada jenis cuti' description='Tambahkan jenis cuti untuk mulai mengonfigurasi kuota.' />
+          </div>
+        ) : (
+          <DataTable
+            className='rounded-none shadow-none ring-0'
+            columns={[
+              { label: 'Nama Cuti' },
+              { label: 'Maks. Hari', align: 'right' },
+              { label: 'Aktif' },
+            ]}>
+            {types.map(t=>(
+              <Tr key={t.id}>
+                <Td className='font-medium text-gray-800'>{t.name}</Td>
+                <Td align='right'>
+                  <Input type='number' value={t.maxDays} min={1} max={365}
+                    onChange={e=>update(t.id,'maxDays',+e.target.value)}
+                    className='w-24 text-right' />
+                </Td>
+                <Td>
+                  <label className='flex items-center gap-2 cursor-pointer'>
+                    <input type='checkbox' checked={t.active} onChange={e=>update(t.id,'active',e.target.checked)}
+                      className='w-4 h-4 accent-red-600' />
+                    <StatusBadge status={t.active ? 'Active' : 'Inactive'}>
+                      {t.active ? 'Aktif' : 'Nonaktif'}
+                    </StatusBadge>
+                  </label>
+                </Td>
+              </Tr>
+            ))}
+          </DataTable>
+        )}
+      </SectionCard>
+
       {/* Approval flow info */}
-      <div className='bg-white rounded-xl p-6 shadow-sm'>
-        <h2 className='text-sm font-bold text-gray-700 mb-4'>🔀 Alur Persetujuan</h2>
+      <SectionCard title='Alur Persetujuan' icon='🔀'>
         <div className='flex flex-wrap items-center gap-3 text-sm'>
           {[
             { step:'1', label:'Karyawan mengajukan', icon:'👤' },
@@ -86,7 +98,7 @@ export default function LeaveWorkflowPage() {
             s.label === null
               ? <span key={i} className='text-gray-300 text-lg'>→</span>
               : (
-                <div key={i} className='flex flex-col items-center bg-red-50 border border-red-100 rounded-xl px-5 py-4 min-w-[110px]'>
+                <div key={i} className='flex flex-col items-center bg-red-50 rounded-xl px-5 py-4 min-w-[110px] ring-1 ring-red-100'>
                   <span className='text-2xl mb-1'>{s.icon}</span>
                   <span className='text-xs font-bold text-red-700 mb-0.5'>Step {s.step}</span>
                   <span className='text-xs text-gray-500 text-center'>{s.label}</span>
@@ -94,7 +106,7 @@ export default function LeaveWorkflowPage() {
               )
           ))}
         </div>
-      </div>
+      </SectionCard>
     </div>
   )
 }

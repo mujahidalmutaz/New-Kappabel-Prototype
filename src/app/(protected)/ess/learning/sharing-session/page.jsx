@@ -16,7 +16,7 @@ const MY_PROPOSALS = [
 
 export default function SharingSessionPage() {
   const t = useT()
-  const [tab, setTab] = useState('Semua Sesi')
+  const [tab, setTab] = useState(t('Semua Sesi','All Sessions'))
   const [registered, setRegistered] = useState({ 1: false, 2: true })
   const [showPropose, setShowPropose] = useState(false)
   const [proposal, setProposal] = useState({ title:'', desc:'', date:'', format:'Virtual' })
@@ -25,8 +25,8 @@ export default function SharingSessionPage() {
   const flash = (text) => { setMsg(text); setTimeout(()=>setMsg(null), 3000) }
 
   const handlePropose = () => {
-    if (!proposal.title) return flash('Judul sesi wajib diisi.')
-    flash('Proposal sesi sharing berhasil dikirim!')
+    if (!proposal.title) return flash(t('Judul sesi wajib diisi.','Session title is required.'))
+    flash(t('Proposal sesi sharing berhasil dikirim!','Sharing session proposal submitted successfully!'))
     setShowPropose(false)
     setProposal({ title:'', desc:'', date:'', format:'Virtual' })
   }
@@ -34,49 +34,51 @@ export default function SharingSessionPage() {
   const upcoming = SESSIONS.filter(s=>s.status==='Upcoming')
   const completed = SESSIONS.filter(s=>s.status==='Completed')
 
+  const TABS = [t('Semua Sesi','All Sessions'), t('Akan Datang','Upcoming'), t('Selesai','Completed'), t('Proposal Saya','My Proposals')]
+
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Employee Sharing Session</h1>
-      <p className='text-gray-500 text-sm mb-6'>Berbagi pengetahuan dan pengalaman dengan sesama rekan — daftar sesi atau usulkan topik baru.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Berbagi pengetahuan dan pengalaman dengan sesama rekan — daftar sesi atau usulkan topik baru.','Share knowledge and experience with your colleagues — join a session or propose a new topic.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
       <div className='flex gap-2 mb-6 flex-wrap'>
-        {['Semua Sesi', 'Akan Datang', 'Selesai', 'Proposal Saya'].map(t=>(
-          <button key={t} onClick={()=>setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${tab===t?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
-            style={tab===t?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
-            {t}
+        {TABS.map(tab_=>(
+          <button key={tab_} onClick={()=>setTab(tab_)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${tab===tab_?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+            style={tab===tab_?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
+            {tab_}
           </button>
         ))}
         <button onClick={()=>setShowPropose(true)}
           className='ml-auto px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90'
           style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-          + Usulkan Topik
+          {t('+ Usulkan Topik','+ Propose Topic')}
         </button>
       </div>
 
       {showPropose && (
         <div className='bg-white rounded-xl p-6 shadow-sm border border-red-200 mb-6'>
-          <h3 className='font-bold text-gray-700 mb-4'>Usulkan Topik Sharing Session</h3>
+          <h3 className='font-bold text-gray-700 mb-4'>{t('Usulkan Topik Sharing Session','Propose a Sharing Session Topic')}</h3>
           <div className='grid grid-cols-2 gap-4 mb-4'>
             <div className='col-span-2'>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Judul Sesi <span className='text-red-500'>*</span></label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Judul Sesi','Session Title')} <span className='text-red-500'>*</span></label>
               <input value={proposal.title} onChange={e=>setProposal(p=>({...p,title:e.target.value}))}
-                className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder='Topik yang ingin Anda bagikan' />
+                className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder={t('Topik yang ingin Anda bagikan','Topic you want to share')} />
             </div>
             <div className='col-span-2'>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Deskripsi Singkat</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Deskripsi Singkat','Short Description')}</label>
               <textarea value={proposal.desc} onChange={e=>setProposal(p=>({...p,desc:e.target.value}))} rows={3}
                 className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' />
             </div>
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Tanggal yang Diinginkan</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Tanggal yang Diinginkan','Preferred Date')}</label>
               <input type='date' value={proposal.date} onChange={e=>setProposal(p=>({...p,date:e.target.value}))}
                 className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             </div>
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Format</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Format','Format')}</label>
               <select value={proposal.format} onChange={e=>setProposal(p=>({...p,format:e.target.value}))}
                 className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
                 {['Virtual','Offline','Hybrid'].map(f=><option key={f}>{f}</option>)}
@@ -84,21 +86,21 @@ export default function SharingSessionPage() {
             </div>
           </div>
           <div className='flex gap-3'>
-            <button onClick={handlePropose} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>Kirim Proposal</button>
+            <button onClick={handlePropose} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>{t('Kirim Proposal','Submit Proposal')}</button>
             <button onClick={()=>setShowPropose(false)} className='px-6 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200'>{t('Batal','Cancel')}</button>
           </div>
         </div>
       )}
 
-      {tab === 'Proposal Saya' ? (
+      {tab === t('Proposal Saya','My Proposals') ? (
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='font-bold text-gray-700 mb-4'>📋 Proposal Sesi Saya</h2>
+          <h2 className='font-bold text-gray-700 mb-4'>📋 {t('Proposal Sesi Saya','My Session Proposals')}</h2>
           <div className='space-y-3'>
             {MY_PROPOSALS.map(p=>(
               <div key={p.id} className='border border-gray-200 rounded-lg p-4 flex items-center justify-between'>
                 <div>
                   <div className='font-semibold text-gray-700'>{p.title}</div>
-                  <div className='text-xs text-gray-400 mt-0.5'>{p.date || 'Tanggal belum ditentukan'}</div>
+                  <div className='text-xs text-gray-400 mt-0.5'>{p.date || t('Tanggal belum ditentukan','Date not yet set')}</div>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${p.status==='Approved'?'bg-green-50 text-green-700':'bg-gray-100 text-gray-500'}`}>{p.status}</span>
               </div>
@@ -107,7 +109,7 @@ export default function SharingSessionPage() {
         </div>
       ) : (
         <div className='space-y-4'>
-          {(tab==='Semua Sesi'?SESSIONS:tab==='Akan Datang'?upcoming:completed).map(s=>(
+          {(tab===t('Semua Sesi','All Sessions')?SESSIONS:tab===t('Akan Datang','Upcoming')?upcoming:completed).map(s=>(
             <div key={s.id} className='bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-red-100 transition'>
               <div className='flex items-start justify-between mb-3'>
                 <div>
@@ -125,21 +127,21 @@ export default function SharingSessionPage() {
               <div className='flex gap-4 text-xs text-gray-500 mb-3'>
                 <span>📅 {s.date}</span>
                 <span>🕐 {s.time}</span>
-                <span>👥 {s.registered}/{s.capacity} peserta</span>
+                <span>👥 {s.registered}/{s.capacity} {t('peserta','participants')}</span>
               </div>
               <div className='flex flex-wrap gap-1 mb-3'>
-                {s.tags.map(t=><span key={t} className='text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded-full'>{t}</span>)}
+                {s.tags.map(tag=><span key={tag} className='text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded-full'>{tag}</span>)}
               </div>
               <div className='flex gap-3'>
                 {s.status==='Upcoming' && (
                   <button onClick={()=>setRegistered(p=>({...p,[s.id]:!p[s.id]}))}
                     className={`px-4 py-2 text-xs font-semibold rounded-lg transition ${registered[s.id]?'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100':'text-white hover:opacity-90'}`}
                     style={!registered[s.id]?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
-                    {registered[s.id]?'Batal Daftar':'Daftar Sekarang'}
+                    {registered[s.id]?t('Batal Daftar','Cancel Registration'):t('Daftar Sekarang','Register Now')}
                   </button>
                 )}
                 {s.recording && (
-                  <button className='px-4 py-2 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100'>🎬 Tonton Recording</button>
+                  <button className='px-4 py-2 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100'>🎬 {t('Tonton Recording','Watch Recording')}</button>
                 )}
               </div>
             </div>
