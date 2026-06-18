@@ -41,17 +41,17 @@ export default function TeamCalendarPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Team Learning Calendar</h1>
-      <p className='text-gray-500 text-sm mb-6'>Jadwal training, sertifikasi, dan sharing session anggota tim Anda bulan ini.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Team Learning Calendar', 'Team Learning Calendar')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Jadwal training, sertifikasi, dan sharing session anggota tim Anda bulan ini.', 'Training, certification, and sharing session schedule for your team this month.')}</p>
 
       <div className='flex items-center gap-3 mb-6'>
         <button onClick={()=>{ if(month===0){setMonth(11);setYear(y=>y-1)}else setMonth(m=>m-1)}} className='w-8 h-8 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center'>‹</button>
         <span className='font-bold text-gray-800 text-lg w-44 text-center'>{MONTHS[month]} {year}</span>
         <button onClick={()=>{ if(month===11){setMonth(0);setYear(y=>y+1)}else setMonth(m=>m+1)}} className='w-8 h-8 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center'>›</button>
         <div className='ml-auto flex gap-3 flex-wrap'>
-          {Object.entries(TYPE_DOT).map(([t,c])=>(
-            <div key={t} className='flex items-center gap-1.5 text-xs text-gray-500'>
-              <span className={`w-2.5 h-2.5 rounded-full ${c}`}></span>{t}
+          {Object.entries(TYPE_DOT).map(([label,c])=>(
+            <div key={label} className='flex items-center gap-1.5 text-xs text-gray-500'>
+              <span className={`w-2.5 h-2.5 rounded-full ${c}`}></span>{label}
             </div>
           ))}
         </div>
@@ -60,8 +60,8 @@ export default function TeamCalendarPage() {
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='lg:col-span-2 bg-white rounded-xl p-5 shadow-sm'>
           <div className='grid grid-cols-7 mb-2'>
-            {['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(d=>(
-              <div key={d} className='text-center text-xs font-semibold text-gray-400 py-2'>{d}</div>
+            {[t('Min','Sun'),t('Sen','Mon'),t('Sel','Tue'),t('Rab','Wed'),t('Kam','Thu'),t('Jum','Fri'),t('Sab','Sat')].map((d,i)=>(
+              <div key={i} className='text-center text-xs font-semibold text-gray-400 py-2'>{d}</div>
             ))}
           </div>
           <div className='grid grid-cols-7 gap-1'>
@@ -110,18 +110,18 @@ export default function TeamCalendarPage() {
             </div>
           ) : (
             <div className='bg-white rounded-xl p-5 shadow-sm'>
-              <h3 className='font-bold text-gray-700 mb-4'>📋 Event Bulan Ini ({allEvents.length})</h3>
+              <h3 className='font-bold text-gray-700 mb-4'>📋 {t('Event Bulan Ini', 'Events This Month')} ({allEvents.length})</h3>
               <div className='space-y-2'>
                 {allEvents.sort((a,b)=>a.date.localeCompare(b.date)).map(ev=>(
                   <div key={ev.id} className='flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50'>
                     <span className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${TYPE_DOT[ev.type]}`}></span>
                     <div>
                       <div className='text-xs font-semibold text-gray-700 line-clamp-1'>{ev.title}</div>
-                      <div className='text-xs text-gray-400'>{ev.date} · {ev.participants.length} peserta</div>
+                      <div className='text-xs text-gray-400'>{ev.date} · {ev.participants.length} {t('peserta', 'participants')}</div>
                     </div>
                   </div>
                 ))}
-                {allEvents.length===0 && <p className='text-xs text-gray-400 text-center py-4'>Tidak ada event bulan ini</p>}
+                {allEvents.length===0 && <p className='text-xs text-gray-400 text-center py-4'>{t('Tidak ada event bulan ini', 'No events this month')}</p>}
               </div>
             </div>
           )}

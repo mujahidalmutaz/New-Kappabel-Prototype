@@ -32,8 +32,8 @@ export default function GapAnalysisPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Competency Gap Analysis</h1>
-      <p className='text-gray-500 text-sm mb-6'>Identifikasi kesenjangan kompetensi anggota tim terhadap target jabatan mereka.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Competency Gap Analysis', 'Competency Gap Analysis')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Identifikasi kesenjangan kompetensi anggota tim terhadap target jabatan mereka.', 'Identify competency gaps of team members against their target positions.')}</p>
 
       <div className='flex gap-2 mb-6 flex-wrap'>
         {GAP_DATA.map(p=>(
@@ -61,7 +61,7 @@ export default function GapAnalysisPage() {
               </div>
             </div>
             <div className='grid grid-cols-3 gap-6 text-center'>
-              {[[totalGap,'Total Gap','⚠️'],[person.gaps.length,'Kompetensi Gap','📊'],[totalCourses,'Kursus Rekomendasi','📚']].map(([v,l,i])=>(
+              {[[totalGap, t('Total Gap', 'Total Gap'),'⚠️'],[person.gaps.length, t('Kompetensi Gap', 'Gap Competencies'),'📊'],[totalCourses, t('Kursus Rekomendasi', 'Recommended Courses'),'📚']].map(([v,l,i])=>(
                 <div key={l}>
                   <div className='text-xl font-bold text-gray-800'>{i} {v}</div>
                   <div className='text-xs text-gray-400'>{l}</div>
@@ -76,17 +76,17 @@ export default function GapAnalysisPage() {
                 <div className='flex items-start justify-between mb-3'>
                   <div>
                     <div className='font-bold text-gray-800'>{g.competency}</div>
-                    <div className='text-xs text-gray-400 mt-0.5'>Gap: {g.gap} level perlu ditingkatkan</div>
+                    <div className='text-xs text-gray-400 mt-0.5'>{t('Gap', 'Gap')}: {g.gap} {t('level perlu ditingkatkan', 'levels need improvement')}</div>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${g.gap>=2?'bg-red-50 text-red-700':'bg-yellow-50 text-yellow-700'}`}>
-                    {g.gap>=2?'Prioritas Tinggi':'Perlu Perhatian'}
+                    {g.gap>=2 ? t('Prioritas Tinggi', 'High Priority') : t('Perlu Perhatian', 'Needs Attention')}
                   </span>
                 </div>
 
                 <div className='mb-4'>
                   <div className='flex justify-between text-xs mb-1'>
-                    <span className='text-gray-500'>Saat ini: <b>{g.current}/5</b></span>
-                    <span className='text-red-700 font-semibold'>Target: <b>{g.target}/5</b></span>
+                    <span className='text-gray-500'>{t('Saat ini', 'Current')}: <b>{g.current}/5</b></span>
+                    <span className='text-red-700 font-semibold'>{t('Target', 'Target')}: <b>{g.target}/5</b></span>
                   </div>
                   <div className='w-full bg-gray-200 rounded-full h-4 relative'>
                     <div className='h-4 rounded-full bg-red-400' style={{width:`${g.current/5*100}%`}}></div>
@@ -101,7 +101,7 @@ export default function GapAnalysisPage() {
                 </div>
 
                 <div>
-                  <div className='text-xs font-semibold text-gray-600 mb-2'>📚 Kursus Rekomendasi:</div>
+                  <div className='text-xs font-semibold text-gray-600 mb-2'>📚 {t('Kursus Rekomendasi', 'Recommended Courses')}:</div>
                   <div className='flex flex-wrap gap-2'>
                     {g.courses.map(c=>(
                       <button key={c} className='text-xs bg-red-50 text-red-700 px-3 py-1.5 rounded-lg font-semibold border border-red-100 hover:bg-red-100 transition'>
@@ -115,15 +115,15 @@ export default function GapAnalysisPage() {
           </div>
 
           <div className='mt-4 bg-white rounded-xl p-5 shadow-sm'>
-            <h3 className='font-bold text-gray-700 mb-3'>📋 Ringkasan Tindak Lanjut</h3>
-            <p className='text-sm text-gray-600 mb-3'>Untuk mempersiapkan <b>{person.name}</b> menuju posisi <b>{person.target_position}</b>, disarankan untuk:</p>
+            <h3 className='font-bold text-gray-700 mb-3'>📋 {t('Ringkasan Tindak Lanjut', 'Follow-Up Summary')}</h3>
+            <p className='text-sm text-gray-600 mb-3'>{t('Untuk mempersiapkan', 'To prepare')} <b>{person.name}</b> {t('menuju posisi', 'for the position of')} <b>{person.target_position}</b>, {t('disarankan untuk', 'it is recommended to')}:</p>
             <ol className='list-decimal list-inside space-y-1 text-sm text-gray-600'>
-              <li>Daftarkan ke {totalCourses} kursus yang direkomendasikan di atas</li>
-              <li>Susun IDP formal dengan target penyelesaian 6–12 bulan</li>
-              <li>Lakukan monthly check-in untuk monitor progress gap</li>
+              <li>{t('Daftarkan ke', 'Enroll in')} {totalCourses} {t('kursus yang direkomendasikan di atas', 'recommended courses above')}</li>
+              <li>{t('Susun IDP formal dengan target penyelesaian 6–12 bulan', 'Create a formal IDP with a 6–12 month completion target')}</li>
+              <li>{t('Lakukan monthly check-in untuk monitor progress gap', 'Conduct monthly check-ins to monitor gap progress')}</li>
             </ol>
             <button className='mt-4 px-5 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-              Buat IDP Berdasarkan Gap →
+              {t('Buat IDP Berdasarkan Gap', 'Create IDP Based on Gap')} →
             </button>
           </div>
         </>

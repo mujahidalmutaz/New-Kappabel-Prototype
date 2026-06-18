@@ -44,15 +44,15 @@ export default function TeamProgressPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Team Learning Progress</h1>
-      <p className='text-gray-500 text-sm mb-6'>Pantau perkembangan belajar tiap anggota tim secara detail.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Team Learning Progress','Team Learning Progress')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Pantau perkembangan belajar tiap anggota tim secara detail.','Monitor each team member\'s learning progress in detail.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[
-          ['Total Anggota', PROGRESS_DATA.length, '👥', '#8B1A1A'],
-          ['Compliance 100%', PROGRESS_DATA.filter(p=>p.courses.every(c=>c.status==='Completed')).length, '✅', '#059669'],
-          ['Ada Overdue', PROGRESS_DATA.filter(p=>p.courses.some(c=>c.status==='Overdue')).length, '⚠️', '#dc2626'],
-          ['Avg Progress', Math.round(PROGRESS_DATA.reduce((a,p)=>a+getOverall(p.courses),0)/PROGRESS_DATA.length)+'%', '📈', '#7c3aed'],
+          [t('Total Anggota','Total Members'), PROGRESS_DATA.length, '👥', '#8B1A1A'],
+          [t('Compliance 100%','100% Compliance'), PROGRESS_DATA.filter(p=>p.courses.every(c=>c.status==='Completed')).length, '✅', '#059669'],
+          [t('Ada Overdue','Has Overdue'), PROGRESS_DATA.filter(p=>p.courses.some(c=>c.status==='Overdue')).length, '⚠️', '#dc2626'],
+          [t('Avg Progress','Avg Progress'), Math.round(PROGRESS_DATA.reduce((a,p)=>a+getOverall(p.courses),0)/PROGRESS_DATA.length)+'%', '📈', '#7c3aed'],
         ].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
@@ -62,7 +62,7 @@ export default function TeamProgressPage() {
       </div>
 
       <div className='mb-4'>
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari nama anggota tim...'
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari nama anggota tim...','Search team member name...')}
           className='w-full max-w-80 px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
       </div>
 
@@ -77,7 +77,7 @@ export default function TeamProgressPage() {
               </div>
               <div className='flex-1'>
                 <div className='font-semibold text-gray-800'>{p.name}</div>
-                <div className='text-xs text-gray-400'>{p.dept} · {p.courses.length} courses ditugaskan</div>
+                <div className='text-xs text-gray-400'>{p.dept} · {p.courses.length} {t('courses ditugaskan','courses assigned')}</div>
               </div>
               <div className='flex items-center gap-4'>
                 <div className='flex items-center gap-2'>
@@ -87,7 +87,7 @@ export default function TeamProgressPage() {
                   <span className='text-sm font-bold text-gray-700'>{getOverall(p.courses)}%</span>
                 </div>
                 {p.courses.some(c=>c.status==='Overdue') && (
-                  <span className='text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-semibold'>⚠️ Overdue</span>
+                  <span className='text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-semibold'>{t('⚠️ Overdue','⚠️ Overdue')}</span>
                 )}
                 <span className='text-gray-400'>{selected===p.name?'▲':'▼'}</span>
               </div>
@@ -110,7 +110,7 @@ export default function TeamProgressPage() {
                       </div>
                       {c.score && <span className='text-xs font-bold text-green-700 w-12 text-right'>⭐ {c.score}</span>}
                       {!c.score && <span className='text-xs text-gray-300 w-12 text-right'>—</span>}
-                      <button className='px-2.5 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>Remind</button>
+                      <button className='px-2.5 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>{t('Remind','Remind')}</button>
                     </div>
                   ))}
                 </div>

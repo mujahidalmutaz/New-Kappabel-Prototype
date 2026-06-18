@@ -31,16 +31,16 @@ export default function CertApprovalPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Certification Approval</h1>
-      <p className='text-gray-500 text-sm mb-6'>Review dan setujui penerbitan sertifikat untuk anggota tim Anda yang telah memenuhi syarat.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Certification Approval', 'Certification Approval')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Review dan setujui penerbitan sertifikat untuk anggota tim Anda yang telah memenuhi syarat.', 'Review and approve certificate issuance for your team members who have met the requirements.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[['Perlu Approval', pending.length,'⏳','#d97706'],
-          ['Approved', data.filter(d=>d.status==='Approved').length,'✅','#059669'],
-          ['Rejected', data.filter(d=>d.status==='Rejected').length,'❌','#dc2626'],
-          ['Total Requests', data.length,'📋','#8B1A1A']].map(([l,v,i,c])=>(
+        {[[t('Perlu Approval','Needs Approval'), pending.length,'⏳','#d97706'],
+          [t('Approved','Approved'), data.filter(d=>d.status==='Approved').length,'✅','#059669'],
+          [t('Rejected','Rejected'), data.filter(d=>d.status==='Rejected').length,'❌','#dc2626'],
+          [t('Total Requests','Total Requests'), data.length,'📋','#8B1A1A']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
@@ -50,7 +50,7 @@ export default function CertApprovalPage() {
 
       {pending.length > 0 && (
         <div className='mb-6'>
-          <h2 className='font-bold text-gray-700 mb-4 text-lg'>⏳ Menunggu Approval ({pending.length})</h2>
+          <h2 className='font-bold text-gray-700 mb-4 text-lg'>⏳ {t('Menunggu Approval', 'Awaiting Approval')} ({pending.length})</h2>
           <div className='space-y-4'>
             {pending.map(d=>{
               const eligible = isEligible(d)
@@ -60,37 +60,37 @@ export default function CertApprovalPage() {
                     <div>
                       <div className='font-bold text-gray-800 text-base'>{d.cert}</div>
                       <div className='text-sm font-semibold text-red-700 mt-0.5'>{d.employee}</div>
-                      <div className='text-xs text-gray-400 mt-0.5'>Diselesaikan: {d.completedDate} · Berlaku: {d.validity}</div>
+                      <div className='text-xs text-gray-400 mt-0.5'>{t('Diselesaikan', 'Completed')}: {d.completedDate} · {t('Berlaku', 'Valid')}: {d.validity}</div>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-lg font-bold border ${eligible?'bg-green-50 text-green-700 border-green-200':'bg-orange-50 text-orange-700 border-orange-200'}`}>
-                      {eligible?'✅ Eligible':'⚠️ Check Requirements'}
+                      {eligible?t('✅ Eligible','✅ Eligible'):t('⚠️ Check Requirements','⚠️ Check Requirements')}
                     </span>
                   </div>
 
                   <div className='grid grid-cols-2 gap-4 mb-3'>
-                    {[['Score', d.score+'%', d.minScore+'% min', d.score>=d.minScore],
-                      ['Kehadiran', d.attendance+'%', d.minAttendance+'% min', d.attendance>=d.minAttendance]].map(([label,val,req,ok])=>(
+                    {[[t('Score','Score'), d.score+'%', d.minScore+'% min', d.score>=d.minScore],
+                      [t('Kehadiran','Attendance'), d.attendance+'%', d.minAttendance+'% min', d.attendance>=d.minAttendance]].map(([label,val,req,ok])=>(
                       <div key={label} className={`rounded-lg p-3 ${ok?'bg-green-50':'bg-red-50'}`}>
                         <div className='text-xs font-semibold text-gray-600'>{label}</div>
                         <div className={`text-lg font-bold ${ok?'text-green-700':'text-red-700'}`}>{val}</div>
-                        <div className='text-xs text-gray-400'>Minimum: {req}</div>
+                        <div className='text-xs text-gray-400'>{t('Minimum', 'Minimum')}: {req}</div>
                       </div>
                     ))}
                   </div>
 
                   <div className='mb-3'>
-                    <label className='block text-xs font-semibold text-gray-600 mb-1'>Catatan (opsional)</label>
+                    <label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Catatan (opsional)', 'Notes (optional)')}</label>
                     <input value={note[d.id]||''} onChange={e=>setNote(p=>({...p,[d.id]:e.target.value}))}
-                      className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder='Catatan untuk karyawan...' />
+                      className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder={t('Catatan untuk karyawan...', 'Notes for employee...')} />
                   </div>
                   <div className='flex gap-3'>
                     <button onClick={()=>handleAction(d.id,'approve')}
                       className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition ${eligible?'bg-green-600 text-white hover:bg-green-700':'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                       disabled={!eligible}>
-                      ✅ Approve & Terbitkan Sertifikat
+                      {t('✅ Approve & Terbitkan Sertifikat', '✅ Approve & Issue Certificate')}
                     </button>
                     <button onClick={()=>handleAction(d.id,'reject')} className='flex-1 py-2.5 text-red-600 text-sm font-semibold bg-red-50 rounded-lg hover:bg-red-100 border border-red-200'>
-                      ❌ Tolak
+                      {t('❌ Tolak', '❌ Reject')}
                     </button>
                   </div>
                 </div>
@@ -102,10 +102,10 @@ export default function CertApprovalPage() {
 
       {history.length > 0 && (
         <div>
-          <h2 className='font-bold text-gray-700 mb-4 text-lg'>📋 Riwayat</h2>
+          <h2 className='font-bold text-gray-700 mb-4 text-lg'>📋 {t('Riwayat', 'History')}</h2>
           <div className='bg-white rounded-xl p-6 shadow-sm overflow-x-auto'>
             <table className='w-full text-sm'>
-              <thead><tr className='bg-gray-50'>{['Karyawan','Sertifikat','Score','Kehadiran','Status','Catatan'].map(h=>(
+              <thead><tr className='bg-gray-50'>{[t('Karyawan','Employee'),t('Sertifikat','Certificate'),t('Score','Score'),t('Kehadiran','Attendance'),t('Status','Status'),t('Catatan','Notes')].map(h=>(
                 <th key={h} className='text-left px-3 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
               ))}</tr></thead>
               <tbody>{history.map(d=>(
