@@ -20,8 +20,26 @@ const INIT_COURSE_SETTINGS = [
 ]
 
 const INIT_TEMPLATES = [
-  { id:1, companyId:1, themeId:'navy',   fileName:'cert_nusantara_teknologi.rtf', uploadedAt:'2025-06-10', status:'Active', notes:'Template utama PT Nusantara Teknologi.', rtfContent: null },
-  { id:2, companyId:2, themeId:'maroon', fileName:null,                           uploadedAt:null,         status:'Draft',  notes:'',                                       rtfContent: null },
+  {
+    id: 1, name: 'Sertifikat Penyelesaian Standard', type: 'Penyelesaian (Completion)',
+    orientation: 'Landscape', themeId: 'navy',
+    headerTitle: 'CERTIFICATE OF COMPLETION', subTitle: 'Sertifikat ini diberikan kepada',
+    bodyText: 'yang telah berhasil menyelesaikan pelatihan [[course_name]] selama [[training_hours]] jam dengan nilai [[score]] ([[grade]]).',
+    footerText: 'Diterbitkan pada [[issue_date]] · Berlaku hingga [[validity_date]]',
+    approverName: '[[approver_name]]', approverTitle: '[[approver_title]]',
+    logoUrl: null, logoPosition: 'Kiri', showSeal: true, showCertNo: true,
+    validityMonths: 0, notes: 'Template umum untuk semua course.', status: 'Active',
+  },
+  {
+    id: 2, name: 'Sertifikat Excellence Award', type: 'Excellence Award',
+    orientation: 'Landscape', themeId: 'gold',
+    headerTitle: 'EXCELLENCE AWARD', subTitle: 'Penghargaan diberikan kepada',
+    bodyText: 'atas pencapaian luar biasa dalam pelatihan [[course_name]] dengan nilai [[score]] ([[grade]]).',
+    footerText: 'Diterbitkan pada [[issue_date]]',
+    approverName: '[[approver_name]]', approverTitle: '[[approver_title]]',
+    logoUrl: null, logoPosition: 'Tengah', showSeal: true, showCertNo: true,
+    validityMonths: 0, notes: '', status: 'Draft',
+  },
 ]
 
 export const useCertificateStore = create((set) => ({
