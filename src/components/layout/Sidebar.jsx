@@ -30,25 +30,25 @@ function FlyItem({ label, href, onClick }) {
 }
 
 // ─── Flyout group ─────────────────────────────────────────────────────────────
-function FlyGroup({ title, items, isParent, subGroups, onClose }) {
+function FlyGroup({ title, items, isParent, subGroups, isSubGroup, onClose }) {
   const [open, setOpen] = useState(true)
 
   if (isParent) {
     return (
       <div className='mb-1'>
         <button onClick={() => setOpen(o => !o)}
-          className='w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-700 uppercase tracking-wider hover:text-gray-900 transition rounded-lg mx-1'
+          className='w-full flex items-center justify-between px-3 py-2 rounded-lg mx-1 transition'
           style={{ background: open ? '#fef2f2' : 'transparent' }}>
-          <span>{title}</span>
+          <span className='text-xs font-bold text-gray-800 uppercase tracking-wider'>{title}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-            style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }}>
+            style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s', color: '#9ca3af' }}>
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </button>
         {open && (
           <div className='pl-2 mt-1'>
             {subGroups?.map((g, i) => (
-              <FlyGroup key={i} title={g.title} items={g.items} onClose={onClose} />
+              <FlyGroup key={i} title={g.title} items={g.items} isSubGroup onClose={onClose} />
             ))}
           </div>
         )}
@@ -60,8 +60,9 @@ function FlyGroup({ title, items, isParent, subGroups, onClose }) {
     <div className='mb-2'>
       {title && (
         <button onClick={() => setOpen(o => !o)}
-          className='w-full flex items-center justify-between px-4 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition'>
-          <span>{title}</span>
+          className='w-full flex items-center justify-between px-4 py-1.5 transition'
+          style={{ color: isSubGroup ? '#9ca3af' : '#374151' }}>
+          <span className={`text-xs uppercase tracking-wider ${isSubGroup ? 'font-semibold' : 'font-bold'}`}>{title}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
             style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }}>
             <polyline points="6 9 12 15 18 9"/>
