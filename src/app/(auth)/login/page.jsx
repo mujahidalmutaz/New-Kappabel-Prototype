@@ -71,6 +71,7 @@ export default function LoginPage() {
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
             className='w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 transition'
             placeholder='Masukkan password' disabled={loading} />
+          <p className='text-xs text-gray-400 mt-1.5'>Mohon jangan menyebarluaskan password</p>
         </div>
 
         {error && (
