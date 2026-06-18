@@ -63,7 +63,7 @@ export default function LearningPathPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Learning Path</h1>
-      <p className='text-gray-500 text-sm mb-6'>Ikuti jalur pembelajaran terstruktur untuk mencapai tujuan karir Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Ikuti jalur pembelajaran terstruktur untuk mencapai tujuan karir Anda.','Follow a structured learning path to achieve your career goals.')}</p>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-5'>
         {PATHS.map(p => (
@@ -73,7 +73,7 @@ export default function LearningPathPage() {
               <div className='flex items-start justify-between mb-3'>
                 <div className='text-3xl'>{p.badge}</div>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${p.progress===100?'bg-green-50 text-green-700':enrolled[p.id]?'bg-blue-50 text-blue-700':'bg-gray-100 text-gray-500'}`}>
-                  {p.progress===100?'Selesai':enrolled[p.id]?'Terdaftar':'Belum Daftar'}
+                  {p.progress===100?t('Selesai','Completed'):enrolled[p.id]?t('Terdaftar','Enrolled'):t('Belum Daftar','Not Enrolled')}
                 </span>
               </div>
               <h3 className='font-bold text-gray-800 mb-1'>{p.title}</h3>
@@ -91,7 +91,7 @@ export default function LearningPathPage() {
               {enrolled[p.id] && (
                 <div className='mb-3'>
                   <div className='flex items-center justify-between text-xs mb-1'>
-                    <span className='text-gray-500'>{p.completedCourses}/{p.totalCourses} selesai</span>
+                    <span className='text-gray-500'>{p.completedCourses}/{p.totalCourses} {t('selesai','completed')}</span>
                     <span className='font-bold text-gray-700'>{p.progress}%</span>
                   </div>
                   <div className='w-full bg-gray-200 rounded-full h-2'>
@@ -111,19 +111,19 @@ export default function LearningPathPage() {
                 <button onClick={e=>{e.stopPropagation();setEnrolled(prev=>({...prev,[p.id]:true}))}}
                   className='w-full py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90 transition'
                   style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-                  Daftar Sekarang
+                  {t('Daftar Sekarang','Enroll Now')}
                 </button>
               )}
               {enrolled[p.id] && p.progress < 100 && (
                 <button className='w-full py-2 text-sm font-semibold text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition'>
-                  Lanjutkan →
+                  {t('Lanjutkan →','Continue →')}
                 </button>
               )}
             </div>
 
             {selected === p.id && (
               <div className='border-t border-gray-100 px-5 pb-5 pt-4'>
-                <h4 className='text-xs font-bold text-gray-600 mb-3 uppercase tracking-wide'>Daftar Course</h4>
+                <h4 className='text-xs font-bold text-gray-600 mb-3 uppercase tracking-wide'>{t('Daftar Course','Course List')}</h4>
                 <div className='space-y-2'>
                   {p.courses.map((c, i) => (
                     <div key={i} className={`flex items-center gap-3 p-2.5 rounded-lg ${c.status==='Locked'?'opacity-50':''}`}>
