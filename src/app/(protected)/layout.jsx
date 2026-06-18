@@ -1,10 +1,10 @@
 'use client'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/store/authStore'
-import Sidebar             from '@/components/layout/Sidebar'
-import GlobalSearch        from '@/components/layout/GlobalSearch'
-import NotificationBell    from '@/components/layout/NotificationBell'
+import { useAuthStore }     from '@/store/authStore'
+import Sidebar              from '@/components/layout/Sidebar'
+import GlobalSearch         from '@/components/layout/GlobalSearch'
+import NotificationBell     from '@/components/layout/NotificationBell'
 import { useBrandingStore } from '@/store/brandingStore'
 import { useLanguageStore } from '@/store/languageStore'
 
@@ -15,15 +15,12 @@ export default function ProtectedLayout({ children }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Tunggu rehydration selesai sebelum cek — mencegah redirect di new tab
     if (_hydrated && !currentUser) router.push('/login')
   }, [_hydrated, currentUser, router])
 
-  // Belum rehydrate: tampilkan loading blank agar tidak flash redirect
   if (!_hydrated) return (
-    <div className='min-h-screen flex items-center justify-center'
-      style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-      <img src='/logos/new-kappabel-prototype.png' alt='' className='w-20 h-20 object-contain animate-pulse' />
+    <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+      <div className='w-10 h-10 rounded-xl animate-pulse' style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }} />
     </div>
   )
 
@@ -36,84 +33,91 @@ export default function ProtectedLayout({ children }) {
   }
 
   const roleLabel = (r) =>
-    ({ employee:'Employee', manager:'Manager', hr:'HR', superadmin:'Superadmin' }[r] || r)
+    ({ employee: 'Employee', manager: 'Manager', hr: 'HR', superadmin: 'Superadmin' }[r] || r)
+
+  const initials = (currentUser?.name || '?').trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 
   return (
     <div className='flex flex-col min-h-screen bg-gray-100'>
 
       {/* Topbar */}
-      <header
-        className='fixed top-0 left-0 right-0 h-14 z-50 flex items-center justify-between px-6 shadow-md'
-        style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}
-      >
-        {topbarLogo ? (
-          <img src={topbarLogo} alt='Logo' className='object-contain flex-shrink-0' style={{ height: '42px', maxWidth: '160px' }} />
-        ) : (
-          <div className='flex items-center gap-2 flex-shrink-0'>
-            {/* Kappabel K — outlined rounded square, white */}
-            <div style={{ width: 34, height: 34, borderRadius: 8, border: '2px solid rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width='20' height='20' viewBox='0 0 20 20' fill='none'>
-                <path d='M4 2.5h3v5.8l4.6-5.8h3.8L10 10l5.4 7.5h-3.8L7 11.7V17.5H4V2.5z' fill='white'/>
-              </svg>
-            </div>
-            {/* Text */}
-            <div className='leading-none'>
-              <div className='flex items-baseline gap-1.5'>
-                <span className='text-white font-bold text-[15px] tracking-tight'>appabel</span>
-                <span className='text-white/70 text-[8px] font-semibold border border-white/50 rounded px-1 py-0.5 leading-none'>Prototype</span>
+      <header className='fixed top-0 left-0 right-0 z-50 bg-white' style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+        {/* Gradient accent strip */}
+        <div className='h-[3px]' style={{ background: 'linear-gradient(90deg,#8B1A1A 0%,#D7252B 40%,#f4a97a 80%,#f9d276 100%)' }} />
+
+        {/* Main bar */}
+        <div className='h-[57px] flex items-center justify-between pl-1 pr-5 gap-3'>
+
+          {/* Left: logo in the sidebar-width zone */}
+          <div className='flex items-center justify-center flex-shrink-0' style={{ width: 56 }}>
+            {topbarLogo ? (
+              <img src={topbarLogo} alt='Logo' className='h-8 w-8 object-contain' />
+            ) : (
+              <div className='w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0'
+                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 2.5h3v5.8l4.6-5.8h3.8L10 10l5.4 7.5h-3.8L7 11.7V17.5H4V2.5z" fill="white"/>
+                </svg>
               </div>
-              <div className='text-white/65 text-[9px] font-medium tracking-wide'>by Dexa Group</div>
-            </div>
+            )}
           </div>
-        )}
-        <div className='flex-1 flex justify-center px-4'>
-          <GlobalSearch />
-        </div>
-        <div className='flex items-center gap-3 flex-shrink-0'>
-          {/* User identity */}
-          <div className='hidden md:flex items-center gap-2.5 pr-1'>
-            <div className='flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm font-semibold text-white ring-1 ring-white/30'>
-              {(currentUser?.name || '?').trim().charAt(0).toUpperCase()}
-            </div>
-            <div className='leading-tight'>
-              <div className='text-sm font-semibold text-white'>{currentUser?.name}</div>
-              <div className='text-[11px] text-white/70'>{roleLabel(currentUser?.role)}</div>
-            </div>
+
+          {/* App name — sits right next to the icon strip edge */}
+          <div className='hidden lg:flex items-baseline gap-1.5 flex-shrink-0'>
+            <span className='font-bold text-gray-800 text-[15px] tracking-tight'>Kappabel</span>
+            <span className='text-[9px] font-semibold border border-gray-300 rounded px-1 py-0.5 text-gray-400 leading-none'>Prototype</span>
           </div>
-          {/* Notification bell */}
-          <NotificationBell />
-          {/* Language switcher */}
-          <div className='flex items-center gap-0.5 bg-white/10 rounded-lg p-0.5 ring-1 ring-white/15'>
-            <button
-              onClick={() => setLang('id')}
-              className={`text-xs font-semibold px-2.5 py-1 rounded-md transition ${
-                lang === 'id' ? 'bg-white text-red-800 shadow-sm' : 'text-white/70 hover:text-white'
-              }`}
-            >
-              ID
+
+          {/* Search — centered */}
+          <div className='flex-1 flex justify-center px-4'>
+            <GlobalSearch />
+          </div>
+
+          {/* Right: language · red dot · bell · user */}
+          <div className='flex items-center gap-3 flex-shrink-0'>
+            {/* Language */}
+            <div className='flex items-center gap-0.5 rounded-lg p-0.5'>
+              <button onClick={() => setLang('id')}
+                className={`text-xs font-semibold px-2.5 py-1 rounded-md transition ${lang === 'id' ? 'bg-red-50 text-red-800' : 'text-gray-500 hover:text-gray-700'}`}>
+                ID
+              </button>
+              <button onClick={() => setLang('en')}
+                className={`text-xs font-semibold px-2.5 py-1 rounded-md transition ${lang === 'en' ? 'bg-red-50 text-red-800' : 'text-gray-500 hover:text-gray-700'}`}>
+                EN
+              </button>
+            </div>
+
+            {/* Notification bell */}
+            <NotificationBell />
+
+            {/* User avatar + name */}
+            <div className='flex items-center gap-2.5'>
+              <div className='flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white flex-shrink-0'
+                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                {initials}
+              </div>
+              <div className='hidden md:block leading-tight'>
+                <div className='text-sm font-semibold text-gray-800'>{currentUser?.name}</div>
+                <div className='text-[11px] text-gray-400'>{roleLabel(currentUser?.role)}</div>
+              </div>
+            </div>
+
+            {/* Logout */}
+            <button onClick={handleLogout}
+              className='text-gray-400 hover:text-red-600 transition p-1.5 rounded-lg hover:bg-red-50'
+              title='Logout'>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
             </button>
-            <button
-              onClick={() => setLang('en')}
-              className={`text-xs font-semibold px-2.5 py-1 rounded-md transition ${
-                lang === 'en' ? 'bg-white text-red-800 shadow-sm' : 'text-white/70 hover:text-white'
-              }`}
-            >
-              EN
-            </button>
           </div>
-          <button
-            onClick={handleLogout}
-            className='text-white text-sm font-medium px-3 py-1.5 rounded-lg border border-white/30 hover:bg-white/20 transition'
-          >
-            Logout
-          </button>
         </div>
       </header>
 
       {/* Sidebar + Content */}
-      <div className='flex mt-14'>
+      <div className='flex' style={{ marginTop: 60 }}>
         <Sidebar />
-        <main className='ml-60 flex-1 min-h-screen bg-gray-100'>
+        <main className='flex-1 min-h-screen bg-gray-100' style={{ marginLeft: 56 }}>
           <div className='mx-auto w-full max-w-[1400px] px-6 py-8 lg:px-8'>
             {children}
           </div>
