@@ -56,15 +56,15 @@ export default function LoginPage() {
             <img src={loginLogo} alt='Logo' className='object-contain mx-auto' style={{ height: '80px', maxWidth: '240px' }} />
           ) : (
             <div className='flex items-center gap-3'>
-              <div className='flex items-center justify-center rounded-xl' style={{ width: 52, height: 52, background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                <svg width='30' height='30' viewBox='0 0 24 24' fill='none'>
-                  <path d='M5 3h4v7.5l6-7.5h5L12.5 12 20 21h-5l-6-7.5V21H5V3z' fill='white'/>
+              <div style={{ width: 50, height: 50, borderRadius: 12, border: '2.5px solid #D7252B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width='28' height='28' viewBox='0 0 20 20' fill='none'>
+                  <path d='M4 2.5h3v5.8l4.6-5.8h3.8L10 10l5.4 7.5h-3.8L7 11.7V17.5H4V2.5z' fill='#D7252B'/>
                 </svg>
               </div>
               <div className='leading-none'>
                 <div className='flex items-baseline gap-1.5'>
                   <span className='font-bold text-2xl tracking-tight text-gray-800'>appabel</span>
-                  <span className='text-[10px] font-semibold border border-gray-300 rounded px-1 py-0.5 text-gray-500 leading-none'>Prototype</span>
+                  <span className='text-[10px] font-semibold border border-gray-300 rounded px-1 py-0.5 text-gray-400 leading-none'>Prototype</span>
                 </div>
                 <div className='text-[11px] font-medium text-gray-400 tracking-wide mt-0.5'>by Dexa Group</div>
               </div>
