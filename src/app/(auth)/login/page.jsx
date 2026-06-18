@@ -148,7 +148,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className='text-center py-2.5'>
-            <span className='text-[10px] text-gray-300'>© 2025 Kappabel</span>
+            <span className='text-[10px] text-gray-300'>© 2026 Kappabel Prototype</span>
           </div>
         </div>
       </div>
