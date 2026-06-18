@@ -30,7 +30,7 @@ function FlyItem({ label, href, onClick }) {
 }
 
 // ─── Flyout group ─────────────────────────────────────────────────────────────
-function FlyGroup({ title, items, isParent, subGroups, isSubGroup, onClose }) {
+function FlyGroup({ title, icon, items, isParent, subGroups, isSubGroup, onClose }) {
   const [open, setOpen] = useState(true)
 
   if (isParent) {
@@ -39,7 +39,10 @@ function FlyGroup({ title, items, isParent, subGroups, isSubGroup, onClose }) {
         <button onClick={() => setOpen(o => !o)}
           className='w-full flex items-center justify-between px-3 py-2 rounded-lg mx-1 transition'
           style={{ background: open ? '#fef2f2' : 'transparent' }}>
-          <span className='text-xs font-bold text-gray-800 uppercase tracking-wider'>{title}</span>
+          <span className='flex items-center gap-2'>
+            {icon && <span className='text-sm leading-none'>{icon}</span>}
+            <span className='text-xs font-bold text-gray-800 uppercase tracking-wider'>{title}</span>
+          </span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
             style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s', color: '#9ca3af' }}>
             <polyline points="6 9 12 15 18 9"/>
@@ -62,7 +65,10 @@ function FlyGroup({ title, items, isParent, subGroups, isSubGroup, onClose }) {
         <button onClick={() => setOpen(o => !o)}
           className='w-full flex items-center justify-between px-4 py-1.5 transition'
           style={{ color: isSubGroup ? '#9ca3af' : '#374151' }}>
-          <span className={`text-xs uppercase tracking-wider ${isSubGroup ? 'font-semibold' : 'font-bold'}`}>{title}</span>
+          <span className='flex items-center gap-2'>
+            {!isSubGroup && icon && <span className='text-sm leading-none'>{icon}</span>}
+            <span className={`text-xs uppercase tracking-wider ${isSubGroup ? 'font-semibold' : 'font-bold'}`}>{title}</span>
+          </span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
             style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }}>
             <polyline points="6 9 12 15 18 9"/>
@@ -76,17 +82,17 @@ function FlyGroup({ title, items, isParent, subGroups, isSubGroup, onClose }) {
 
 // ─── Navigation data ──────────────────────────────────────────────────────────
 const ESS_GROUPS = [
-  { title: 'Personal', items: [
+  { title: 'Personal', icon: '👤', items: [
     { label: 'Apply Leave',          href: '/ess/apply-leave' },
     { label: 'Leave Balance',        href: '/ess/leave-balance' },
     { label: 'Attendance',           href: '/ess/attendance' },
     { label: 'Payslip',              href: '/ess/payslip' },
     { label: 'My Onboarding',        href: '/ess/onboarding' },
   ]},
-  { title: 'Performance', items: [
+  { title: 'Performance', icon: '🎯', items: [
     { label: 'Performance Check-In', href: '/ess/check-in' },
   ]},
-  { title: 'Learning', items: [
+  { title: 'Learning', icon: '📚', items: [
     { label: 'My Learning Dashboard', href: '/ess/learning/dashboard' },
     { label: 'Course Catalog',         href: '/ess/learning/catalog' },
     { label: 'My Courses',             href: '/ess/learning/my-courses' },
@@ -110,7 +116,7 @@ const ESS_GROUPS = [
 ]
 
 const MSS_GROUPS = [
-  { title: 'Team', items: [
+  { title: 'Team', icon: '👥', items: [
     { label: 'Team Attendance',          href: '/mss/team-attendance' },
     { label: 'Apply Leave (My Team)',    href: '/mss/apply-leave-team' },
     { label: 'Approve Leave',            href: '/mss/approve-leave' },
@@ -119,7 +125,7 @@ const MSS_GROUPS = [
     { label: 'Congratulation Message',   href: '/mss/congratulation' },
     { label: 'Onboarding Tracker',       href: '/mss/approve-onboarding' },
   ]},
-  { title: 'Personnel Action', items: [
+  { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Overview',                href: '/mss/personnel-action' },
     { label: 'Promote',                 href: '/mss/personnel-action/promote' },
     { label: 'Transfer',                href: '/mss/personnel-action/transfer' },
@@ -130,7 +136,7 @@ const MSS_GROUPS = [
     { label: 'Change Employment Type',  href: '/mss/personnel-action/change-employment-type' },
     { label: 'Extend Contract',         href: '/mss/personnel-action/extend-contract' },
   ]},
-  { title: 'Team Learning', items: [
+  { title: 'Team Learning', icon: '📖', items: [
     { label: 'Team Learning Dashboard', href: '/mss/learning/dashboard' },
     { label: 'Mandatory Monitoring',    href: '/mss/learning/mandatory' },
     { label: 'Training Approval',       href: '/mss/learning/approval' },
@@ -150,13 +156,13 @@ const MSS_GROUPS = [
 ]
 
 const HR_GROUPS = [
-  { title: 'Onboarding', items: [
+  { title: 'Onboarding', icon: '🎯', items: [
     { label: 'Onboarding Tracker',         href: '/hr/onboarding/tracker' },
     { label: 'Master Onboarding',          href: '/hr/onboarding/master' },
     { label: 'Form Evaluation',            href: '/hr/evaluation' },
     { label: 'Form Evaluation (Contract)', href: '/hr/evaluation-contract' },
   ]},
-  { title: 'Structure', items: [
+  { title: 'Structure', icon: '🏛️', items: [
     { label: 'Enterprise',    href: '/hr/structure/enterprise' },
     { label: 'Division',      href: '/hr/structure/division' },
     { label: 'Company',       href: '/hr/structure/company' },
@@ -168,11 +174,11 @@ const HR_GROUPS = [
     { label: 'Org Chart',     href: '/hr/org-chart' },
     { label: 'Org Tree',      href: '/hr/org-tree' },
   ]},
-  { title: 'Employee', items: [
+  { title: 'Employee', icon: '👤', items: [
     { label: 'Employee Data',    href: '/hr/employee' },
     { label: 'Apply Leave (HR)', href: '/hr/apply-leave' },
   ]},
-  { title: 'Personnel Action', items: [
+  { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Overview',                href: '/hr/employee/personnel-action' },
     { label: 'Promote',                 href: '/hr/employee/personnel-action/promote' },
     { label: 'Transfer',                href: '/hr/employee/personnel-action/transfer' },
@@ -183,19 +189,19 @@ const HR_GROUPS = [
     { label: 'Change Employment Type',  href: '/hr/employee/personnel-action/change-employment-type' },
     { label: 'Extend Contract',         href: '/hr/employee/personnel-action/extend-contract' },
   ]},
-  { title: 'Time & Labour', items: [
+  { title: 'Time & Labour', icon: '🕐', items: [
     { label: 'Shift Setting',       href: '/hr/time-labour/shift-setting' },
     { label: 'Shift Pattern',       href: '/hr/time-labour/shift-pattern' },
     { label: 'Work Schedule',       href: '/hr/time-labour/work-schedule' },
     { label: 'Schedule Assignment', href: '/hr/time-labour/schedule-assignment' },
   ]},
-  { title: 'Absence', items: [
+  { title: 'Absence', icon: '📅', items: [
     { label: 'Holiday Calendar', href: '/hr/absence/holiday-calendar' },
   ]},
-  { title: 'Payroll', items: [
+  { title: 'Payroll', icon: '💰', items: [
     { label: 'Payroll Run', href: '/hr/payroll/run' },
   ]},
-  { title: 'Learning Management', isParent: true, subGroups: [
+  { title: 'Learning Management', icon: '🎓', isParent: true, subGroups: [
     { title: 'Resources', items: [
       { label: 'Master Content',       href: '/hr/learning/master-content' },
       { label: 'Master Instructors',   href: '/hr/learning/master-instructors' },
@@ -237,16 +243,16 @@ const HR_GROUPS = [
 ]
 
 const SA_GROUPS = [
-  { title: 'Settings', items: [
+  { title: 'Settings', icon: '⚙️', items: [
     { label: 'User Management', href: '/sysadmin/users' },
     { label: 'Leave Workflow',  href: '/sysadmin/leave-workflow' },
   ]},
-  { title: 'Workflow', items: [
+  { title: 'Workflow', icon: '🔀', items: [
     { label: 'Workflow Settings',   href: '/sysadmin/workflow/settings' },
     { label: 'Userlists',           href: '/sysadmin/workflow/userlists' },
     { label: 'Transaction Manager', href: '/sysadmin/workflow/transaction-manager' },
   ]},
-  { title: 'Branding', items: [
+  { title: 'Branding', icon: '🎨', items: [
     { label: 'Company Logo', href: '/sysadmin/branding/company-logo' },
     { label: 'Login Theme',  href: '/sysadmin/branding/login-theme' },
   ]},
@@ -358,7 +364,7 @@ export default function Sidebar() {
           {/* Nav items */}
           <div className='py-3 px-1'>
             {activeSec.groups?.map((g, i) => (
-              <FlyGroup key={i} title={g.title} items={g.items} isParent={g.isParent} subGroups={g.subGroups} onClose={closeFlyout} />
+              <FlyGroup key={i} title={g.title} icon={g.icon} items={g.items} isParent={g.isParent} subGroups={g.subGroups} onClose={closeFlyout} />
             ))}
           </div>
         </div>
