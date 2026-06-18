@@ -254,7 +254,6 @@ export default function Sidebar() {
           <SidebarSubModule label='🏆 Learning — Certification'
             open={openSubModule === 'hr-lrn-cert'} onToggle={() => toggleSubModule('hr-lrn-cert')}>
             <NavItem icon='🏆' label='Master Certificate'   href='/hr/learning/certificate' />
-            <NavItem icon='⭐' label='Master CPD / Points'  href='/hr/learning/cpd' />
           </SidebarSubModule>
 
           {/* HR Learning — Catalog */}
