@@ -146,8 +146,8 @@ export default function GlobalSearch() {
 
   return (
     <div ref={boxRef} className='relative w-72'>
-      <div className='flex items-center gap-2 bg-white/15 border border-white/25 rounded-lg px-3 py-1.5 hover:bg-white/20 transition'>
-        <span className='text-white/70 text-sm'>🔍</span>
+      <div className='flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-gray-300 hover:bg-gray-50 transition focus-within:border-red-300 focus-within:bg-white'>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input
           ref={inputRef}
           value={query}
@@ -155,14 +155,14 @@ export default function GlobalSearch() {
           onFocus={() => { if (query) setOpen(true) }}
           onKeyDown={handleKey}
           placeholder={t('Cari karyawan, halaman… (Ctrl+K)', 'Search employees, pages… (Ctrl+K)')}
-          className='flex-1 bg-transparent text-white text-xs placeholder-white/50 outline-none'
+          className='flex-1 bg-transparent text-gray-700 text-xs placeholder-gray-400 outline-none'
         />
         {query && (
           <button onClick={() => { setQuery(''); setOpen(false); setCursor(-1) }}
-            className='text-white/50 hover:text-white text-xs'>✕</button>
+            className='text-gray-400 hover:text-gray-600 text-xs'>✕</button>
         )}
         {!query && (
-          <kbd className='text-white/30 text-xs bg-white/10 px-1.5 py-0.5 rounded font-mono'>⌘K</kbd>
+          <kbd className='text-gray-400 text-xs bg-white border border-gray-200 px-1.5 py-0.5 rounded font-mono'>⌘K</kbd>
         )}
       </div>
 
