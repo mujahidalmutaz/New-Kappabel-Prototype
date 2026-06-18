@@ -63,6 +63,7 @@ export default function EssCheckInPage() {
   const [selectedPipId, setSelectedPipId] = useState(null)
   const [pipApproveNote, setPipApproveNote] = useState('')
   const [showPipApprove, setShowPipApprove] = useState(false)
+  const [pipChecked, setPipChecked] = useState(PERNYATAAN.map(() => false))
 
   const [msg, setMsg] = useState(null)
   const flash = (text, type = 'success') => { setMsg({ text, type }); setTimeout(() => setMsg(null), 3500) }
@@ -602,7 +603,7 @@ export default function EssCheckInPage() {
               ) : (
                 <div className='divide-y divide-gray-100'>
                   {myPips.map(p => (
-                    <button key={p.id} onClick={() => { setSelectedPipId(p.id); setShowPipApprove(false) }}
+                    <button key={p.id} onClick={() => { setSelectedPipId(p.id); setShowPipApprove(false); setPipChecked(PERNYATAAN.map(() => false)) }}
                       className={`w-full flex items-start gap-3 px-4 py-3.5 hover:bg-gray-50 transition text-left ${selectedPipId === p.id ? 'bg-red-50/40' : ''}`}>
                       <div className='w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5 bg-red-100'>📋</div>
                       <div className='flex-1 min-w-0'>
@@ -737,11 +738,20 @@ export default function EssCheckInPage() {
                   {/* Pernyataan */}
                   <div className='bg-gray-50 rounded-xl p-4 border border-gray-200'>
                     <h3 className='text-sm font-bold text-gray-700 mb-3'>{t('Pernyataan', 'Declaration')}</h3>
-                    <div className='space-y-3'>
+                    <ul className='space-y-3'>
                       {PERNYATAAN.map((p, i) => (
-                        <p key={i} className='text-xs text-gray-600 leading-relaxed'>{p}</p>
+                        <li key={i} className='flex gap-3 items-start'>
+                          <input
+                            type='checkbox'
+                            id={`pip-pernyataan-${i}`}
+                            checked={pipChecked[i]}
+                            onChange={e => setPipChecked(prev => prev.map((v, idx) => idx === i ? e.target.checked : v))}
+                            className='mt-0.5 flex-shrink-0 w-4 h-4 accent-red-700 cursor-pointer'
+                          />
+                          <label htmlFor={`pip-pernyataan-${i}`} className='text-xs text-gray-600 leading-relaxed cursor-pointer'>{p}</label>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
 
                   {/* Approval section */}
@@ -755,7 +765,8 @@ export default function EssCheckInPage() {
                     <>
                       {!showPipApprove ? (
                         <button onClick={() => setShowPipApprove(true)}
-                          className='w-full py-3 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition'
+                          disabled={!pipChecked.every(Boolean)}
+                          className='w-full py-3 text-white text-sm font-semibold rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90'
                           style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
                           ✅ {t('Saya Menyetujui Pernyataan & Form PIP Ini', 'I Approve This Declaration & PIP Form')}
                         </button>

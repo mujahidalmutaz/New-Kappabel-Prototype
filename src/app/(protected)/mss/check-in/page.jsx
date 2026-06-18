@@ -665,8 +665,15 @@ export default function MssCheckInPage() {
 
               {/* Pernyataan preview */}
               <div className='bg-gray-50 rounded-xl p-4 border border-gray-200 mb-5'>
-                <h3 className='text-xs font-bold text-gray-600 mb-2'>{t('Pernyataan', 'Declaration')} ({t('akan ditampilkan ke karyawan untuk disetujui', 'will be shown to employee for approval')})</h3>
-                {PERNYATAAN.map((p, i) => <p key={i} className='text-xs text-gray-500 mb-2 leading-relaxed'>{p}</p>)}
+                <h3 className='text-xs font-bold text-gray-600 mb-3'>{t('Pernyataan', 'Declaration')} ({t('akan ditampilkan ke karyawan untuk disetujui', 'will be shown to employee for approval')})</h3>
+                <ul className='space-y-2'>
+                  {PERNYATAAN.map((p, i) => (
+                    <li key={i} className='flex gap-2 text-xs text-gray-500 leading-relaxed'>
+                      <span className='mt-0.5 flex-shrink-0 w-4 h-4 rounded-full bg-gray-300 text-white flex items-center justify-center text-[10px] font-bold'>{i + 1}</span>
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <div className='flex gap-3'>
