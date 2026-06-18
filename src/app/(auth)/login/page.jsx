@@ -155,27 +155,7 @@ export default function LoginPage() {
 
       {/* Right: decorative panel */}
       <div className='hidden md:flex flex-1 items-center justify-center px-12'>
-        {/* Dexa Group 56 anniversary mark */}
-        <div className='text-center select-none'>
-          <div className='flex items-center gap-6'>
-            {/* "56" with ring stripes */}
-            <div className='relative' style={{ width: 140, height: 140 }}>
-              <svg viewBox='0 0 140 140' width='140' height='140' fill='none'>
-                {/* outer rings */}
-                <circle cx='70' cy='70' r='65' stroke='#D7252B' strokeWidth='4' strokeDasharray='8 6' opacity='0.25'/>
-                <circle cx='70' cy='70' r='52' stroke='#D7252B' strokeWidth='5' strokeDasharray='12 6' opacity='0.4'/>
-                <circle cx='70' cy='70' r='38' stroke='#D7252B' strokeWidth='6' opacity='0.6'/>
-                {/* 56 text */}
-                <text x='50%' y='54%' dominantBaseline='middle' textAnchor='middle' fontSize='48' fontWeight='900' fill='#D7252B' fontFamily='Arial,sans-serif'>56</text>
-              </svg>
-            </div>
-            <div className='text-left'>
-              <p className='text-xs font-semibold text-red-700 tracking-widest uppercase mb-1'>dexa group</p>
-              <p className='text-4xl font-black text-gray-900 leading-tight'>Serempak<br/>Bergerak</p>
-              <p className='text-base font-medium text-gray-500 mt-1 italic'>Sinergi untuk masa depan</p>
-            </div>
-          </div>
-        </div>
+        <img src='/logos/kappabel-login-DFPmmq5m.png' alt='Dexa Group 56' className='max-w-full max-h-[420px] object-contain' />
       </div>
     </div>
   )
