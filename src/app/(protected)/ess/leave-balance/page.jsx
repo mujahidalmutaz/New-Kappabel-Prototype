@@ -7,8 +7,8 @@ import { PageHeader, SectionCard, DataTable, Tr, Td, StatusBadge, EmptyState } f
 
 export default function LeaveBalancePage() {
   const t = useT()
-  const { currentUser }        = useAuthStore()
-  const { leaves, leaveTypes } = useLeaveStore()
+  const { currentUser }           = useAuthStore()
+  const { leaves, leaveTypes }    = useLeaveStore()
 
   const myLeaves = leaves.filter(l => l.userId === currentUser?.id)
 
@@ -51,9 +51,6 @@ export default function LeaveBalancePage() {
                 <span>{t('Terpakai:', 'Used:')} <strong className='text-gray-600'>{u}</strong></span>
                 <span>{t('Sisa:', 'Remaining:')} <strong className='text-gray-600'>{sisa}</strong></span>
               </div>
-              {pending > 0 && (
-                <div className='text-xs text-amber-500 mt-0.5'>{t('Pending:', 'Pending:')} {pending} {t('hari', 'days')}</div>
-              )}
             </div>
           )
         })}
