@@ -101,7 +101,7 @@ export default function Sidebar() {
         <NavItem icon='🕐' label='Attendance'    href='/ess/attendance' />
         <NavItem icon='💰' label='Payslip'       href='/ess/payslip' />
         <NavItem icon='🎯' label='My Onboarding' href='/ess/onboarding' />
-        <NavItem icon='💬' label='Check-In (HAY)' href='/ess/check-in' />
+        <NavItem icon='💬' label='Performance Check-In' href='/ess/check-in' />
 
         {/* ESS Learning */}
         <SidebarSubModule label='📚 Learning'
@@ -137,7 +137,7 @@ export default function Sidebar() {
           <NavItem icon='🎯' label='Onboarding Tracker (My Team)' href='/mss/approve-onboarding' />
           <NavItem icon='💬' label='Form Feedback'              href='/mss/feedback' />
           <NavItem icon='🎉' label='Congratulation Message'    href='/mss/congratulation' />
-          <NavItem icon='💬' label='Team Check-In (HAY)'      href='/mss/check-in' />
+          <NavItem icon='💬' label='Team Performance Check-In' href='/mss/check-in' />
           <NavItem icon='📋' label='Team Attendance'            href='/mss/team-attendance' />
 
           {/* MSS Personnel Action */}
