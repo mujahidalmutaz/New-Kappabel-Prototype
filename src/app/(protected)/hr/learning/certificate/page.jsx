@@ -126,14 +126,14 @@ export default function MasterCertificatePage() {
 
   // ── Course CRUD ──
   const handleCourseSave = () => {
-    if (!courseForm.course) return flash('Nama course wajib diisi.', 'error')
+    if (!courseForm.course) return flash(t('Nama course wajib diisi.','Course name is required.'), 'error')
     const parsed = { ...courseForm, min_score:Number(courseForm.min_score), attendance_req:Number(courseForm.attendance_req), validity_months:Number(courseForm.validity_months), templateId:Number(courseForm.templateId) }
     if (editingCourse) {
       setCourses(p=>p.map(d=>d.id===editingCourse?{...d,...parsed}:d))
-      flash('Pengaturan diperbarui.'); setEditingCourse(null)
+      flash(t('Pengaturan diperbarui.','Settings updated.')); setEditingCourse(null)
     } else {
       setCourses(p=>[...p,{id:Date.now(),...parsed}])
-      flash('Sertifikat course ditambahkan.')
+      flash(t('Sertifikat course ditambahkan.','Course certificate added.'))
     }
     setCourseForm(EMPTY_COURSE)
   }
@@ -141,12 +141,12 @@ export default function MasterCertificatePage() {
     setEditingCourse(item.id)
     setCourseForm({ course:item.course, templateId:item.templateId, min_score:String(item.min_score), attendance_req:String(item.attendance_req), validity_months:String(item.validity_months), auto_generate:item.auto_generate, approver:item.approver, status:item.status })
   }
-  const handleCourseDelete = (id) => { setCourses(p=>p.filter(d=>d.id!==id)); flash('Dihapus.') }
+  const handleCourseDelete = (id) => { setCourses(p=>p.filter(d=>d.id!==id)); flash(t('Dihapus.','Deleted.')) }
 
   // ── Template CRUD ──
   const handleTplFileSelect = (tplId, file) => {
     if (!file) return
-    if (!file.name.toLowerCase().endsWith('.rtf')) return flash('Hanya file .rtf yang diperbolehkan.', 'error')
+    if (!file.name.toLowerCase().endsWith('.rtf')) return flash(t('Hanya file .rtf yang diperbolehkan.','Only .rtf files are allowed.'), 'error')
     // Read RTF text content for variable substitution at download time
     const reader = new FileReader()
     reader.onload = (e) => updateTemplateRtf(tplId, e.target.result)
@@ -161,15 +161,15 @@ export default function MasterCertificatePage() {
 
   const handleAddTemplate = () => {
     const cid = Number(tplForm.companyId)
-    if (!cid) return flash('Pilih company terlebih dahulu.', 'error')
-    if (templates.find(t => t.companyId === cid)) return flash('Company ini sudah memiliki template.', 'error')
+    if (!cid) return flash(t('Pilih company terlebih dahulu.','Please select a company first.'), 'error')
+    if (templates.find(t => t.companyId === cid)) return flash(t('Company ini sudah memiliki template.','This company already has a template.'), 'error')
     setTemplates(p => [...p, { id:Date.now(), ...tplForm, companyId:cid, fileName:null, uploadedAt:null, status:'Draft' }])
-    flash('Template baru ditambahkan. Upload file .rtf untuk mengaktifkan.')
+    flash(t('Template baru ditambahkan. Upload file .rtf untuk mengaktifkan.','New template added. Upload an .rtf file to activate.'))
     setShowAddTpl(false)
     setTplForm({ companyId: activeCompanies[0]?.id ?? '', themeId:'navy', notes:'' })
   }
 
-  const handleDeleteTpl = (id) => { setTemplates(p=>p.filter(t=>t.id!==id)); flash('Template dihapus.') }
+  const handleDeleteTpl = (id) => { setTemplates(p=>p.filter(t=>t.id!==id)); flash(t('Template dihapus.','Template deleted.')) }
 
   const downloadRtfTemplate = () => {
     // Draw decorative header banner via Canvas
@@ -283,9 +283,9 @@ export default function MasterCertificatePage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Certificate for Course</h1>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Certificate for Course','Master Certificate for Course')}</h1>
       <p className='text-gray-500 text-sm mb-6'>
-        Kelola pengaturan sertifikat per course dan template RTF per perusahaan — variabel sama, hanya color theme yang berbeda.
+        {t('Kelola pengaturan sertifikat per course dan template RTF per perusahaan — variabel sama, hanya color theme yang berbeda.','Manage certificate settings per course and RTF template per company — same variables, only color theme differs.')}
       </p>
 
       {msg && (
@@ -324,7 +324,7 @@ export default function MasterCertificatePage() {
       {tab === 'course' && (
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           <div className='bg-white rounded-xl p-6 shadow-sm'>
-            <h2 className='text-sm font-bold text-gray-700 mb-4'>{editingCourse?'✏️ Edit':'➕ Tambah'} Pengaturan Sertifikat</h2>
+            <h2 className='text-sm font-bold text-gray-700 mb-4'>{editingCourse?`✏️ ${t('Edit','Edit')}`:`➕ ${t('Tambah','Add')}`} {t('Pengaturan Sertifikat','Certificate Settings')}</h2>
             <div className='flex flex-col gap-3'>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Course</label>
@@ -369,12 +369,12 @@ export default function MasterCertificatePage() {
                 <button onClick={handleCourseSave}
                   className='flex-1 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
                   style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                  {editingCourse?'Simpan':'Tambah'}
+                  {editingCourse?t('Simpan','Save'):t('Tambah','Add')}
                 </button>
                 {editingCourse && (
                   <button onClick={()=>{setEditingCourse(null);setCourseForm(EMPTY_COURSE)}}
                     className='px-4 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-200'>
-                    Batal
+                    {t('Batal','Cancel')}
                   </button>
                 )}
               </div>
@@ -382,7 +382,7 @@ export default function MasterCertificatePage() {
           </div>
 
           <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-            <input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder='Cari course...'
+            <input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder={t('Cari course...','Search course...')}
               className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
             <div className='overflow-x-auto'>
               <table className='w-full text-sm'>
@@ -458,14 +458,14 @@ export default function MasterCertificatePage() {
               <button onClick={()=>setShowAddTpl(!showAddTpl)}
                 className='px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90'
                 style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                + Tambah Perusahaan
+                {t('+ Tambah Perusahaan','+ Add Company')}
               </button>
             </div>
           </div>
 
           {showAddTpl && (
             <div className='bg-white rounded-xl p-5 shadow-sm border border-red-200 mb-6'>
-              <h3 className='font-semibold text-gray-700 mb-4 text-sm'>Tambah Template untuk Perusahaan Baru</h3>
+              <h3 className='font-semibold text-gray-700 mb-4 text-sm'>{t('Tambah Template untuk Perusahaan Baru','Add Template for New Company')}</h3>
               <div className='grid grid-cols-2 gap-4 mb-4'>
                 <div>
                   <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Perusahaan</label>
@@ -497,7 +497,7 @@ export default function MasterCertificatePage() {
                 </div>
               </div>
               <div className='flex gap-3'>
-                <button onClick={handleAddTemplate} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>Tambah</button>
+                <button onClick={handleAddTemplate} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>{t('Tambah','Add')}</button>
                 <button onClick={()=>setShowAddTpl(false)} className='px-6 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200'>{t('Batal','Cancel')}</button>
               </div>
             </div>
@@ -525,15 +525,15 @@ export default function MasterCertificatePage() {
                       <div className='flex gap-1.5'>
                         <button onClick={()=>setPreviewTpl(previewTpl===tpl.id?null:tpl.id)}
                           className='px-2.5 py-1.5 text-xs font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100'>
-                          {previewTpl===tpl.id?'Tutup':'Preview'}
+                          {previewTpl===tpl.id?t('Tutup','Close'):t('Preview','Preview')}
                         </button>
                         <button onClick={()=>setEditingTpl(isExpanded?null:tpl.id)}
                           className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg ${isExpanded?'bg-gray-100 text-gray-600':'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
-                          {isExpanded?'Tutup':'Edit'}
+                          {isExpanded?t('Tutup','Close'):'Edit'}
                         </button>
                         <button onClick={()=>handleDeleteTpl(tpl.id)}
                           className='px-2.5 py-1.5 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100'>
-                          Hapus
+                          {t('Hapus','Delete')}
                         </button>
                       </div>
                     </div>
@@ -605,7 +605,7 @@ export default function MasterCertificatePage() {
                     {/* Footer: file info + download guide */}
                     {!isExpanded && (
                       <div className='flex items-center justify-between'>
-                        <div className='text-xs text-gray-400'>{tpl.notes || 'Tidak ada catatan'}</div>
+                        <div className='text-xs text-gray-400'>{tpl.notes || t('Tidak ada catatan','No notes')}</div>
                         <button className='text-xs font-semibold text-gray-500 hover:text-red-600 flex items-center gap-1'>
                           ⬇️ Panduan Warna
                         </button>

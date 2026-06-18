@@ -30,22 +30,22 @@ export default function MssNotificationsPage() {
   return (
     <div>
       <div className='flex items-center justify-between mb-1'>
-        <h1 className='text-2xl font-bold text-gray-800'>Manager Notification Center</h1>
-        {unread > 0 && <span className='text-xs bg-red-500 text-white px-2.5 py-1 rounded-full font-bold'>{unread} belum dibaca</span>}
+        <h1 className='text-2xl font-bold text-gray-800'>{t('Manager Notification Center', 'Manager Notification Center')}</h1>
+        {unread > 0 && <span className='text-xs bg-red-500 text-white px-2.5 py-1 rounded-full font-bold'>{unread} {t('belum dibaca', 'unread')}</span>}
       </div>
-      <p className='text-gray-500 text-sm mb-6'>Notifikasi terkait tim, approval, dan alert yang memerlukan tindakan Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Notifikasi terkait tim, approval, dan alert yang memerlukan tindakan Anda.', 'Notifications related to your team, approvals, and alerts that require your action.')}</p>
 
       <div className='flex flex-wrap gap-2 mb-4'>
-        {types.map(t=>(
-          <button key={t} onClick={()=>setFilter(t)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${filter===t?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
-            style={filter===t?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
-            {t}
+        {types.map(type=>(
+          <button key={type} onClick={()=>setFilter(type)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${filter===type?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+            style={filter===type?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
+            {type==='Semua'?t('Semua','All'):type}
           </button>
         ))}
         {unread > 0 && (
           <button onClick={markAllRead} className='ml-auto text-xs font-semibold text-red-600 hover:underline'>
-            Tandai semua dibaca
+            {t('Tandai semua dibaca', 'Mark all as read')}
           </button>
         )}
       </div>
@@ -75,16 +75,16 @@ export default function MssNotificationsPage() {
               <p className='text-xs text-gray-500 mt-1.5 mb-2'>{n.body}</p>
               <div className='flex gap-2'>
                 {!n.read && (
-                  <button onClick={()=>markRead(n.id)} className='text-xs font-semibold text-gray-400 hover:text-gray-600'>Tandai dibaca</button>
+                  <button onClick={()=>markRead(n.id)} className='text-xs font-semibold text-gray-400 hover:text-gray-600'>{t('Tandai dibaca', 'Mark as read')}</button>
                 )}
                 {n.type==='Approval Request' && (
-                  <button className='text-xs font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-lg hover:bg-green-100'>Review & Approve →</button>
+                  <button className='text-xs font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-lg hover:bg-green-100'>{t('Review & Approve →', 'Review & Approve →')}</button>
                 )}
                 {n.type==='Cert Approval' && (
-                  <button className='text-xs font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-lg hover:bg-green-100'>Buka Cert Approval →</button>
+                  <button className='text-xs font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-lg hover:bg-green-100'>{t('Buka Cert Approval →', 'Open Cert Approval →')}</button>
                 )}
                 {(n.type==='Overdue Alert') && (
-                  <button className='text-xs font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-lg hover:bg-red-100'>Kirim Reminder →</button>
+                  <button className='text-xs font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-lg hover:bg-red-100'>{t('Kirim Reminder →', 'Send Reminder →')}</button>
                 )}
               </div>
             </div>
@@ -93,7 +93,7 @@ export default function MssNotificationsPage() {
         {filtered.length === 0 && (
           <div className='text-center py-16 text-gray-400'>
             <div className='text-4xl mb-2'>🔔</div>
-            <p>Tidak ada notifikasi untuk kategori ini</p>
+            <p>{t('Tidak ada notifikasi untuk kategori ini', 'No notifications for this category')}</p>
           </div>
         )}
       </div>

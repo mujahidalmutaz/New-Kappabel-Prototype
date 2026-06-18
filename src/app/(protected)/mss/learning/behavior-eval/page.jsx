@@ -27,10 +27,10 @@ export default function BehaviorEvalPage() {
   const flash = (text) => { setMsg(text); setTimeout(()=>setMsg(null), 3000) }
 
   const handleSubmit = (id) => {
-    if (Object.keys(scores).length < BEHAVIORS.length) return flash('Isi semua penilaian perilaku.')
+    if (Object.keys(scores).length < BEHAVIORS.length) return flash(t('Isi semua penilaian perilaku.','Please fill in all behavior evaluations.'))
     const avg = (Object.values(scores).reduce((a,b)=>a+b,0)/BEHAVIORS.length).toFixed(1)
     setEvals(prev=>prev.map(e=>e.id===id?{...e,status:'Submitted',score:Number(avg)}:e))
-    flash('Evaluasi perilaku berhasil dikirim!')
+    flash(t('Evaluasi perilaku berhasil dikirim!','Behavior evaluation successfully submitted!'))
     setSelected(null)
     setScores({})
     setComment('')
@@ -38,23 +38,23 @@ export default function BehaviorEvalPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Team Behavior Evaluation (Kirkpatrick L3)</h1>
-      <p className='text-gray-500 text-sm mb-6'>Evaluasi penerapan perilaku (on-the-job behavior) anggota tim setelah menyelesaikan pelatihan.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Team Behavior Evaluation (Kirkpatrick L3)', 'Team Behavior Evaluation (Kirkpatrick L3)')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Evaluasi penerapan perilaku (on-the-job behavior) anggota tim setelah menyelesaikan pelatihan.', 'Evaluate the on-the-job behavior application of team members after completing training.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
       <div className='bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex gap-3'>
         <span className='text-2xl'>ℹ️</span>
         <div>
-          <p className='font-semibold text-blue-700 text-sm'>Tentang Kirkpatrick Level 3 — Behavior</p>
-          <p className='text-xs text-blue-600 mt-0.5'>Evaluasi ini mengukur apakah peserta menerapkan pengetahuan dan keterampilan yang diperoleh dari pelatihan di lingkungan kerja nyata. Dilakukan oleh atasan langsung 30 hari setelah pelatihan selesai.</p>
+          <p className='font-semibold text-blue-700 text-sm'>{t('Tentang Kirkpatrick Level 3 — Behavior','About Kirkpatrick Level 3 — Behavior')}</p>
+          <p className='text-xs text-blue-600 mt-0.5'>{t('Evaluasi ini mengukur apakah peserta menerapkan pengetahuan dan keterampilan yang diperoleh dari pelatihan di lingkungan kerja nyata. Dilakukan oleh atasan langsung 30 hari setelah pelatihan selesai.', 'This evaluation measures whether participants apply the knowledge and skills gained from training in the real work environment. Conducted by direct supervisors 30 days after training completion.')}</p>
         </div>
       </div>
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[['Perlu Dievaluasi', evals.filter(e=>e.status==='Pending').length,'⏳','#d97706'],
-          ['Sudah Dievaluasi', evals.filter(e=>e.status==='Submitted').length,'✅','#059669'],
-          ['Rata-rata Skor', evals.filter(e=>e.score).length>0?(evals.filter(e=>e.score).reduce((a,e)=>a+e.score,0)/evals.filter(e=>e.score).length).toFixed(1)+'/5':'—','⭐','#7c3aed']].map(([l,v,i,c])=>(
+        {[[t('Perlu Dievaluasi', 'Needs Evaluation'), evals.filter(e=>e.status==='Pending').length,'⏳','#d97706'],
+          [t('Sudah Dievaluasi', 'Already Evaluated'), evals.filter(e=>e.status==='Submitted').length,'✅','#059669'],
+          [t('Rata-rata Skor', 'Average Score'), evals.filter(e=>e.score).length>0?(evals.filter(e=>e.score).reduce((a,e)=>a+e.score,0)/evals.filter(e=>e.score).length).toFixed(1)+'/5':'—','⭐','#7c3aed']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
@@ -70,19 +70,21 @@ export default function BehaviorEvalPage() {
                 <div className='font-bold text-gray-800'>{e.employee}</div>
                 <div className='text-sm text-gray-500 mt-0.5'>{e.course}</div>
                 <div className='flex items-center gap-3 mt-1 text-xs text-gray-400'>
-                  <span>Selesai: {e.completedDate}</span>
-                  <span>Deadline eval: {e.evalDeadline}</span>
+                  <span>{t('Selesai', 'Completed')}: {e.completedDate}</span>
+                  <span>{t('Deadline eval', 'Eval deadline')}: {e.evalDeadline}</span>
                   <span className='bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-semibold'>{e.type}</span>
                 </div>
               </div>
               <div className='flex items-center gap-3'>
                 {e.score && <span className='text-sm font-bold text-green-700'>⭐ {e.score}/5</span>}
-                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${e.status==='Pending'?'bg-yellow-50 text-yellow-700':'bg-green-50 text-green-700'}`}>{e.status}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${e.status==='Pending'?'bg-yellow-50 text-yellow-700':'bg-green-50 text-green-700'}`}>
+                  {e.status==='Pending' ? t('Pending', 'Pending') : t('Submitted', 'Submitted')}
+                </span>
                 {e.status==='Pending' && (
                   <button onClick={()=>setSelected(selected===e.id?null:e.id)}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${selected===e.id?'bg-gray-100 text-gray-600':'text-white hover:opacity-90'}`}
                     style={selected!==e.id?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
-                    {selected===e.id?'Tutup':'Evaluasi'}
+                    {selected===e.id ? t('Tutup', 'Close') : t('Evaluasi', 'Evaluate')}
                   </button>
                 )}
               </div>
@@ -90,7 +92,7 @@ export default function BehaviorEvalPage() {
 
             {selected === e.id && (
               <div className='border-t border-gray-100 px-5 pb-5 pt-4'>
-                <h4 className='text-sm font-bold text-gray-700 mb-4'>Penilaian Perilaku (1=Sangat Rendah, 5=Sangat Tinggi)</h4>
+                <h4 className='text-sm font-bold text-gray-700 mb-4'>{t('Penilaian Perilaku (1=Sangat Rendah, 5=Sangat Tinggi)', 'Behavior Rating (1=Very Low, 5=Very High)')}</h4>
                 <div className='space-y-4 mb-4'>
                   {BEHAVIORS.map((b,i)=>(
                     <div key={i}>
@@ -107,13 +109,13 @@ export default function BehaviorEvalPage() {
                   ))}
                 </div>
                 <div className='mb-4'>
-                  <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Catatan Tambahan (opsional)</label>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Catatan Tambahan (opsional)', 'Additional Notes (optional)')}</label>
                   <textarea value={comment} onChange={e=>setComment(e.target.value)} rows={3}
-                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' placeholder='Contoh perilaku konkret yang diamati...' />
+                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' placeholder={t('Contoh perilaku konkret yang diamati...', 'Examples of concrete behaviors observed...')} />
                 </div>
                 <button onClick={()=>handleSubmit(e.id)}
                   className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-                  Submit Evaluasi
+                  {t('Submit Evaluasi', 'Submit Evaluation')}
                 </button>
               </div>
             )}

@@ -42,8 +42,8 @@ export default function CompetencyMatrixPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Competency & Skill Matrix</h1>
-      <p className='text-gray-500 text-sm mb-6'>Matriks target level kompetensi per jabatan — digunakan sebagai acuan penilaian dan pengembangan karyawan.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Competency & Skill Matrix','Master Competency & Skill Matrix')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Matriks target level kompetensi per jabatan — digunakan sebagai acuan penilaian dan pengembangan karyawan.','Target competency level matrix per job position — used as a reference for employee assessment and development.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
@@ -65,7 +65,7 @@ export default function CompetencyMatrixPage() {
         <button onClick={()=>setShowForm(!showForm)}
           className='px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90'
           style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-          + Tambah Kompetensi
+          {t('+ Tambah Kompetensi','+ Add Competency')}
         </button>
       </div>
 
@@ -114,10 +114,10 @@ export default function CompetencyMatrixPage() {
       </div>
 
       <div className='mt-4 flex gap-3 flex-wrap'>
-        <button onClick={()=>flash('Matrix berhasil diekspor ke Excel.')} className='px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
+        <button onClick={()=>flash(t('Matrix berhasil diekspor ke Excel.','Matrix exported to Excel.'))} className='px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
           ⬇️ Export Excel
         </button>
-        <button onClick={()=>flash('Matrix berhasil diekspor ke PDF.')} className='px-4 py-2 text-sm font-semibold text-red-700 bg-red-50 rounded-lg hover:bg-red-100 border border-red-200'>
+        <button onClick={()=>flash(t('Matrix berhasil diekspor ke PDF.','Matrix exported to PDF.'))} className='px-4 py-2 text-sm font-semibold text-red-700 bg-red-50 rounded-lg hover:bg-red-100 border border-red-200'>
           📄 Export PDF
         </button>
       </div>

@@ -26,24 +26,24 @@ export default function MasterSuppliersPage() {
   const filtered = data.filter(d => d.name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.name || !form.email) return flash('Nama dan email wajib diisi.', 'error')
+    if (!form.name || !form.email) return flash(t('Nama dan email wajib diisi.','Name and email are required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form}:d))
-      flash('Supplier diperbarui.'); setEditing(null)
+      flash(t('Supplier diperbarui.','Supplier updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form}])
-      flash('Supplier ditambahkan.')
+      flash(t('Supplier ditambahkan.','Supplier added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ name:item.name, type:item.type, contact:item.contact, email:item.email, phone:item.phone, specialization:item.specialization, contract_end:item.contract_end, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Supplier dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Supplier dihapus.','Supplier deleted.')) }
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Training Suppliers</h1>
-      <p className='text-gray-500 text-sm mb-6'>Data vendor/provider training eksternal, konsultan, dan platform e-learning.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Training Suppliers','Master Training Suppliers')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Data vendor/provider training eksternal, konsultan, dan platform e-learning.','Data for external training vendors, consultants, and e-learning platforms.')}</p>
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
         {[['Total Supplier', data.length, '🤝', '#8B1A1A'],['Active', data.filter(d=>d.status==='Active').length, '✅', '#059669'],['Kontrak Aktif', data.filter(d=>d.contract_end&&d.contract_end>new Date().toISOString().slice(0,10)).length, '📄', '#7c3aed']].map(([l,v,i,c])=>(
@@ -56,7 +56,7 @@ export default function MasterSuppliersPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Supplier':'➕ Tambah Supplier'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Supplier','✏️ Edit Supplier'):`➕ ${t('Tambah Supplier','Add Supplier')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Perusahaan/Vendor','name'],['Contact Person','contact'],['Email','email'],['Phone','phone'],['Spesialisasi','specialization']].map(([l,k])=>(
@@ -82,7 +82,7 @@ export default function MasterSuppliersPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari supplier...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari supplier...','Search supplier...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>

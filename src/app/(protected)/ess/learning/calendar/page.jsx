@@ -23,12 +23,12 @@ export default function LearningCalendarPage() {
     return d.getFullYear()===year && d.getMonth()===month
   })
 
-  const typeColor = (t) => ({ 'Required Training':'bg-red-50 text-red-700', Voluntary:'bg-blue-50 text-blue-700', 'Assessment Due':'bg-yellow-50 text-yellow-700', Mandatory:'bg-red-50 text-red-700' }[t] || 'bg-gray-100 text-gray-500')
+  const typeColor = (typ) => ({ 'Required Training':'bg-red-50 text-red-700', Voluntary:'bg-blue-50 text-blue-700', 'Assessment Due':'bg-yellow-50 text-yellow-700', Mandatory:'bg-red-50 text-red-700' }[typ] || 'bg-gray-100 text-gray-500')
 
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Learning Calendar</h1>
-      <p className='text-gray-500 text-sm mb-6'>Jadwal seluruh aktivitas learning, training, assessment, dan deadline Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Jadwal seluruh aktivitas learning, training, assessment, dan deadline Anda.','Schedule of all your learning activities, training, assessments, and deadlines.')}</p>
 
       <div className='flex flex-wrap gap-3 mb-6'>
         <div className='flex gap-1'>
@@ -44,7 +44,7 @@ export default function LearningCalendarPage() {
           ))}
         </div>
         <div className='flex gap-1'>
-          {[['list','📋 List'],['calendar','📅 Calendar']].map(([k,l])=>(
+          {[['list',t('📋 List','📋 List')],['calendar',t('📅 Calendar','📅 Calendar')]].map(([k,l])=>(
             <button key={k} onClick={()=>setView(k)}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition ${view===k?'bg-blue-600 text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>{l}</button>
           ))}
@@ -54,7 +54,7 @@ export default function LearningCalendarPage() {
       <div className='bg-white rounded-xl p-6 shadow-sm'>
         <h2 className='font-bold text-gray-700 mb-4'>📅 {MONTHS[month]} {year} — {filtered.length} Event</h2>
         {filtered.length === 0 ? (
-          <div className='text-center py-12 text-gray-400'>Tidak ada event learning pada bulan ini.</div>
+          <div className='text-center py-12 text-gray-400'>{t('Tidak ada event learning pada bulan ini.','No learning events this month.')}</div>
         ) : (
           <div className='space-y-3'>
             {filtered.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>(
@@ -73,7 +73,7 @@ export default function LearningCalendarPage() {
                         <span className='text-xs text-gray-400'>📍 {e.location}</span>
                       </div>
                     </div>
-                    <button className='px-3 py-1.5 text-xs font-semibold bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100'>Detail</button>
+                    <button className='px-3 py-1.5 text-xs font-semibold bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100'>{t('Detail','Detail')}</button>
                   </div>
                 </div>
               </div>

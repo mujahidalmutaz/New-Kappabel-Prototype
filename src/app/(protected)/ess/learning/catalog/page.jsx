@@ -30,24 +30,24 @@ export default function CourseCatalogPage() {
   )
 
   const levelColor = (l) => ({ Beginner:'bg-green-50 text-green-700', Intermediate:'bg-yellow-50 text-yellow-700', Advanced:'bg-red-50 text-red-700' }[l])
-  const typeColor  = (t) => t==='ILT'?'bg-blue-50 text-blue-700':t==='Self-Paced'?'bg-green-50 text-green-700':'bg-red-50 text-red-700'
+  const typeColor  = (typ) => typ==='ILT'?'bg-blue-50 text-blue-700':typ==='Self-Paced'?'bg-green-50 text-green-700':'bg-red-50 text-red-700'
 
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Course Catalog</h1>
-      <p className='text-gray-500 text-sm mb-6'>Jelajahi dan temukan course yang tepat untuk pengembangan skill Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Jelajahi dan temukan course yang tepat untuk pengembangan skill Anda.','Explore and find the right courses for your skill development.')}</p>
 
       <div className='flex flex-wrap gap-2 mb-6'>
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari course...'
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari course...','Search courses...')}
           className='flex-1 min-w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 bg-white' />
         <select value={catFilter} onChange={e=>setCatFilter(e.target.value)}
           className='px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none bg-white'>
           {CATEGORIES.map(c=><option key={c}>{c}</option>)}
         </select>
         <div className='flex gap-1'>
-          {TYPES.map(t=>(
-            <button key={t} onClick={()=>setTypeFilter(t)}
-              className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${typeFilter===t?'bg-red-600 text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>{t}</button>
+          {TYPES.map(typ=>(
+            <button key={typ} onClick={()=>setTypeFilter(typ)}
+              className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${typeFilter===typ?'bg-red-600 text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>{typ}</button>
           ))}
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function CourseCatalogPage() {
                 style={enrolled.includes(c.id)?{}:{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}
                 disabled={enrolled.includes(c.id)}
               >
-                {enrolled.includes(c.id)?'✅ Enrolled':'Daftar Sekarang'}
+                {enrolled.includes(c.id)?'✅ Enrolled':t('Daftar Sekarang','Enroll Now')}
               </button>
             </div>
           </div>

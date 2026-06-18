@@ -6,6 +6,10 @@ import { useAuthStore }     from '@/store/authStore'
 import { useWorkflowStore } from '@/store/workflowStore'
 import { daysBetween }      from '@/utils/dateUtils'
 import { useT } from '@/store/languageStore'
+import {
+  PageHeader, StatCard, SearchBar, FilterBar, FilterPill,
+  StatusBadge, EmptyState,
+} from '@/components/ui'
 
 // ── Shared helpers ───────────────────────────────────────────────────────────
 const STATUS_CFG = {
@@ -123,14 +127,23 @@ export default function TransactionManagerPage() {
 
   return (
     <div>
-      {/* ── Header ── */}
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Transaction Manager</h1>
-      <p className='text-gray-500 text-sm mb-6'>
-        Monitor semua approval flow. Delegasi atau override langsung jika diperlukan.
-      </p>
+      <PageHeader
+        icon='🗂️'
+        title='Transaction Manager'
+        subtitle='Monitor semua approval flow. Delegasi atau override langsung jika diperlukan.'
+      />
+
+      {/* ── Stats ── */}
+      <div className='grid grid-cols-2 gap-4 sm:grid-cols-5 mb-6'>
+        <StatCard label='Total'     value={stats.total}     icon='📋' tone='gray'   />
+        <StatCard label='Pending'   value={stats.pending}   icon='⏳' tone='orange' />
+        <StatCard label='Approved'  value={stats.approved}  icon='✅' tone='green'  />
+        <StatCard label='Rejected'  value={stats.rejected}  icon='❌' tone='red'    />
+        <StatCard label='Withdrawn' value={stats.withdrawn} icon='↩️' tone='gray'   />
+      </div>
 
       {/* ── Main card ── */}
-      <div className='bg-white rounded-xl shadow-sm'>
+      <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
 
         {/* Filter bar */}
         <div className='flex items-center gap-3 px-6 py-4 border-b border-gray-100 flex-wrap'>
@@ -141,7 +154,7 @@ export default function TransactionManagerPage() {
             <select
               value={selectedWf}
               onChange={e => handleWfChange(e.target.value)}
-              className='px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white text-gray-700 font-medium cursor-pointer'>
+              className='px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 bg-white text-gray-700 font-medium cursor-pointer'>
               <option value=''>Semua</option>
               {workflows.map(w => (
                 <option key={w.id} value={w.name}>{w.name}</option>
@@ -152,40 +165,23 @@ export default function TransactionManagerPage() {
           <div className='w-px h-6 bg-gray-200 flex-shrink-0' />
 
           {/* Search */}
-          <input
+          <SearchBar
             value={filterQuery}
-            onChange={e => setFilterQuery(e.target.value)}
+            onChange={setFilterQuery}
             placeholder='Cari karyawan atau Transaction ID…'
-            className='px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 w-64'
+            className='w-64'
           />
 
           {/* Status filter */}
-          <div className='flex gap-1'>
+          <FilterBar>
             {[['all','Semua'],['pending','Pending'],['approved','Approved'],['rejected','Rejected'],['withdrawn','Withdrawn']].map(([v, lbl]) => (
-              <button key={v} onClick={() => setFilterStatus(v)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${filterStatus === v ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+              <FilterPill key={v} active={filterStatus === v} onClick={() => setFilterStatus(v)}>
                 {lbl}
-              </button>
+              </FilterPill>
             ))}
-          </div>
+          </FilterBar>
 
           <span className='ml-auto text-xs text-gray-400 flex-shrink-0'>{filtered.length} transaksi</span>
-        </div>
-
-        {/* Stats strip */}
-        <div className='grid grid-cols-5 divide-x divide-gray-100 border-b border-gray-100'>
-          {[
-            { label: 'Total',     value: stats.total,     cls: 'text-gray-700'  },
-            { label: 'Pending',   value: stats.pending,   cls: 'text-amber-600' },
-            { label: 'Approved',  value: stats.approved,  cls: 'text-green-600' },
-            { label: 'Rejected',  value: stats.rejected,  cls: 'text-red-600'   },
-            { label: 'Withdrawn', value: stats.withdrawn, cls: 'text-gray-400'  },
-          ].map(s => (
-            <div key={s.label} className='flex flex-col items-center py-3'>
-              <span className={`text-lg font-bold ${s.cls}`}>{s.value}</span>
-              <span className='text-xs text-gray-400 mt-0.5'>{s.label}</span>
-            </div>
-          ))}
         </div>
 
         {/* ── Transaction table ── */}
@@ -201,8 +197,8 @@ export default function TransactionManagerPage() {
               <tbody>
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={10} className='px-4 py-12 text-center text-gray-400 text-sm'>
-                      Tidak ada transaksi ditemukan.
+                    <td colSpan={10} className='px-4 py-8'>
+                      <EmptyState title={t('Tidak ada transaksi','No transactions')} description={t('Tidak ada transaksi ditemukan.','No transactions found.')} />
                     </td>
                   </tr>
                 )}
@@ -224,15 +220,13 @@ export default function TransactionManagerPage() {
                         <td className='px-4 py-3 text-xs text-gray-500 whitespace-nowrap'>{leave.workflowName ?? '—'}</td>
                         <td className='px-4 py-3 text-gray-600'>{leave.type}</td>
                         <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{leave.start} → {leave.end}</td>
-                        <td className='px-4 py-3 text-center text-gray-600'>{days}</td>
+                        <td className='px-4 py-3 text-right text-gray-600'>{days}</td>
                         <td className='px-4 py-3 text-xs text-gray-500'>
                           {leave.submittedByName ?? leave.name}
                           {byHR && <span className='ml-1.5 text-xs bg-blue-100 text-blue-600 font-semibold px-1.5 py-0.5 rounded'>HR</span>}
                         </td>
                         <td className='px-4 py-3'>
-                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${scfg.cls}`}>
-                            {scfg.icon} {leave.status}
-                          </span>
+                          <StatusBadge status={leave.status}>{scfg.icon} {leave.status}</StatusBadge>
                         </td>
                         <td className='px-4 py-3'>
                           {pending ? (

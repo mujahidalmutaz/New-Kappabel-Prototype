@@ -32,7 +32,7 @@ function CompetencyTable({ sectionKey, label, note, items, onChange, onAdd, onDe
         )}
       </div>
 
-      <div className='overflow-x-auto rounded-lg border border-gray-200'>
+      <div className='overflow-x-auto rounded-lg ring-1 ring-gray-100'>
         <table className='w-full text-xs'>
           <thead>
             <tr style={GRAD}>
@@ -199,7 +199,7 @@ export default function PositionProfilePage() {
     <div className='flex h-[calc(100vh-5rem)] bg-gray-100 gap-4 p-0'>
 
       {/* ── LEFT: Position List ──────────────────────────────────────── */}
-      <aside className='w-72 flex-shrink-0 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col'>
+      <aside className='w-72 flex-shrink-0 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden flex flex-col'>
         <div className='px-4 py-3 border-b border-gray-200 flex-shrink-0' style={GRAD}>
           <h2 className='text-sm font-bold text-white'>Position Profile</h2>
           <p className='text-[11px] text-red-200 mt-0.5'>{positions.length} posisi tersedia</p>
@@ -272,7 +272,7 @@ export default function PositionProfilePage() {
           <div className='pb-8'>
 
             {/* Header */}
-            <div className='bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden'>
+            <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 mb-4 overflow-hidden'>
               <div className='px-5 py-4 flex items-center justify-between' style={GRAD}>
                 <div>
                   <h1 className='text-base font-bold text-white'>{selectedPosition.name}</h1>
@@ -301,7 +301,7 @@ export default function PositionProfilePage() {
             </div>
 
             {/* Competency Configuration */}
-            <div className='bg-white rounded-xl shadow-sm border border-gray-200 p-5'>
+            <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5'>
               <div className='flex items-center gap-2 mb-5'>
                 <div className='w-1 h-5 rounded-full' style={GRAD} />
                 <h2 className='text-sm font-bold text-gray-800'>

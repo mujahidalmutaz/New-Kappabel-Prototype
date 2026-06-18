@@ -130,7 +130,7 @@ function VideoPlayer({ item }) {
       </div>
     )
   }
-  return <p className='text-gray-400 text-sm text-center py-10'>Tidak ada sumber video.</p>
+  return <p className='text-gray-400 text-sm text-center py-10'>{t('Tidak ada sumber video.','No video source.')}</p>
 }
 
 export default function MasterContentPage() {
@@ -160,20 +160,20 @@ export default function MasterContentPage() {
     if (!file) return
     const isVideo = file.type.startsWith('video/') ||
       /\.(mp4|webm|ogg|mov|avi|mkv|m4v|flv|wmv)$/i.test(file.name)
-    if (!isVideo) return flash('File harus berformat video (mp4, webm, mov, dll).', 'error')
+    if (!isVideo) return flash(t('File harus berformat video (mp4, webm, mov, dll).','File must be a video format (mp4, webm, mov, etc).'), 'error')
     const objectUrl = URL.createObjectURL(file)
     setForm(f => ({ ...f, videoSource:'upload', videoFileName: file.name, videoFileSize: fmtSize(file.size), videoObjectUrl: objectUrl, videoUrl:'' }))
   }
 
   const handleSave = () => {
     if (!form.title.trim()) {
-      flash('Judul content wajib diisi.', 'error')
+      flash(t('Judul content wajib diisi.','Content title is required.'), 'error')
       titleRef.current?.scrollIntoView({ behavior:'smooth', block:'center' })
       titleRef.current?.focus()
       return
     }
     if (form.type === 'Video' && form.videoSource === 'url' && form.videoUrl && !form.videoUrl.startsWith('http')) {
-      return flash('URL video tidak valid. Gunakan format http:// atau https://', 'error')
+      return flash(t('URL video tidak valid. Gunakan format http:// atau https://','Invalid video URL. Use http:// or https:// format.'), 'error')
     }
     const entry = {
       ...form,
@@ -181,11 +181,11 @@ export default function MasterContentPage() {
     }
     if (editing) {
       setData(prev => prev.map(d => d.id === editing ? { ...d, ...entry } : d))
-      flash('Content diperbarui.')
+      flash(t('Content diperbarui.','Content updated.'))
       setEditing(null)
     } else {
       setData(prev => [...prev, { id: Date.now(), ...entry, uploaded: new Date().toISOString().slice(0,10) }])
-      flash('Content ditambahkan.')
+      flash(t('Content ditambahkan.','Content added.'))
     }
     setForm(EMPTY)
   }
@@ -204,7 +204,7 @@ export default function MasterContentPage() {
     })
   }
 
-  const handleDelete = (id) => { setData(prev => prev.filter(d => d.id !== id)); flash('Content dihapus.') }
+  const handleDelete = (id) => { setData(prev => prev.filter(d => d.id !== id)); flash(t('Content dihapus.','Content deleted.')) }
 
   const stats = { total: data.length, active: data.filter(d=>d.status==='Active').length, draft: data.filter(d=>d.status==='Draft').length }
 
@@ -212,8 +212,8 @@ export default function MasterContentPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Content</h1>
-      <p className='text-gray-500 text-sm mb-6'>Repository materi pembelajaran — Video, PDF, SCORM, eBook, H5P, Page.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Content','Master Content')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Repository materi pembelajaran — Video, PDF, SCORM, eBook, H5P, Page.','Learning content repository — Video, PDF, SCORM, eBook, H5P, Page.')}</p>
 
       {/* Stats */}
       <div className='grid grid-cols-3 gap-4 mb-6'>
@@ -228,7 +228,7 @@ export default function MasterContentPage() {
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         {/* ── Form ── */}
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing ? '✏️ Edit Content' : '➕ Tambah Content'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?`✏️ ${t('Edit Content','Edit Content')}`:`➕ ${t('Tambah Content','Add Content')}`}</h2>
           <div className='flex flex-col gap-3'>
             {/* Tipe */}
             <div>
@@ -366,7 +366,7 @@ export default function MasterContentPage() {
         {/* ── Table ── */}
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
           <div className='flex flex-wrap gap-3 mb-4'>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari content...'
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari content...','Search content...')}
               className='flex-1 min-w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             <div className='flex gap-1 flex-wrap'>
               {['All',...CONTENT_TYPES].map(t => (
@@ -412,7 +412,7 @@ export default function MasterContentPage() {
                     </div>
                   </td>
                 </tr>
-              )) : <tr><td colSpan={6} className='px-3 py-8 text-center text-gray-400'>Tidak ada data.</td></tr>}
+              )) : <tr><td colSpan={6} className='px-3 py-8 text-center text-gray-400'>{t('Tidak ada data.','No data found.')}</td></tr>}
               </tbody>
             </table>
           </div>

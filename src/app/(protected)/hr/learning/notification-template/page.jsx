@@ -28,26 +28,26 @@ export default function NotificationTemplatePage() {
   const filtered = data.filter(d => d.name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.name || !form.subject) return flash('Nama template dan subject wajib diisi.', 'error')
+    if (!form.name || !form.subject) return flash(t('Nama template dan subject wajib diisi.','Template name and subject are required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form}:d))
-      flash('Template diperbarui.'); setEditing(null)
+      flash(t('Template diperbarui.','Template updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form}])
-      flash('Template ditambahkan.')
+      flash(t('Template ditambahkan.','Template added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ name:item.name, channel:item.channel, trigger:item.trigger, subject:item.subject, body_preview:item.body_preview, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Template dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Template dihapus.','Template deleted.')) }
 
   const channelColor = (c) => ({ Email:'bg-blue-50 text-blue-700', 'Push Notification':'bg-red-50 text-red-700', 'In-App':'bg-green-50 text-green-700', SMS:'bg-orange-50 text-orange-700' }[c])
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Notification Template</h1>
-      <p className='text-gray-500 text-sm mb-6'>Template notifikasi LMS standar untuk email, push notification, in-app, dan SMS.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Notification Template','Master Notification Template')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Template notifikasi LMS standar untuk email, push notification, in-app, dan SMS.','Standard LMS notification templates for email, push notifications, in-app, and SMS.')}</p>
       <p className='text-xs text-gray-400 mb-6'>Variabel yang tersedia: {'{{learner_name}}'}, {'{{course_name}}'}, {'{{training_date}}'}, {'{{due_date}}'}, {'{{approver_name}}'}, {'{{employee_name}}'}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
@@ -61,7 +61,7 @@ export default function NotificationTemplatePage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Template':'➕ Tambah Template'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Template','✏️ Edit Template'):`➕ ${t('Tambah Template','Add Template')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Template</label>
@@ -88,7 +88,7 @@ export default function NotificationTemplatePage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari template...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari template...','Search template...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='flex flex-col gap-3'>
             {filtered.map(d=>(

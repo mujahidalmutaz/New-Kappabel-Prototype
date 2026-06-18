@@ -28,7 +28,7 @@ export default function MyCoursesPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Learning / My Courses</h1>
-      <p className='text-gray-500 text-sm mb-6'>Daftar seluruh course yang sedang atau pernah Anda ikuti.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Daftar seluruh course yang sedang atau pernah Anda ikuti.','List of all courses you are taking or have taken.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Course', INIT.length, '📚', '#8B1A1A'],['In Progress', INIT.filter(c=>c.status==='In Progress').length, '🔵', '#2563eb'],['Completed', INIT.filter(c=>c.status==='Completed').length, '✅', '#059669'],['Avg Score', Math.round(INIT.filter(c=>c.score).reduce((a,c)=>a+c.score,0)/INIT.filter(c=>c.score).length)+'%', '🎯', '#7c3aed']].map(([l,v,i,c])=>(
@@ -41,7 +41,7 @@ export default function MyCoursesPage() {
 
       <div className='bg-white rounded-xl p-6 shadow-sm'>
         <div className='flex flex-wrap gap-3 mb-6'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari course...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari course...','Search courses...')}
             className='flex-1 min-w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
           <div className='flex gap-1 flex-wrap'>
             {FILTER_STATUS.map(s=>(
@@ -72,27 +72,27 @@ export default function MyCoursesPage() {
                     <span>Progress</span><span className='font-semibold'>{c.progress}%</span>
                   </div>
                   <div className='w-full bg-gray-200 rounded-full h-2'>
-                    <div className={`h-2 rounded-full ${c.status==='Overdue'?'bg-red-500':'bg-red-500'}`} style={{ width:`${c.progress}%` }}></div>
+                    <div className='h-2 rounded-full bg-red-500' style={{ width:`${c.progress}%` }}></div>
                   </div>
                 </div>
-                {c.score && <div className='text-center'><div className='text-xs text-gray-400'>Nilai</div><div className='text-lg font-bold text-gray-700'>{c.score}</div></div>}
+                {c.score && <div className='text-center'><div className='text-xs text-gray-400'>{t('Nilai','Score')}</div><div className='text-lg font-bold text-gray-700'>{c.score}</div></div>}
               </div>
 
               <div className='flex items-center justify-between'>
                 <div className='flex gap-4 text-xs text-gray-500'>
                   <span>📅 Assigned: {c.assigned}</span>
                   <span>⏰ Due: {c.due}</span>
-                  {c.completed && <span>✅ Selesai: {c.completed}</span>}
+                  {c.completed && <span>✅ {t('Selesai:','Completed:')} {c.completed}</span>}
                 </div>
                 {c.status !== 'Completed' && (
                   <button className='px-4 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition'
                     style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                    {c.status==='Not Started'?'Mulai Belajar':'Lanjutkan'}
+                    {c.status==='Not Started'?t('Mulai Belajar','Start Learning'):t('Lanjutkan','Continue')}
                   </button>
                 )}
                 {c.status === 'Completed' && (
                   <button className='px-4 py-1.5 text-xs font-semibold bg-green-50 text-green-700 rounded-lg hover:bg-green-100'>
-                    📄 Lihat Sertifikat
+                    📄 {t('Lihat Sertifikat','View Certificate')}
                   </button>
                 )}
               </div>

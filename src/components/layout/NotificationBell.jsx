@@ -4,16 +4,20 @@ import { useAuthStore }       from '@/store/authStore'
 import { useEmployeeStore }   from '@/store/employeeStore'
 import { useLeaveStore }      from '@/store/leaveStore'
 import { useOnboardingStore } from '@/store/onboardingStore'
+import { useT } from '@/store/languageStore'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function timeAgo(iso) {
-  if (!iso) return ''
-  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
-  if (m < 1)  return 'Baru saja'
-  if (m < 60) return `${m} mnt lalu`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h} jam lalu`
-  return `${Math.floor(h / 24)} hari lalu`
+function useTimeAgo() {
+  const t = useT()
+  return (iso) => {
+    if (!iso) return ''
+    const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+    if (m < 1)  return t('Baru saja', 'Just now')
+    if (m < 60) return t(`${m} mnt lalu`, `${m} min ago`)
+    const h = Math.floor(m / 60)
+    if (h < 24) return t(`${h} jam lalu`, `${h} hr ago`)
+    return t(`${Math.floor(h / 24)} hari lalu`, `${Math.floor(h / 24)} days ago`)
+  }
 }
 
 function fmtDate(s) {
@@ -96,6 +100,7 @@ function canActOnboarding(pendingStep, ob, currentUser, employees) {
 // ── Detail popup ──────────────────────────────────────────────────────────────
 function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
                        leaveApprove, leaveReject, obApprove, obReject, onClose }) {
+  const t = useT()
   const [note,      setNote     ] = useState('')
   const [rejecting, setRejecting] = useState(false)
   const [done,      setDone     ] = useState(false)
@@ -127,20 +132,39 @@ function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
     setDone(true)
   }
 
+  const leaveFields = leave ? [
+    [t('Karyawan', 'Employee'),    leave.name],
+    [t('Jenis Cuti', 'Leave Type'), leave.type],
+    [t('Mulai', 'Start'),           fmtDate(leave.start)],
+    [t('Selesai', 'End'),           fmtDate(leave.end)],
+    [t('Diajukan', 'Submitted'),    fmtDate(leave.submittedAt)],
+    ['Status',                      leave.status],
+  ] : []
+
+  const obFields = ob ? [
+    [t('Karyawan', 'Employee'),    ob.employeeName],
+    ['Department',                 ob.department || '—'],
+    [t('Atasan', 'Supervisor'),    ob.supervisorName || '—'],
+    ['Probation',                  `${ob.probationPeriod} ${t('Bulan', 'Months')}`],
+    [t('Diajukan', 'Submitted'),   fmtDate(ob.submittedAt)],
+    ['Status',                     ob.workflowStatus],
+  ] : []
+
   return (
     <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-[60] p-4'
       onClick={onClose}>
       <div className='bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden'
         onClick={e => e.stopPropagation()}>
 
-        {/* Header */}
         <div style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}
           className='px-5 py-4 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
             <span className='text-xl'>{notif.icon}</span>
             <div>
               <p className='text-white text-sm font-bold'>
-                {notif.type === 'leave' ? 'Detail Pengajuan Cuti' : 'Detail Onboarding'}
+                {notif.type === 'leave'
+                  ? t('Detail Pengajuan Cuti', 'Leave Request Detail')
+                  : t('Detail Onboarding', 'Onboarding Detail')}
               </p>
               <p className='text-red-300 text-xs mt-0.5'>{notif.text}</p>
             </div>
@@ -153,18 +177,11 @@ function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
 
         <div className='px-5 py-4 flex flex-col gap-4 overflow-y-auto max-h-[70vh]'>
 
-          {/* ── Leave detail ── */}
+          {/* Leave detail */}
           {leave && (
             <div className='flex flex-col gap-3'>
               <div className='grid grid-cols-2 gap-2 text-xs'>
-                {[
-                  ['Karyawan',  leave.name],
-                  ['Jenis Cuti', leave.type],
-                  ['Mulai',     fmtDate(leave.start)],
-                  ['Selesai',   fmtDate(leave.end)],
-                  ['Diajukan',  fmtDate(leave.submittedAt)],
-                  ['Status',    leave.status],
-                ].map(([k, v]) => (
+                {leaveFields.map(([k, v]) => (
                   <div key={k}>
                     <p className='text-gray-400 mb-0.5'>{k}</p>
                     {k === 'Status'
@@ -175,11 +192,9 @@ function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
               </div>
               {leave.note && (
                 <div className='bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-600'>
-                  <span className='font-semibold text-gray-500'>Catatan: </span>{leave.note}
+                  <span className='font-semibold text-gray-500'>{t('Catatan', 'Note')}: </span>{leave.note}
                 </div>
               )}
-
-              {/* Steps */}
               <div>
                 <p className='text-xs font-semibold text-gray-500 mb-1.5'>Workflow</p>
                 <div className='flex flex-col gap-1'>
@@ -203,18 +218,11 @@ function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
             </div>
           )}
 
-          {/* ── Onboarding detail ── */}
+          {/* Onboarding detail */}
           {ob && (
             <div className='flex flex-col gap-3'>
               <div className='grid grid-cols-2 gap-2 text-xs'>
-                {[
-                  ['Karyawan',   ob.employeeName],
-                  ['Department', ob.department || '—'],
-                  ['Atasan',     ob.supervisorName || '—'],
-                  ['Probation',  `${ob.probationPeriod} Bulan`],
-                  ['Diajukan',   fmtDate(ob.submittedAt)],
-                  ['Status',     ob.workflowStatus],
-                ].map(([k, v]) => (
+                {obFields.map(([k, v]) => (
                   <div key={k}>
                     <p className='text-gray-400 mb-0.5'>{k}</p>
                     {k === 'Status'
@@ -223,8 +231,6 @@ function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
                   </div>
                 ))}
               </div>
-
-              {/* Steps */}
               <div>
                 <p className='text-xs font-semibold text-gray-500 mb-1.5'>Workflow</p>
                 <div className='flex flex-col gap-1'>
@@ -248,18 +254,18 @@ function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
             </div>
           )}
 
-          {/* ── Action area ── */}
+          {/* Action area */}
           {done ? (
             <div className='bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-medium text-center'>
-              ✅ Keputusan berhasil disimpan.
+              ✅ {t('Keputusan berhasil disimpan.', 'Decision saved successfully.')}
             </div>
           ) : canAct ? (
             <div className='border-t border-gray-100 pt-3 flex flex-col gap-2'>
               {!rejecting ? (
                 <>
-                  <p className='text-xs text-gray-500'>Catatan (opsional)</p>
+                  <p className='text-xs text-gray-500'>{t('Catatan (opsional)', 'Note (optional)')}</p>
                   <input value={note} onChange={e => setNote(e.target.value)}
-                    placeholder='Tambahkan catatan…'
+                    placeholder={t('Tambahkan catatan…', 'Add a note…')}
                     className='w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none focus:border-red-400' />
                   <div className='flex gap-2 mt-1'>
                     <button onClick={handleApprove}
@@ -274,18 +280,18 @@ function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
                 </>
               ) : (
                 <>
-                  <p className='text-xs text-red-500 font-semibold'>Alasan penolakan (wajib)</p>
+                  <p className='text-xs text-red-500 font-semibold'>{t('Alasan penolakan (wajib)', 'Rejection reason (required)')}</p>
                   <input value={note} onChange={e => setNote(e.target.value)}
-                    autoFocus placeholder='Tuliskan alasan penolakan…'
+                    autoFocus placeholder={t('Tuliskan alasan penolakan…', 'Enter rejection reason…')}
                     className='w-full px-3 py-2 text-xs border border-red-300 rounded-lg outline-none focus:border-red-500' />
                   <div className='flex gap-2 mt-1'>
                     <button onClick={handleReject} disabled={!note.trim()}
                       className='flex-1 py-2 text-sm font-bold text-white rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-40 transition'>
-                      ✗ Konfirmasi Tolak
+                      ✗ {t('Konfirmasi Tolak', 'Confirm Reject')}
                     </button>
                     <button onClick={() => { setRejecting(false); setNote('') }}
                       className='px-4 py-2 text-sm font-semibold bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition'>
-                      Batal
+                      {t('Batal', 'Cancel')}
                     </button>
                   </div>
                 </>
@@ -300,6 +306,9 @@ function DetailPopup({ notif, currentUser, employees, leaves, onboardings,
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function NotificationBell() {
+  const t = useT()
+  const timeAgo = useTimeAgo()
+
   const { currentUser }                                        = useAuthStore()
   const { employees }                                          = useEmployeeStore()
   const { leaves,     approveStep: leaveApprove, rejectStep: leaveReject } = useLeaveStore()
@@ -318,7 +327,6 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Build notifications
   const notifications = []
 
   if (currentUser) {
@@ -332,7 +340,9 @@ export default function NotificationBell() {
         notifications.push({
           id: `leave-${l.status.toLowerCase()}-${l.id}`,
           icon: l.status === 'Approved' ? '✅' : '❌',
-          text: `Pengajuan cuti "${l.type}" Anda telah ${l.status === 'Approved' ? 'disetujui' : 'ditolak'}.`,
+          text: l.status === 'Approved'
+            ? t(`Pengajuan cuti "${l.type}" Anda telah disetujui.`, `Your "${l.type}" leave request has been approved.`)
+            : t(`Pengajuan cuti "${l.type}" Anda telah ditolak.`,   `Your "${l.type}" leave request has been rejected.`),
           at: actedAt, type: 'leave', recordId: l.id,
         })
       })
@@ -346,7 +356,7 @@ export default function NotificationBell() {
         notifications.push({
           id: `leave-pending-${l.id}`,
           icon: '⏳',
-          text: `Permintaan cuti dari ${l.name} menunggu persetujuan Anda.`,
+          text: t(`Permintaan cuti dari ${l.name} menunggu persetujuan Anda.`, `Leave request from ${l.name} is awaiting your approval.`),
           at: l.submittedAt, type: 'leave', recordId: l.id,
         })
       })
@@ -357,7 +367,7 @@ export default function NotificationBell() {
         notifications.push({
           id: `ob-approved-${o.id}`,
           icon: '🎉',
-          text: `Onboarding Anda telah disetujui sepenuhnya.`,
+          text: t('Onboarding Anda telah disetujui sepenuhnya.', 'Your onboarding has been fully approved.'),
           at: o.submittedAt, type: 'onboarding', recordId: o.id,
         })
       })
@@ -371,7 +381,7 @@ export default function NotificationBell() {
         notifications.push({
           id: `ob-pending-${o.id}`,
           icon: '📋',
-          text: `Formulir onboarding ${o.employeeName} menunggu persetujuan Anda.`,
+          text: t(`Formulir onboarding ${o.employeeName} menunggu persetujuan Anda.`, `Onboarding form for ${o.employeeName} is awaiting your approval.`),
           at: o.submittedAt, type: 'onboarding', recordId: o.id,
         })
       })
@@ -392,11 +402,10 @@ export default function NotificationBell() {
   return (
     <>
       <div ref={ref} className='relative'>
-        {/* Bell button */}
         <button
           onClick={() => setOpen(v => !v)}
           className='relative flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition'
-          aria-label='Notifications'
+          aria-label={t('Notifikasi', 'Notifications')}
         >
           <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'
             fill='none' stroke='white' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'
@@ -413,12 +422,11 @@ export default function NotificationBell() {
           )}
         </button>
 
-        {/* Dropdown list */}
         {open && (
           <div className='absolute right-0 top-11 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden'>
             <div className='flex items-center justify-between px-4 py-3 border-b border-gray-100'>
               <span className='text-sm font-bold text-gray-800'>
-                Notifikasi
+                {t('Notifikasi', 'Notifications')}
                 {unread.length > 0 && (
                   <span className='ml-2 text-xs font-semibold text-white bg-red-500 px-1.5 py-0.5 rounded-full'>
                     {unread.length}
@@ -428,7 +436,7 @@ export default function NotificationBell() {
               {unread.length > 0 && (
                 <button onClick={markAllRead}
                   className='text-xs text-red-600 hover:text-red-800 font-medium transition'>
-                  Tandai semua dibaca
+                  {t('Tandai semua dibaca', 'Mark all as read')}
                 </button>
               )}
             </div>
@@ -436,7 +444,7 @@ export default function NotificationBell() {
             <ul className='max-h-80 overflow-y-auto divide-y divide-gray-50'>
               {notifications.length === 0 ? (
                 <li className='px-4 py-10 text-center text-gray-400 text-sm'>
-                  Tidak ada notifikasi.
+                  {t('Tidak ada notifikasi.', 'No notifications.')}
                 </li>
               ) : notifications.map(n => {
                 const isUnread = !readIds.includes(n.id)
@@ -466,14 +474,15 @@ export default function NotificationBell() {
 
             {notifications.length > 0 && (
               <div className='px-4 py-2.5 border-t border-gray-100 text-center'>
-                <span className='text-xs text-gray-400'>{notifications.length} notifikasi</span>
+                <span className='text-xs text-gray-400'>
+                  {notifications.length} {t('notifikasi', 'notifications')}
+                </span>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Detail popup modal */}
       {activeItem && (
         <DetailPopup
           notif={activeItem}

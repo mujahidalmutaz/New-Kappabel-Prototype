@@ -1,6 +1,9 @@
 ﻿'use client'
 import { useState } from 'react'
 import { useT } from '@/store/languageStore'
+import {
+  PageHeader, StatCard, SectionCard, ActionButton, StatusBadge,
+} from '@/components/ui'
 
 const ROLE_OPTIONS = [
   { value: 'Manager',        label: 'Manager',         icon: '👥' },
@@ -107,24 +110,33 @@ export default function WorkflowSettingsPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Workflow Settings</h1>
-      <p className='text-gray-500 text-sm mb-6'>Konfigurasi alur persetujuan untuk setiap jenis permintaan.</p>
+      <PageHeader
+        icon='🔀'
+        title='Workflow Settings'
+        subtitle='Konfigurasi alur persetujuan untuk setiap jenis permintaan.'
+      />
 
       {msg && (
         <div className={`text-sm px-4 py-2.5 rounded-lg mb-4 inline-block ${
           msg.type === 'error'
-            ? 'bg-red-50 text-red-600 border border-red-200'
-            : 'bg-green-50 text-green-600 border border-green-200'
+            ? 'bg-red-50 text-red-600'
+            : 'bg-emerald-50 text-emerald-600'
         }`}>
           {msg.text}
         </div>
       )}
 
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6'>
+        <StatCard label='Total Workflow' value={workflows.length} icon='🔀' tone='brand' />
+        <StatCard label='Aktif'          value={workflows.filter(w => w.active).length} icon='✅' tone='green' />
+        <StatCard label='Nonaktif'       value={workflows.filter(w => !w.active).length} icon='○' tone='gray' />
+      </div>
+
       <div className='flex gap-6'>
 
         {/* Left — workflow list */}
         <div className='w-56 flex-shrink-0'>
-          <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
+          <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
             <div className='px-4 py-3 border-b border-gray-100'>
               <p className='text-xs font-bold text-gray-500 uppercase tracking-wide'>Jenis Workflow</p>
             </div>
@@ -154,7 +166,7 @@ export default function WorkflowSettingsPage() {
           <div className='flex-1 space-y-5'>
 
             {/* Header card */}
-            <div className='bg-white rounded-xl p-5 shadow-sm flex items-center gap-4'>
+            <div className='bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100 flex items-center gap-4'>
               <span className='text-4xl'>{wf.icon}</span>
               <div className='flex-1'>
                 <h2 className='text-lg font-bold text-gray-800'>{wf.name}</h2>
@@ -172,7 +184,7 @@ export default function WorkflowSettingsPage() {
             </div>
 
             {/* Multi-level approval */}
-            <div className='bg-white rounded-xl p-5 shadow-sm'>
+            <div className='bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100'>
               <div className='flex items-center justify-between mb-5'>
                 <h3 className='text-sm font-bold text-gray-700'>🔀 Multi-Level Approval</h3>
                 <span className='text-xs text-gray-400'>{wf.levels.length} level dikonfigurasi</span>
@@ -291,7 +303,7 @@ export default function WorkflowSettingsPage() {
             </div>
 
             {/* Options */}
-            <div className='bg-white rounded-xl p-5 shadow-sm'>
+            <div className='bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100'>
               <h3 className='text-sm font-bold text-gray-700 mb-4'>⚙️ Opsi Tambahan</h3>
               <div className='space-y-4'>
                 <label className='flex items-center gap-3 cursor-pointer'>
@@ -316,11 +328,7 @@ export default function WorkflowSettingsPage() {
             </div>
 
             <div className='flex justify-end'>
-              <button onClick={handleSave}
-                className='px-6 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
-                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                💾 Simpan Perubahan
-              </button>
+              <ActionButton onClick={handleSave}>💾 Simpan Perubahan</ActionButton>
             </div>
 
           </div>

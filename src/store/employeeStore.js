@@ -1340,20 +1340,26 @@ export const useEmployeeStore = create((set, get) => ({
     skills:         (e.skills         || []).map(x=>({...x})),
     history:        (e.history        || []).map(x=>({...x})),
   })),
+  lastAddedEmpId: null,
 
   // ── Employee CRUD ──────────────────────────────────────────────
-  addEmployee:    (d)    => set(s => ({ employees: [...s.employees, {
-    id: _empId++, photo: null,
-    dependents: [], education: [], certifications: [], skills: [],
-    // auto-create Hire history on new employee
-    history: d.joinDate ? [{
-      id: _histId++, effectiveDate: d.joinDate, effectiveSeq: 1,
-      action: 'Hire', reason: 'New Hire',
-      companyId: d.companyId||'', departmentId: d.departmentId||'',
-      positionId: d.positionId||'', gradeId: d.gradeId||'', note: '',
-    }] : [],
-    ...d
-  }] })),
+  addEmployee: (d) => set(s => {
+    const id = _empId++
+    return {
+      lastAddedEmpId: id,
+      employees: [...s.employees, {
+        id, photo: null,
+        dependents: [], education: [], certifications: [], skills: [],
+        history: d.joinDate ? [{
+          id: _histId++, effectiveDate: d.joinDate, effectiveSeq: 1,
+          action: 'Hire', reason: 'New Hire',
+          companyId: d.companyId||'', departmentId: d.departmentId||'',
+          positionId: d.positionId||'', gradeId: d.gradeId||'', note: '',
+        }] : [],
+        ...d
+      }],
+    }
+  }),
   updateEmployee: (id, d) => set(s => ({
     employees: s.employees.map(e => e.id === id ? { ...e, ...d } : e)
   })),
@@ -1389,6 +1395,11 @@ export const useEmployeeStore = create((set, get) => ({
       ? { ...e, education: [...e.education, { id: _eduId++, ...d }] }
       : e)
   })),
+  updateEducation: (empId, eduId, d) => set(s => ({
+    employees: s.employees.map(e => e.id === empId
+      ? { ...e, education: e.education.map(x => x.id === eduId ? { ...x, ...d } : x) }
+      : e)
+  })),
   deleteEducation: (empId, eduId) => set(s => ({
     employees: s.employees.map(e => e.id === empId
       ? { ...e, education: e.education.filter(x => x.id !== eduId) }
@@ -1401,6 +1412,11 @@ export const useEmployeeStore = create((set, get) => ({
       ? { ...e, certifications: [...e.certifications, { id: _certId++, ...d }] }
       : e)
   })),
+  updateCertification: (empId, certId, d) => set(s => ({
+    employees: s.employees.map(e => e.id === empId
+      ? { ...e, certifications: e.certifications.map(x => x.id === certId ? { ...x, ...d } : x) }
+      : e)
+  })),
   deleteCertification: (empId, certId) => set(s => ({
     employees: s.employees.map(e => e.id === empId
       ? { ...e, certifications: e.certifications.filter(x => x.id !== certId) }
@@ -1411,6 +1427,11 @@ export const useEmployeeStore = create((set, get) => ({
   addSkill: (empId, d) => set(s => ({
     employees: s.employees.map(e => e.id === empId
       ? { ...e, skills: [...e.skills, { id: _skillId++, ...d }] }
+      : e)
+  })),
+  updateSkill: (empId, skillId, d) => set(s => ({
+    employees: s.employees.map(e => e.id === empId
+      ? { ...e, skills: e.skills.map(x => x.id === skillId ? { ...x, ...d } : x) }
       : e)
   })),
   deleteSkill: (empId, skillId) => set(s => ({

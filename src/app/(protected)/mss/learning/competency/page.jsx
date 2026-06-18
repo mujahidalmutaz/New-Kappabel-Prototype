@@ -26,12 +26,12 @@ export default function TeamCompetencyPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Team Competency Dashboard</h1>
-      <p className='text-gray-500 text-sm mb-6'>Gambaran profil kompetensi seluruh anggota tim Anda.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Team Competency Dashboard','Team Competency Dashboard')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Gambaran profil kompetensi seluruh anggota tim Anda.','Overview of the competency profile of all your team members.')}</p>
 
       {/* Team Average Summary */}
       <div className='bg-white rounded-xl p-6 shadow-sm mb-6'>
-        <h2 className='font-bold text-gray-700 mb-4'>📊 Rata-Rata Kompetensi Tim</h2>
+        <h2 className='font-bold text-gray-700 mb-4'>{t('📊 Rata-Rata Kompetensi Tim','📊 Team Average Competency')}</h2>
         <div className='grid grid-cols-5 gap-4'>
           {COMP_KEYS.map(k=>{
             const avg = parseFloat(teamAvg(k))
@@ -57,7 +57,7 @@ export default function TeamCompetencyPage() {
       </div>
 
       {/* Team Grid */}
-      <h2 className='font-bold text-gray-700 mb-3'>👥 Profil Kompetensi per Anggota</h2>
+      <h2 className='font-bold text-gray-700 mb-3'>{t('👥 Profil Kompetensi per Anggota','👥 Competency Profile per Member')}</h2>
       <div className='space-y-3'>
         {TEAM_COMP.map(m=>(
           <div key={m.name} className='bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden'>
@@ -103,10 +103,10 @@ export default function TeamCompetencyPage() {
                 <div className='mt-4 pt-3 border-t border-gray-100 flex gap-3'>
                   <div className='flex items-center gap-1 text-xs text-yellow-700 bg-yellow-50 px-3 py-1.5 rounded-lg'>
                     <span>⚠️</span>
-                    <span>{Object.values(m.competencies).filter(v=>v<=2).length} kompetensi perlu dikembangkan</span>
+                    <span>{Object.values(m.competencies).filter(v=>v<=2).length} {t('kompetensi perlu dikembangkan','competencies need development')}</span>
                   </div>
                   <button className='px-3 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-                    Lihat Rekomendasi Kursus →
+                    {t('Lihat Rekomendasi Kursus', 'View Course Recommendations')} →
                   </button>
                 </div>
               </div>

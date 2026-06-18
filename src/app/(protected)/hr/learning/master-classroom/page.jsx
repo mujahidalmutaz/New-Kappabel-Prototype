@@ -27,26 +27,26 @@ export default function MasterClassroomPage() {
   const filtered = data.filter(d => d.name.toLowerCase().includes(search.toLowerCase()) || d.location.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.name || !form.capacity) return flash('Nama dan kapasitas wajib diisi.', 'error')
+    if (!form.name || !form.capacity) return flash(t('Nama dan kapasitas wajib diisi.','Name and capacity are required.'), 'error')
     if (editing) {
       setData(prev => prev.map(d => d.id===editing ? {...d,...form} : d))
-      flash('Classroom diperbarui.'); setEditing(null)
+      flash(t('Classroom diperbarui.','Classroom updated.')); setEditing(null)
     } else {
       setData(prev => [...prev, { id:Date.now(), ...form }])
-      flash('Classroom ditambahkan.')
+      flash(t('Classroom ditambahkan.','Classroom added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ name:item.name, location:item.location, capacity:item.capacity, type:item.type, facilities:item.facilities, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Classroom dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Classroom dihapus.','Classroom deleted.')) }
 
   const statusColor = (s) => ({ Available:'bg-green-50 text-green-700', 'In Use':'bg-blue-50 text-blue-700', Maintenance:'bg-yellow-50 text-yellow-700', Inactive:'bg-gray-100 text-gray-500' }[s] || 'bg-gray-100 text-gray-500')
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Classroom</h1>
-      <p className='text-gray-500 text-sm mb-6'>Data ruangan training fisik, virtual, maupun hybrid.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Classroom','Master Classroom')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Data ruangan training fisik, virtual, maupun hybrid.','Data for physical, virtual, and hybrid training rooms.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Ruangan', data.length, '🏛️', '#8B1A1A'],['Physical', data.filter(d=>d.type==='Physical').length, '🏢', '#059669'],['Virtual', data.filter(d=>d.type==='Virtual').length, '💻', '#7c3aed'],['Available', data.filter(d=>d.status==='Available').length, '✅', '#d97706']].map(([l,v,i,c])=>(
@@ -59,7 +59,7 @@ export default function MasterClassroomPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Classroom':'➕ Tambah Classroom'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Classroom','✏️ Edit Classroom'):`➕ ${t('Tambah Classroom','Add Classroom')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Ruangan','name'],['Lokasi','location'],['Fasilitas','facilities']].map(([l,k])=>(
@@ -85,7 +85,7 @@ export default function MasterClassroomPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari ruangan...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari ruangan...','Search room...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>

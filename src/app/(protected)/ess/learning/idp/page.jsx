@@ -23,13 +23,13 @@ export default function IDPPage() {
   const flash = (text, type='success') => { setMsg({ text, type }); setTimeout(()=>setMsg(null), 3000) }
 
   const handleSave = () => {
-    if (!form.goal) return flash('Tujuan pengembangan wajib diisi.', 'error')
+    if (!form.goal) return flash(t('Tujuan pengembangan wajib diisi.','Development goal is required.'), 'error')
     if (editing) {
       setIdps(prev=>prev.map(d=>d.id===editing?{...d,...form}:d))
-      flash('IDP diperbarui.'); setEditing(null)
+      flash(t('IDP diperbarui.','IDP updated.')); setEditing(null)
     } else {
       setIdps(prev=>[...prev,{id:Date.now(),...form,activities:[],progress:0}])
-      flash('IDP ditambahkan.')
+      flash(t('IDP ditambahkan.','IDP added.'))
     }
     setForm(EMPTY_GOAL); setTab('view')
   }
@@ -39,12 +39,12 @@ export default function IDPPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Individual Development Plan (IDP)</h1>
-      <p className='text-gray-500 text-sm mb-6'>Rencana pengembangan diri Anda — target karir, aktivitas belajar, dan tracking progress.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Rencana pengembangan diri Anda — target karir, aktivitas belajar, dan tracking progress.','Your personal development plan — career targets, learning activities, and progress tracking.')}</p>
 
       {msg && <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
 
       <div className='flex gap-2 mb-6'>
-        {[['view','📋 My IDPs'],['create','➕ Buat IDP Baru']].map(([k,l])=>(
+        {[['view','📋 My IDPs'],['create',t('➕ Buat IDP Baru','➕ Create New IDP')]].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${tab===k?'bg-red-600 text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>{l}</button>
         ))}
@@ -90,35 +90,35 @@ export default function IDPPage() {
               </div>
               <div className='flex gap-2 mt-4'>
                 <button onClick={()=>{setEditing(idp.id);setForm({goal:idp.goal,target_role:idp.target_role,target_date:idp.target_date,category:idp.category,status:idp.status});setTab('create')}}
-                  className='px-4 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>Edit IDP</button>
-                <button className='px-4 py-2 bg-gray-50 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-100'>Tambah Aktivitas</button>
+                  className='px-4 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>{t('Edit IDP','Edit IDP')}</button>
+                <button className='px-4 py-2 bg-gray-50 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-100'>{t('Tambah Aktivitas','Add Activity')}</button>
               </div>
             </div>
           ))}
-          {idps.length===0 && <div className='bg-white rounded-xl p-12 text-center text-gray-400 shadow-sm'>Belum ada IDP. Buat IDP pertama Anda!</div>}
+          {idps.length===0 && <div className='bg-white rounded-xl p-12 text-center text-gray-400 shadow-sm'>{t('Belum ada IDP. Buat IDP pertama Anda!','No IDP yet. Create your first IDP!')}</div>}
         </div>
       )}
 
       {tab==='create' && (
         <div className='bg-white rounded-xl p-6 shadow-sm max-w-2xl'>
-          <h2 className='font-bold text-gray-700 mb-4'>{editing?'✏️ Edit IDP':'➕ Buat IDP Baru'}</h2>
+          <h2 className='font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit IDP','✏️ Edit IDP'):t('➕ Buat IDP Baru','➕ Create New IDP')}</h2>
           <div className='flex flex-col gap-4'>
-            <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Tujuan Pengembangan</label>
-              <textarea rows={3} value={form.goal} onChange={e=>setForm(f=>({...f,goal:e.target.value}))} placeholder='Contoh: Menjadi Team Leader di bidang HR Operations dalam 18 bulan'
+            <div><label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Tujuan Pengembangan','Development Goal')}</label>
+              <textarea rows={3} value={form.goal} onChange={e=>setForm(f=>({...f,goal:e.target.value}))} placeholder={t('Contoh: Menjadi Team Leader di bidang HR Operations dalam 18 bulan','Example: Become a Team Leader in HR Operations within 18 months')}
                 className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' /></div>
-            <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Target Posisi/Role</label>
+            <div><label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Target Posisi/Role','Target Position/Role')}</label>
               <input value={form.target_role} onChange={e=>setForm(f=>({...f,target_role:e.target.value}))}
                 className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' /></div>
-            <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Target Tanggal Tercapai</label>
+            <div><label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Target Tanggal Tercapai','Target Completion Date')}</label>
               <input type='date' value={form.target_date} onChange={e=>setForm(f=>({...f,target_date:e.target.value}))}
                 className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' /></div>
-            <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Kategori</label>
+            <div><label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Kategori','Category')}</label>
               <select value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value}))}
                 className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
                 {CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></div>
             <div className='flex gap-3'>
               <button onClick={handleSave} className='flex-1 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
-                style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>{editing?'Simpan Perubahan':'Buat IDP'}</button>
+                style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>{editing?t('Simpan Perubahan','Save Changes'):t('Buat IDP','Create IDP')}</button>
               <button onClick={()=>{setEditing(null);setForm(EMPTY_GOAL);setTab('view')}} className='px-5 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-200 transition'>{t('Batal','Cancel')}</button>
             </div>
           </div>

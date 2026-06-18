@@ -21,11 +21,10 @@ const FEED = [
   { id:3, community:'Leadership Circle', author:'Ahmad F.', time:'1 hari lalu', content:'Resume dari workshop Servant Leadership kemarin — ada 3 poin utama yang perlu kita internalisasi…', likes:24, comments:10 },
 ]
 
-const TABS = ['Komunitas Saya', 'Feed Terbaru', 'Publish Video']
-
 export default function LearningCommunityPage() {
   const t = useT()
-  const [tab, setTab] = useState('Komunitas Saya')
+  const TABS = [t('Komunitas Saya','My Communities'), t('Feed Terbaru','Latest Feed'), t('Publish Video','Publish Video')]
+  const [tab, setTab] = useState(TABS[0])
   const [videoTitle, setVideoTitle] = useState('')
   const [videoDesc, setVideoDesc] = useState('')
   const [msg, setMsg] = useState(null)
@@ -34,8 +33,8 @@ export default function LearningCommunityPage() {
   const flash = (text) => { setMsg(text); setTimeout(()=>setMsg(null), 3000) }
 
   const handlePublish = () => {
-    if (!videoTitle.trim()) return flash('Judul video wajib diisi.')
-    flash('Video berhasil dikirim untuk review moderator!')
+    if (!videoTitle.trim()) return flash(t('Judul video wajib diisi.','Video title is required.'))
+    flash(t('Video berhasil dikirim untuk review moderator!','Video submitted for moderator review!'))
     setVideoTitle('')
     setVideoDesc('')
   }
@@ -43,21 +42,21 @@ export default function LearningCommunityPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Learning Community</h1>
-      <p className='text-gray-500 text-sm mb-6'>Bergabung, diskusi, dan bagikan pengetahuan bersama rekan-rekan Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Bergabung, diskusi, dan bagikan pengetahuan bersama rekan-rekan Anda.','Join, discuss, and share knowledge with your colleagues.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
       <div className='flex gap-2 mb-6'>
-        {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-sm font-semibold transition ${tab===t?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
-            style={tab===t?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
-            {t}
+        {TABS.map(tab_ => (
+          <button key={tab_} onClick={() => setTab(tab_)}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition ${tab===tab_?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+            style={tab===tab_?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
+            {tab_}
           </button>
         ))}
       </div>
 
-      {tab === 'Komunitas Saya' && (
+      {tab === TABS[0] && (
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
           {COMMUNITIES.map(c => (
             <div key={c.id} className='bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-red-200 transition'>
@@ -81,15 +80,15 @@ export default function LearningCommunityPage() {
                 </div>
               ))}
               <div className='flex items-center justify-between mt-2'>
-                <span className='text-xs text-gray-400'>Terakhir aktif: {c.lastPost}</span>
-                <button className='px-3 py-1.5 text-xs font-semibold rounded-lg text-white' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>Buka Forum →</button>
+                <span className='text-xs text-gray-400'>{t('Terakhir aktif','Last active')}: {c.lastPost}</span>
+                <button className='px-3 py-1.5 text-xs font-semibold rounded-lg text-white' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>{t('Buka Forum →','Open Forum →')}</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {tab === 'Feed Terbaru' && (
+      {tab === TABS[1] && (
         <div className='max-w-2xl space-y-4'>
           {FEED.map(f => (
             <div key={f.id} className='bg-white rounded-xl p-5 shadow-sm border border-gray-100'>
@@ -117,39 +116,39 @@ export default function LearningCommunityPage() {
         </div>
       )}
 
-      {tab === 'Publish Video' && (
+      {tab === TABS[2] && (
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
           <div className='bg-white rounded-xl p-6 shadow-sm'>
-            <h2 className='font-bold text-gray-700 mb-4'>📤 Upload Video Sharing Session</h2>
+            <h2 className='font-bold text-gray-700 mb-4'>📤 {t('Upload Video Sharing Session','Upload Sharing Session Video')}</h2>
             <div className='space-y-4'>
               <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Judul Video <span className='text-red-500'>*</span></label>
+                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Judul Video','Video Title')} <span className='text-red-500'>*</span></label>
                 <input value={videoTitle} onChange={e=>setVideoTitle(e.target.value)}
-                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder='Contoh: Tips Membuat Dashboard dengan Excel' />
+                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder={t('Contoh: Tips Membuat Dashboard dengan Excel','Example: Tips for Creating a Dashboard with Excel')} />
               </div>
               <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Deskripsi</label>
+                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Deskripsi','Description')}</label>
                 <textarea value={videoDesc} onChange={e=>setVideoDesc(e.target.value)} rows={3}
-                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' placeholder='Jelaskan isi video Anda...' />
+                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' placeholder={t('Jelaskan isi video Anda...','Describe your video content...')} />
               </div>
               <div>
-                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>File Video</label>
+                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('File Video','Video File')}</label>
                 <div className='border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-red-300 transition cursor-pointer'>
                   <div className='text-3xl mb-2'>🎬</div>
-                  <p className='text-sm text-gray-500'>Klik atau drag & drop file video</p>
+                  <p className='text-sm text-gray-500'>{t('Klik atau drag & drop file video','Click or drag & drop video file')}</p>
                   <p className='text-xs text-gray-400 mt-1'>MP4, MOV, AVI • Max 500 MB</p>
                 </div>
               </div>
               <button onClick={handlePublish}
                 className='w-full py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
                 style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-                📤 Submit Video
+                📤 {t('Submit Video','Submit Video')}
               </button>
             </div>
           </div>
 
           <div className='bg-white rounded-xl p-6 shadow-sm'>
-            <h2 className='font-bold text-gray-700 mb-4'>🎬 Video Saya</h2>
+            <h2 className='font-bold text-gray-700 mb-4'>🎬 {t('Video Saya','My Videos')}</h2>
             <div className='space-y-3'>
               {MY_VIDEOS.map(v => (
                 <div key={v.id} className='border border-gray-200 rounded-lg p-4 hover:border-red-200 transition'>

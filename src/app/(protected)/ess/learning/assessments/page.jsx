@@ -20,15 +20,15 @@ export default function AssessmentsPage() {
   const t = useT()
   const [tab, setTab] = useState('pending')
 
-  const typeColor = (t) => ({ 'Pre-Test':'bg-blue-50 text-blue-700', 'Post-Test':'bg-green-50 text-green-700', Quiz:'bg-red-50 text-red-700', 'Training Feedback':'bg-yellow-50 text-yellow-700', Assignment:'bg-orange-50 text-orange-700' }[t]||'bg-gray-100 text-gray-500')
+  const typeColor = (typ) => ({ 'Pre-Test':'bg-blue-50 text-blue-700', 'Post-Test':'bg-green-50 text-green-700', Quiz:'bg-red-50 text-red-700', 'Training Feedback':'bg-yellow-50 text-yellow-700', Assignment:'bg-orange-50 text-orange-700' }[typ]||'bg-gray-100 text-gray-500')
 
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Assessments & Evaluation</h1>
-      <p className='text-gray-500 text-sm mb-6'>Quiz, pre-test, post-test, dan evaluasi training Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Quiz, pre-test, post-test, dan evaluasi training Anda.','Your quizzes, pre-tests, post-tests, and training evaluations.')}</p>
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[['Harus Dikerjakan', PENDING.length, '📝', '#dc2626'],['Selesai', COMPLETED.length, '✅', '#059669'],['Avg Score', Math.round(COMPLETED.reduce((a,c)=>a+c.score,0)/COMPLETED.length), '🎯', '#7c3aed']].map(([l,v,i,c])=>(
+        {[[t('Harus Dikerjakan','To Do'), PENDING.length, '📝', '#dc2626'],[t('Selesai','Completed'), COMPLETED.length, '✅', '#059669'],['Avg Score', Math.round(COMPLETED.reduce((a,c)=>a+c.score,0)/COMPLETED.length), '🎯', '#7c3aed']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
@@ -37,7 +37,7 @@ export default function AssessmentsPage() {
       </div>
 
       <div className='flex gap-2 mb-4'>
-        {[['pending','📝 Belum Dikerjakan'],['completed','✅ Riwayat Assessment'],['evaluation','📊 Evaluasi Training']].map(([k,l])=>(
+        {[['pending',t('📝 Belum Dikerjakan','📝 Pending')],['completed',t('✅ Riwayat Assessment','✅ Assessment History')],['evaluation',t('📊 Evaluasi Training','📊 Training Evaluation')]].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${tab===k?'bg-red-600 text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>{l}</button>
         ))}
@@ -53,8 +53,8 @@ export default function AssessmentsPage() {
                   <div className='text-sm text-gray-500 mt-0.5'>{a.course}</div>
                   <div className='flex items-center gap-2 mt-2'>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${typeColor(a.type)}`}>{a.type}</span>
-                    <span className='text-xs text-gray-400'>⏱️ {a.duration} menit</span>
-                    <span className='text-xs text-gray-400'>📋 {a.questions} soal</span>
+                    <span className='text-xs text-gray-400'>⏱️ {a.duration} {t('menit','min')}</span>
+                    <span className='text-xs text-gray-400'>📋 {a.questions} {t('soal','questions')}</span>
                     <span className='text-xs text-gray-400'>🎯 Pass: {a.passing}%</span>
                   </div>
                 </div>
@@ -63,10 +63,10 @@ export default function AssessmentsPage() {
                 </div>
               </div>
               <button className='px-5 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
-                style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>🚀 Mulai Assessment</button>
+                style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>🚀 {t('Mulai Assessment','Start Assessment')}</button>
             </div>
           ))}
-          {PENDING.length===0 && <div className='bg-white rounded-xl p-12 text-center text-gray-400 shadow-sm'>Tidak ada assessment yang perlu dikerjakan. ✅</div>}
+          {PENDING.length===0 && <div className='bg-white rounded-xl p-12 text-center text-gray-400 shadow-sm'>{t('Tidak ada assessment yang perlu dikerjakan.','No assessments to complete.')} ✅</div>}
         </div>
       )}
 
@@ -83,7 +83,7 @@ export default function AssessmentsPage() {
               </div>
               <div className='text-right'>
                 <div className={`text-xl font-bold ${a.score>=75?'text-green-600':'text-red-600'}`}>{a.score}</div>
-                <div className={`text-xs font-semibold ${a.passed?'text-green-600':'text-red-600'}`}>{a.passed?'✅ LULUS':'❌ TIDAK LULUS'}</div>
+                <div className={`text-xs font-semibold ${a.passed?'text-green-600':'text-red-600'}`}>{a.passed?t('✅ LULUS','✅ PASSED'):t('❌ TIDAK LULUS','❌ FAILED')}</div>
               </div>
             </div>
           ))}
@@ -99,8 +99,8 @@ export default function AssessmentsPage() {
                 <div className='text-sm text-gray-500 mt-0.5'>{e.course}</div>
               </div>
               {e.filled
-                ? <span className='text-xs px-3 py-1 bg-green-50 text-green-700 rounded-full font-semibold'>✅ Sudah Diisi</span>
-                : <button className='px-4 py-2 text-white text-xs font-semibold rounded-lg' style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>Isi Evaluasi</button>
+                ? <span className='text-xs px-3 py-1 bg-green-50 text-green-700 rounded-full font-semibold'>{t('✅ Sudah Diisi','✅ Submitted')}</span>
+                : <button className='px-4 py-2 text-white text-xs font-semibold rounded-lg' style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>{t('Isi Evaluasi','Fill Evaluation')}</button>
               }
             </div>
           ))}

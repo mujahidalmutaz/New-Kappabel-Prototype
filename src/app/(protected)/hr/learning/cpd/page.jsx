@@ -29,24 +29,24 @@ export default function MasterCPDPage() {
   const filtered = data.filter(d => d.activity.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.activity) return flash('Nama aktivitas wajib diisi.', 'error')
+    if (!form.activity) return flash(t('Nama aktivitas wajib diisi.','Activity name is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,points:Number(form.points),max_points:Number(form.max_points)}:d))
-      flash('CPD rule diperbarui.'); setEditing(null)
+      flash(t('CPD rule diperbarui.','CPD rule updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,points:Number(form.points),max_points:Number(form.max_points)}])
-      flash('CPD rule ditambahkan.')
+      flash(t('CPD rule ditambahkan.','CPD rule added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ activity:item.activity, category:item.category, points:String(item.points), unit:item.unit, max_points:String(item.max_points), description:item.description, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('CPD rule dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('CPD rule dihapus.','CPD rule deleted.')) }
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master CPD / Learning Credit Points</h1>
-      <p className='text-gray-500 text-sm mb-6'>Aturan poin CPD (Continuing Professional Development) untuk setiap jenis aktivitas learning.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master CPD / Learning Credit Points','Master CPD / Learning Credit Points')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Aturan poin CPD (Continuing Professional Development) untuk setiap jenis aktivitas learning.','CPD (Continuing Professional Development) point rules for each type of learning activity.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Aktivitas', data.length, '⭐', '#8B1A1A'],['Total Max Poin/Thn', data.reduce((a,d)=>a+d.max_points,0), '🏆', '#059669'],['Avg Poin per Unit', (data.reduce((a,d)=>a+d.points,0)/data.length).toFixed(1), '📈', '#7c3aed'],['Kategori Aktif', data.filter(d=>d.status==='Active').length, '✅', '#d97706']].map(([l,v,i,c])=>(
@@ -59,7 +59,7 @@ export default function MasterCPDPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit CPD Rule':'➕ Tambah CPD Rule'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit CPD Rule','✏️ Edit CPD Rule'):`➕ ${t('Tambah CPD Rule','Add CPD Rule')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Aktivitas</label>
@@ -88,7 +88,7 @@ export default function MasterCPDPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari aktivitas CPD...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari aktivitas CPD...','Search CPD activity...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>

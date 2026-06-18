@@ -2,6 +2,10 @@
 import { useState, useMemo }  from 'react'
 import { useStructureStore, PC_CATEGORY_COLOR } from '@/store/structureStore'
 import { useT } from '@/store/languageStore'
+import {
+  PageHeader, StatCard, SectionCard, DataTable, Tr, Td, FormField, Input, Select,
+  StatusBadge, ActionButton, EmptyState,
+} from '@/components/ui'
 
 const BLANK = { departmentId:'', jobFamilyId:'', gradeId:'', code:'', name:'', status:'Active' }
 
@@ -67,64 +71,63 @@ export default function PositionPage() {
     ? positions.filter(p=>p.departmentId===+filterDept)
     : positions
 
+  const activeCount = positions.filter(p=>p.status==='Active').length
+
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Position</h1>
-      <p className='text-gray-500 text-sm mb-6'>{t('Jabatan di bawah Department, dilengkapi Job Family dan Grade.','Position under Department, with Job Family and Grade.')}</p>
+      <PageHeader
+        icon='📌'
+        title='Position'
+        subtitle={t('Jabatan di bawah Department, dilengkapi Job Family dan Grade.','Position under Department, with Job Family and Grade.')}
+      />
 
       {/* Breadcrumb */}
-      <div className='flex flex-wrap items-center gap-2 text-xs text-gray-400 mb-6'>
+      <div className='mb-6 flex flex-wrap items-center gap-2 text-xs text-gray-400'>
         <span className='px-2.5 py-1'>Enterprise</span><span>→</span>
         <span className='px-2.5 py-1'>Division</span><span>→</span>
         <span className='px-2.5 py-1'>Company</span><span>→</span>
         <span className='px-2.5 py-1'>Business Unit</span><span>→</span>
-        <span className='bg-red-100 text-red-700 font-semibold px-2.5 py-1 rounded-full'>Department</span>
+        <span className='rounded-full bg-red-100 px-2.5 py-1 font-semibold text-red-700'>Department</span>
         <span>→</span>
-        <span className='bg-red-600 text-white font-semibold px-2.5 py-1 rounded-full'>Position</span>
+        <span className='rounded-full bg-red-600 px-2.5 py-1 font-semibold text-white'>Position</span>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+      <div className='mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4'>
+        <StatCard label={t('Total Position','Total Position')} value={positions.length} icon='📌' tone='brand' />
+        <StatCard label={t('Aktif','Active')} value={activeCount} icon='✅' tone='green' />
+        <StatCard label={t('Tidak Aktif','Inactive')} value={positions.length-activeCount} icon='⏸️' tone='gray' />
+        <StatCard label={t('Job Family','Job Family')} value={jobFamilies.length} icon='🧩' tone='blue' />
+      </div>
+
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
         {/* Form */}
-        <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit':`➕ ${t('Tambah','Add')}`} Position</h2>
-          {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
+        <SectionCard title={`${editing?t('Edit','Edit'):t('Tambah','Add')} Position`} icon={editing?'✏️':'➕'}>
+          {msg && <div className={`mb-3 rounded-lg px-3 py-2 text-xs ${msg.type==='error'?'bg-red-50 text-red-600':'bg-emerald-50 text-emerald-700'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
 
-            {/* Department */}
-            <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>Department <span className='text-red-400'>*</span></label>
-              <select value={form.departmentId} onChange={e=>setForm(f=>({...f,departmentId:e.target.value}))}
-                className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                <option value=''>-- Pilih Department --</option>
+            <FormField label='Department' required>
+              <Select value={form.departmentId} onChange={e=>setForm(f=>({...f,departmentId:e.target.value}))}>
+                <option value=''>-- {t('Pilih Department','Select Department')} --</option>
                 {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
-            </div>
+              </Select>
+            </FormField>
 
-            {/* Kode & Nama */}
             {[[t('Kode','Code'),'code'],[t('Nama Position','Position Name'),'name']].map(([lbl,key])=>(
-              <div key={key}>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>{lbl} <span className='text-red-400'>*</span></label>
-                <input value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}
-                  className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-              </div>
+              <FormField key={key} label={lbl} required>
+                <Input value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))} />
+              </FormField>
             ))}
 
-            {/* Job Family */}
-            <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>Job Family</label>
-              <select value={form.jobFamilyId} onChange={e=>setForm(f=>({...f,jobFamilyId:e.target.value}))}
-                className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                <option value=''>-- Opsional --</option>
+            <FormField label='Job Family'>
+              <Select value={form.jobFamilyId} onChange={e=>setForm(f=>({...f,jobFamilyId:e.target.value}))}>
+                <option value=''>-- {t('Opsional','Optional')} --</option>
                 {jobFamilies.filter(j=>j.status==='Active').map(j=><option key={j.id} value={j.id}>{j.name}</option>)}
-              </select>
-            </div>
+              </Select>
+            </FormField>
 
-            {/* Grade */}
-            <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>Grade (Position Class) <span className='text-red-400'>*</span></label>
-              <select value={form.gradeId} onChange={e=>setForm(f=>({...f,gradeId:e.target.value}))}
-                className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                <option value=''>-- Pilih PC --</option>
+            <FormField label='Grade (Position Class)' required>
+              <Select value={form.gradeId} onChange={e=>setForm(f=>({...f,gradeId:e.target.value}))}>
+                <option value=''>-- {t('Pilih PC','Select PC')} --</option>
                 {Object.entries(gradeGroups).map(([cat, items]) => (
                   <optgroup key={cat} label={`── ${cat} ──`}>
                     {items.map(g => (
@@ -134,131 +137,124 @@ export default function PositionPage() {
                     ))}
                   </optgroup>
                 ))}
-              </select>
+              </Select>
               {/* Grade preview card */}
               {selectedGrade && (
-                <div className='mt-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg text-xs'>
-                  <div className='flex items-center justify-between mb-1'>
+                <div className='mt-2 rounded-lg bg-red-50 px-3 py-2.5 text-xs ring-1 ring-red-100'>
+                  <div className='mb-1 flex items-center justify-between'>
                     <span className='font-bold text-red-700'>{selectedGrade.code}</span>
-                    <span className={`px-2 py-0.5 rounded-full font-semibold text-xs ${PC_CATEGORY_COLOR[selectedGrade.category]}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${PC_CATEGORY_COLOR[selectedGrade.category]}`}>
                       {selectedGrade.category}
                     </span>
                   </div>
-                  <div className='text-gray-700 font-medium'>{selectedGrade.name}</div>
+                  <div className='font-medium text-gray-700'>{selectedGrade.name}</div>
                   {selectedGrade.isBoard
-                    ? <div className='text-gray-400 mt-1'>Honorarium-based (non-payroll)</div>
-                    : <div className='text-gray-500 mt-1'>
+                    ? <div className='mt-1 text-gray-400'>Honorarium-based (non-payroll)</div>
+                    : <div className='mt-1 text-gray-500'>
                         Salary range: {fmt(selectedGrade.minSalary)} – {fmt(selectedGrade.maxSalary)}
                       </div>
                   }
                 </div>
               )}
-            </div>
+            </FormField>
 
-            {/* Status */}
-            <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>Status</label>
-              <select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}
-                className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
+            <FormField label='Status'>
+              <Select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
                 <option>Active</option><option>Inactive</option>
-              </select>
-            </div>
+              </Select>
+            </FormField>
 
             <div className='flex gap-2 pt-1'>
-              <button onClick={handleSave} className='flex-1 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90'
-                style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-                {editing?t('Simpan','Save'):t('Tambah','Add')}
-              </button>
-              {editing && <button onClick={()=>{setEditing(null);setForm(BLANK)}}
-                className='px-4 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-lg'>{t('Batal','Cancel')}</button>}
+              <ActionButton onClick={handleSave} className='flex-1'>{editing?t('Simpan','Save'):t('Tambah','Add')}</ActionButton>
+              {editing && <ActionButton variant='secondary' onClick={()=>{setEditing(null);setForm(BLANK)}}>{t('Batal','Cancel')}</ActionButton>}
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {/* Table */}
-        <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <div className='flex flex-wrap items-center justify-between gap-3 mb-4'>
-            <h2 className='text-sm font-bold text-gray-700'>{t('📌 Daftar Position','📌 Position List')}</h2>
-            {/* Filter by dept */}
-            <select value={filterDept} onChange={e=>setFilterDept(e.target.value)}
-              className='px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-400'>
-              <option value=''>Semua Department</option>
-              {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
-          </div>
-          <div className='overflow-x-auto'>
-            <table className='w-full text-sm'>
-              <thead><tr className='bg-gray-50'>
-                {[t('Kode','Code'),t('Nama Position','Position Name'),'Department','Job Family','Grade',t('Salary Range','Salary Range'),'Status',t('Aksi','Action')].map((h,i)=>(
-                  <th key={i} className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap'>{h}</th>
-                ))}
-              </tr></thead>
-              <tbody>
-                {filtered.length ? filtered.map(x=>{
+        <div className='lg:col-span-2'>
+          <SectionCard
+            title={t('Daftar Position','Position List')}
+            icon='📌'
+            bodyClass='p-0'
+            actions={
+              <Select value={filterDept} onChange={e=>setFilterDept(e.target.value)} className='py-1.5 text-xs'>
+                <option value=''>{t('Semua Department','All Departments')}</option>
+                {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+              </Select>
+            }
+          >
+            {filtered.length ? (
+              <DataTable
+                className='rounded-none shadow-none ring-0'
+                columns={[t('Kode','Code'),t('Nama Position','Position Name'),'Department','Job Family','Grade',t('Salary Range','Salary Range'),'Status',{label:t('Aksi','Action'),align:'right'}]}
+              >
+                {filtered.map(x=>{
                   const g = grades.find(gr=>gr.id===x.gradeId)
                   return (
-                    <tr key={x.id} className='border-t border-gray-100 hover:bg-gray-50'>
-                      <td className='px-4 py-2.5 font-mono text-xs text-gray-500'>{x.code}</td>
-                      <td className='px-4 py-2.5 font-medium text-gray-700'>{x.name}</td>
-                      <td className='px-4 py-2.5 text-xs text-gray-500'>{deptName(x.departmentId)}</td>
-                      <td className='px-4 py-2.5 text-xs text-gray-500'>{x.jobFamilyId ? jfName(x.jobFamilyId) : '-'}</td>
-                      <td className='px-4 py-2.5'>
-                        <span className='text-xs font-semibold px-2 py-0.5 bg-red-50 text-red-700 rounded-full'>
+                    <Tr key={x.id}>
+                      <Td className='font-mono text-xs text-gray-500'>{x.code}</Td>
+                      <Td className='font-medium text-gray-800'>{x.name}</Td>
+                      <Td className='text-xs text-gray-500'>{deptName(x.departmentId)}</Td>
+                      <Td className='text-xs text-gray-500'>{x.jobFamilyId ? jfName(x.jobFamilyId) : '-'}</Td>
+                      <Td>
+                        <span className='rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700'>
                           {gradeCode(x.gradeId)}
                         </span>
-                      </td>
-                      <td className='px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap'>
+                      </Td>
+                      <Td className='whitespace-nowrap text-xs text-gray-500'>
                         {g ? `${fmt(g.minSalary)} – ${fmt(g.maxSalary)}` : '-'}
-                      </td>
-                      <td className='px-4 py-2.5'>
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${x.status==='Active'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500'}`}>{x.status}</span>
-                      </td>
-                      <td className='px-4 py-2.5'>
-                        <div className='flex gap-2'>
-                          <button onClick={()=>handleEdit(x)} className='px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>Edit</button>
-                          <button onClick={()=>deletePosition(x.id)} className='px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-100'>{t('Hapus','Delete')}</button>
+                      </Td>
+                      <Td><StatusBadge status={x.status} /></Td>
+                      <Td align='right'>
+                        <div className='flex justify-end gap-2'>
+                          <ActionButton size='sm' variant='secondary' onClick={()=>handleEdit(x)}>Edit</ActionButton>
+                          <ActionButton size='sm' variant='danger' onClick={()=>deletePosition(x.id)}>{t('Hapus','Delete')}</ActionButton>
                         </div>
-                      </td>
-                    </tr>
+                      </Td>
+                    </Tr>
                   )
-                }) : (
-                  <tr><td colSpan={8} className='px-4 py-8 text-center text-gray-400 text-sm'>Belum ada position.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                })}
+              </DataTable>
+            ) : (
+              <div className='p-5'>
+                <EmptyState icon='📌' title={t('Belum ada position.','No positions yet.')} />
+              </div>
+            )}
+          </SectionCard>
         </div>
       </div>
 
       {/* Grade Reference — grouped by category */}
-      <div className='bg-white rounded-xl p-6 shadow-sm mt-6'>
-        <h2 className='text-sm font-bold text-gray-700 mb-5'>{t('📊 Position Class Reference (PC 1–72)','📊 Position Class Reference (PC 1–72)')}</h2>
-        {Object.entries(gradeGroups).map(([cat, items]) => (
-          <div key={cat} className='mb-6 last:mb-0'>
-            <div className='flex items-center gap-2 mb-3'>
-              <span className={`text-xs font-bold px-3 py-1 rounded-full ${PC_CATEGORY_COLOR[cat]}`}>{cat}</span>
-              <span className='text-xs text-gray-400'>PC {items[0].pc}{items.length > 1 ? `–${items[items.length-1].pc}` : ''}</span>
+      <div className='mt-6'>
+        <SectionCard title={t('Position Class Reference (PC 1–72)','Position Class Reference (PC 1–72)')} icon='📊'>
+          {Object.entries(gradeGroups).map(([cat, items]) => (
+            <div key={cat} className='mb-6 last:mb-0'>
+              <div className='mb-3 flex items-center gap-2'>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${PC_CATEGORY_COLOR[cat]}`}>{cat}</span>
+                <span className='text-xs text-gray-400'>PC {items[0].pc}{items.length > 1 ? `–${items[items.length-1].pc}` : ''}</span>
+              </div>
+              <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8'>
+                {items.map(g => (
+                  <div key={g.id} className='rounded-xl p-3 text-center ring-1 ring-gray-100 transition hover:shadow-sm hover:ring-red-200'>
+                    <div className='text-sm font-bold text-red-600'>{g.code}</div>
+                    <div className='mt-0.5 text-xs leading-tight text-gray-600'>{g.name}</div>
+                    {!g.isBoard && (
+                      <div className='mt-1.5 text-xs leading-tight text-gray-400'>
+                        {fmt(g.minSalary)}<br/>
+                        <span className='text-gray-300'>—</span><br/>
+                        {fmt(g.maxSalary)}
+                      </div>
+                    )}
+                    {g.isBoard && (
+                      <div className='mt-1.5 text-xs text-yellow-600'>Honorarium</div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2'>
-              {items.map(g => (
-                <div key={g.id} className='border border-gray-100 rounded-lg p-3 text-center hover:border-red-200 hover:shadow-sm transition'>
-                  <div className='text-sm font-bold text-red-600'>{g.code}</div>
-                  <div className='text-xs text-gray-600 mt-0.5 leading-tight'>{g.name}</div>
-                  {!g.isBoard && (
-                    <div className='text-xs text-gray-400 mt-1.5 leading-tight'>
-                      {fmt(g.minSalary)}<br/>
-                      <span className='text-gray-300'>—</span><br/>
-                      {fmt(g.maxSalary)}
-                    </div>
-                  )}
-                  {g.isBoard && (
-                    <div className='text-xs text-yellow-600 mt-1.5'>Honorarium</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
+        </SectionCard>
       </div>
     </div>
   )

@@ -24,7 +24,7 @@ export default function RecommendationPage() {
 
   const handleAssign = (id) => {
     setRecs(prev=>prev.map(r=>r.id===id?{...r,status:'Assigned'}:r))
-    flash('Rekomendasi berhasil di-assign ke karyawan.')
+    flash(t('Rekomendasi berhasil di-assign ke karyawan.','Recommendation successfully assigned to employee.'))
   }
 
   const handleIgnore = (id) => {
@@ -36,16 +36,16 @@ export default function RecommendationPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Learning Recommendation</h1>
-      <p className='text-gray-500 text-sm mb-6'>Rekomendasi kursus yang dihasilkan sistem berdasarkan gap kompetensi dan IDP anggota tim.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Learning Recommendation', 'Learning Recommendation')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Rekomendasi kursus yang dihasilkan sistem berdasarkan gap kompetensi dan IDP anggota tim.', 'System-generated course recommendations based on competency gaps and team member IDPs.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[['Critical', recs.filter(r=>r.priority==='Critical'&&r.status!=='Dismissed').length,'🚨','#dc2626'],
-          ['High Priority', recs.filter(r=>r.priority==='High'&&r.status!=='Dismissed').length,'⚠️','#d97706'],
-          ['Sudah Assigned', recs.filter(r=>r.status==='Assigned').length,'✅','#059669'],
-          ['Total Rekomendasi', recs.filter(r=>r.status!=='Dismissed').length,'📋','#8B1A1A']].map(([l,v,i,c])=>(
+        {[[t('Critical','Critical'), recs.filter(r=>r.priority==='Critical'&&r.status!=='Dismissed').length,'🚨','#dc2626'],
+          [t('High Priority','High Priority'), recs.filter(r=>r.priority==='High'&&r.status!=='Dismissed').length,'⚠️','#d97706'],
+          [t('Sudah Assigned','Already Assigned'), recs.filter(r=>r.status==='Assigned').length,'✅','#059669'],
+          [t('Total Rekomendasi','Total Recommendations'), recs.filter(r=>r.status!=='Dismissed').length,'📋','#8B1A1A']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
@@ -58,7 +58,7 @@ export default function RecommendationPage() {
           <button key={e} onClick={()=>setFilter(e)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${filter===e?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
             style={filter===e?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
-            {e}
+            {e==='Semua'?t('Semua','All'):e}
           </button>
         ))}
       </div>
@@ -71,13 +71,13 @@ export default function RecommendationPage() {
                 <div className='flex items-center gap-2 mb-1'>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${PRIORITY_COLOR[r.priority]}`}>{r.priority}</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${TYPE_COLOR[r.type]}`}>{r.type}</span>
-                  {r.status==='Assigned' && <span className='text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-semibold'>✅ Assigned</span>}
+                  {r.status==='Assigned' && <span className='text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-semibold'>✅ {t('Assigned','Assigned')}</span>}
                 </div>
                 <div className='font-bold text-gray-800'>{r.course}</div>
-                <div className='text-sm text-gray-500'>untuk <span className='font-semibold text-red-700'>{r.employee}</span></div>
+                <div className='text-sm text-gray-500'>{t('untuk', 'for')} <span className='font-semibold text-red-700'>{r.employee}</span></div>
               </div>
               <div className='text-xs text-gray-400 text-right'>
-                <div>Durasi: {r.duration}</div>
+                <div>{t('Durasi','Duration')}: {r.duration}</div>
                 <div className='mt-0.5 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold'>🎯 {r.basis}</div>
               </div>
             </div>
@@ -87,11 +87,11 @@ export default function RecommendationPage() {
                 <button onClick={()=>handleAssign(r.id)}
                   className='px-4 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90'
                   style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-                  ✅ Assign ke Karyawan
+                  {t('✅ Assign ke Karyawan','✅ Assign to Employee')}
                 </button>
                 <button onClick={()=>handleIgnore(r.id)}
                   className='px-4 py-1.5 text-xs font-semibold text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200'>
-                  Abaikan
+                  {t('Abaikan', 'Dismiss')}
                 </button>
               </div>
             )}
@@ -100,7 +100,7 @@ export default function RecommendationPage() {
         {filtered.length === 0 && (
           <div className='text-center py-12 text-gray-400'>
             <div className='text-4xl mb-2'>🎉</div>
-            <p>Tidak ada rekomendasi untuk {filter}</p>
+            <p>{t('Tidak ada rekomendasi untuk','No recommendations for')} {filter}</p>
           </div>
         )}
       </div>

@@ -2,6 +2,10 @@
 import { useState }           from 'react'
 import { useStructureStore }  from '@/store/structureStore'
 import { useT } from '@/store/languageStore'
+import {
+  PageHeader, StatCard, SectionCard, DataTable, Tr, Td, FormField, Input, Select,
+  StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT,
+} from '@/components/ui'
 
 const BLANK = { code:'', name:'', country:'Indonesia', industry:'', status:'Active' }
 
@@ -23,70 +27,79 @@ export default function EnterprisePage() {
 
   const handleEdit = (x) => { setEditing(x.id); setForm({ code:x.code, name:x.name, country:x.country, industry:x.industry, status:x.status }) }
 
+  const activeCount = enterprises.filter(e=>e.status==='Active').length
+
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Enterprise</h1>
-      <p className='text-gray-500 text-sm mb-6'>{t('Level tertinggi struktur organisasi perusahaan.','Highest level of the organizational structure.')}</p>
+      <PageHeader
+        icon='🌐'
+        title='Enterprise'
+        subtitle={t('Level tertinggi struktur organisasi perusahaan.','Highest level of the organizational structure.')}
+      />
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+      <div className='mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3'>
+        <StatCard label={t('Total Enterprise','Total Enterprise')} value={enterprises.length} icon='🌐' tone='brand' />
+        <StatCard label={t('Aktif','Active')} value={activeCount} icon='✅' tone='green' />
+        <StatCard label={t('Tidak Aktif','Inactive')} value={enterprises.length-activeCount} icon='⏸️' tone='gray' />
+      </div>
+
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
         {/* Form */}
-        <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing ? '✏️ Edit' : `➕ ${t('Tambah','Add')}`} Enterprise</h2>
-          {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
+        <SectionCard
+          title={`${editing?t('Edit','Edit'):t('Tambah','Add')} Enterprise`}
+          icon={editing?'✏️':'➕'}
+        >
+          {msg && <div className={`mb-3 rounded-lg px-3 py-2 text-xs ${msg.type==='error'?'bg-red-50 text-red-600':'bg-emerald-50 text-emerald-700'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
-            {[[t('Kode','Code'),'text','code'],[t('Nama Enterprise','Enterprise Name'),'text','name'],[t('Negara','Country'),'text','country'],[t('Industri','Industry'),'text','industry']].map(([lbl,type,key])=>(
-              <div key={key}>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>{lbl}</label>
-                <input type={type} value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}
-                  className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-              </div>
+            {[[t('Kode','Code'),'text','code',true],[t('Nama Enterprise','Enterprise Name'),'text','name',true],[t('Negara','Country'),'text','country',false],[t('Industri','Industry'),'text','industry',false]].map(([lbl,type,key,req])=>(
+              <FormField key={key} label={lbl} required={req}>
+                <Input type={type} value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))} />
+              </FormField>
             ))}
-            <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>Status</label>
-              <select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}
-                className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
+            <FormField label='Status'>
+              <Select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
                 <option>Active</option><option>Inactive</option>
-              </select>
-            </div>
+              </Select>
+            </FormField>
             <div className='flex gap-2 pt-1'>
-              <button onClick={handleSave} className='flex-1 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90'
-                style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
+              <ActionButton onClick={handleSave} className='flex-1'>
                 {editing ? t('Simpan','Save') : t('Tambah','Add')}
-              </button>
-              {editing && <button onClick={()=>{setEditing(null);setForm(BLANK)}} className='px-4 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-lg'>{t('Batal','Cancel')}</button>}
+              </ActionButton>
+              {editing && <ActionButton variant='secondary' onClick={()=>{setEditing(null);setForm(BLANK)}}>{t('Batal','Cancel')}</ActionButton>}
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {/* Table */}
-        <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{t('🌐 Daftar Enterprise','🌐 Enterprise List')}</h2>
-          <table className='w-full text-sm'>
-            <thead><tr className='bg-gray-50'>
-              {[t('Kode','Code'),t('Nama','Name'),t('Negara','Country'),t('Industri','Industry'),'Status',t('Aksi','Action')].map((h,i)=>(
-                <th key={i} className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {enterprises.map(x=>(
-                <tr key={x.id} className='border-t border-gray-100 hover:bg-gray-50'>
-                  <td className='px-4 py-2.5 font-mono text-xs text-gray-500'>{x.code}</td>
-                  <td className='px-4 py-2.5 font-medium text-gray-700'>{x.name}</td>
-                  <td className='px-4 py-2.5 text-gray-600'>{x.country}</td>
-                  <td className='px-4 py-2.5 text-gray-600'>{x.industry||'-'}</td>
-                  <td className='px-4 py-2.5'>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${x.status==='Active'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500'}`}>{x.status}</span>
-                  </td>
-                  <td className='px-4 py-2.5'>
-                    <div className='flex gap-2'>
-                      <button onClick={()=>handleEdit(x)} className='px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>Edit</button>
-                      <button onClick={()=>deleteEnterprise(x.id)} className='px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-100'>{t('Hapus','Delete')}</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className='lg:col-span-2'>
+          <SectionCard title={t('Daftar Enterprise','Enterprise List')} icon='🌐' bodyClass='p-0'>
+            {enterprises.length ? (
+              <DataTable
+                className='rounded-none shadow-none ring-0'
+                columns={[t('Kode','Code'),t('Nama','Name'),t('Negara','Country'),t('Industri','Industry'),'Status',{label:t('Aksi','Action'),align:'right'}]}
+              >
+                {enterprises.map(x=>(
+                  <Tr key={x.id}>
+                    <Td className='font-mono text-xs text-gray-500'>{x.code}</Td>
+                    <Td className='font-medium text-gray-800'>{x.name}</Td>
+                    <Td>{x.country}</Td>
+                    <Td>{x.industry||'-'}</Td>
+                    <Td><StatusBadge status={x.status} /></Td>
+                    <Td align='right'>
+                      <div className='flex justify-end gap-2'>
+                        <ActionButton size='sm' variant='secondary' onClick={()=>handleEdit(x)}>Edit</ActionButton>
+                        <ActionButton size='sm' variant='danger' onClick={()=>deleteEnterprise(x.id)}>{t('Hapus','Delete')}</ActionButton>
+                      </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </DataTable>
+            ) : (
+              <div className='p-5'>
+                <EmptyState icon='🌐' title={t('Belum ada enterprise.','No enterprises yet.')} description={t('Tambahkan enterprise pertama Anda.','Add your first enterprise.')} />
+              </div>
+            )}
+          </SectionCard>
         </div>
       </div>
     </div>

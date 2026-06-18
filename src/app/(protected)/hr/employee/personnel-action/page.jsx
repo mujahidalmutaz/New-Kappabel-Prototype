@@ -4,15 +4,15 @@ import { usePersonnelActionStore, PA_ACTION_COLOR, PA_ACTION_ICON, PA_STATUS_COL
 import { useEmployeeStore } from '@/store/employeeStore'
 import { useT } from '@/store/languageStore'
 
-const ACTIONS = [
-  { key: 'Promote',                href: 'promote',                desc: 'Kenaikan posisi & grade karyawan',          color: 'border-red-200 hover:border-red-400' },
-  { key: 'Transfer',               href: 'transfer',               desc: 'Mutasi antar departemen (satu perusahaan)', color: 'border-blue-200 hover:border-blue-400' },
-  { key: 'Demote',                 href: 'demote',                 desc: 'Penurunan posisi atau grade karyawan',      color: 'border-orange-200 hover:border-orange-400' },
-  { key: 'Transfer Across Company',href: 'transfer-across-company',desc: 'Mutasi lintas perusahaan dalam group',      color: 'border-indigo-200 hover:border-indigo-400' },
-  { key: 'Terminate',              href: 'terminate',              desc: 'Pemutusan hubungan kerja',                  color: 'border-red-200 hover:border-red-400' },
-  { key: 'Rehire',                 href: 'rehire',                 desc: 'Rekrutmen kembali mantan karyawan',         color: 'border-green-200 hover:border-green-400' },
-  { key: 'Change Employment Type', href: 'change-employment-type', desc: 'Ubah jenis kepegawaian (kontrak ↔ tetap)',  color: 'border-cyan-200 hover:border-cyan-400' },
-  { key: 'Extend Contract',        href: 'extend-contract',        desc: 'Perpanjangan kontrak kerja',               color: 'border-teal-200 hover:border-teal-400' },
+const ACTIONS = (t) => [
+  { key: 'Promote',                href: 'promote',                desc: t('Kenaikan posisi & grade karyawan', 'Position & grade promotion'),             color: 'border-red-200 hover:border-red-400' },
+  { key: 'Transfer',               href: 'transfer',               desc: t('Mutasi antar departemen (satu perusahaan)', 'Transfer within company'),        color: 'border-blue-200 hover:border-blue-400' },
+  { key: 'Demote',                 href: 'demote',                 desc: t('Penurunan posisi atau grade karyawan', 'Position or grade demotion'),          color: 'border-orange-200 hover:border-orange-400' },
+  { key: 'Transfer Across Company',href: 'transfer-across-company',desc: t('Mutasi lintas perusahaan dalam group', 'Transfer across group companies'),     color: 'border-indigo-200 hover:border-indigo-400' },
+  { key: 'Terminate',              href: 'terminate',              desc: t('Pemutusan hubungan kerja', 'Employment termination'),                          color: 'border-red-200 hover:border-red-400' },
+  { key: 'Rehire',                 href: 'rehire',                 desc: t('Rekrutmen kembali mantan karyawan', 'Re-hire former employee'),                color: 'border-green-200 hover:border-green-400' },
+  { key: 'Change Employment Type', href: 'change-employment-type', desc: t('Ubah jenis kepegawaian (kontrak ↔ tetap)', 'Change employment type'),          color: 'border-cyan-200 hover:border-cyan-400' },
+  { key: 'Extend Contract',        href: 'extend-contract',        desc: t('Perpanjangan kontrak kerja', 'Extend employment contract'),                   color: 'border-teal-200 hover:border-teal-400' },
 ]
 
 export default function PersonnelActionIndex() {
@@ -30,7 +30,7 @@ export default function PersonnelActionIndex() {
       {/* Header */}
       <div className='bg-gradient-to-r from-violet-700 to-red-600 text-white px-8 py-6'>
         <h1 className='text-2xl font-bold'>Personnel Action</h1>
-        <p className='text-violet-200 text-sm mt-0.5'>Employee Movement — pilih jenis aksi yang ingin diproses</p>
+        <p className='text-violet-200 text-sm mt-0.5'>Employee Movement — {t('pilih jenis aksi yang ingin diproses', 'select the action type to process')}</p>
         <div className='grid grid-cols-4 gap-4 mt-5'>
           {[['Total PA', total, 'bg-white/20'], ['Draft', draft, 'bg-gray-400/30'], ['Pending', pending, 'bg-yellow-400/30'], ['Applied', applied, 'bg-green-400/30']].map(([l,v,c]) => (
             <div key={l} className={`${c} rounded-xl px-4 py-3`}>
@@ -44,7 +44,7 @@ export default function PersonnelActionIndex() {
       {/* Action cards */}
       <div className='px-8 py-6'>
         <div className='grid grid-cols-4 gap-4'>
-          {ACTIONS.map(a => {
+          {ACTIONS(t).map(a => {
             const count = pas.filter(p => p.action === a.key).length
             const draftCount = pas.filter(p => p.action === a.key && p.status === 'Draft').length
             const submittedCount = pas.filter(p => p.action === a.key && p.status === 'Submitted').length
@@ -73,23 +73,23 @@ export default function PersonnelActionIndex() {
       <div className='px-8 pb-8'>
         <div className='bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden'>
           <div className='px-5 py-4 border-b border-gray-50 flex items-center justify-between'>
-            <p className='font-bold text-gray-900'>Aktivitas Terbaru</p>
-            <p className='text-xs text-gray-400'>10 PA terakhir</p>
+            <p className='font-bold text-gray-900'>{t('Aktivitas Terbaru', 'Recent Activity')}</p>
+            <p className='text-xs text-gray-400'>{t('10 PA terakhir', 'Last 10 PA')}</p>
           </div>
           <table className='w-full text-sm'>
             <thead>
               <tr className='bg-gray-50 border-b'>
-                {['PA Number','Karyawan','Action','Effective Date','Status','Dibuat'].map(h => (
+                {['PA Number', t('Karyawan','Employee'), 'Action', 'Effective Date', 'Status', t('Dibuat','Created')].map(h => (
                   <th key={h} className='text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide'>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-50'>
               {pas.length === 0 ? (
-                <tr><td colSpan={6} className='text-center py-10 text-gray-400 text-sm'>Belum ada Personnel Action</td></tr>
+                <tr><td colSpan={6} className='text-center py-10 text-gray-400 text-sm'>{t('Belum ada Personnel Action', 'No Personnel Actions yet')}</td></tr>
               ) : [...pas].sort((a,b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 10).map(pa => {
                 const e = employees.find(x => x.id === pa.employeeId)
-                const act = ACTIONS.find(x => x.key === pa.action)
+                const act = ACTIONS(t).find(x => x.key === pa.action)
                 return (
                   <tr key={pa.id} className='hover:bg-gray-50/50'>
                     <td className='px-4 py-3'>

@@ -34,27 +34,27 @@ export default function CoursePage() {
   )
 
   const handleSave = () => {
-    if (!form.title) return flash('Judul course wajib diisi.', 'error')
+    if (!form.title) return flash(t('Judul course wajib diisi.','Course title is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,duration_hours:Number(form.duration_hours)}:d))
-      flash('Course diperbarui.'); setEditing(null)
+      flash(t('Course diperbarui.','Course updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,duration_hours:Number(form.duration_hours),content_count:0,enrolled:0}])
-      flash('Course ditambahkan.')
+      flash(t('Course ditambahkan.','Course added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ title:item.title, category:item.category, type:item.type, duration_hours:String(item.duration_hours), instructor:item.instructor, enrollment:item.enrollment, description:item.description||'', status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Course dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Course dihapus.','Course deleted.')) }
 
   const typeColor = (t) => t==='Instructor Led Training (ILT)'?'bg-blue-50 text-blue-700':t==='Self-Paced'?'bg-green-50 text-green-700':'bg-red-50 text-red-700'
   const typeShort = (t) => t==='Instructor Led Training (ILT)'?'ILT':t==='Self-Paced'?'Self-Paced':'Blended'
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Course Management</h1>
-      <p className='text-gray-500 text-sm mb-6'>Modul utama untuk membuat dan mengelola course/training di LMS.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Course Management','Course Management')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Modul utama untuk membuat dan mengelola course/training di LMS.','Main module for creating and managing courses/training in the LMS.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Course', data.length, '🎓', '#8B1A1A'],['Active', data.filter(d=>d.status==='Active').length, '✅', '#059669'],['Total Enrolled', data.reduce((a,d)=>a+(d.enrolled||0),0), '👥', '#7c3aed'],['Draft', data.filter(d=>d.status==='Draft').length, '📝', '#d97706']].map(([l,v,i,c])=>(
@@ -67,7 +67,7 @@ export default function CoursePage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Course':'➕ Tambah Course'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?`✏️ ${t('Edit Course','Edit Course')}`:`➕ ${t('Tambah Course','Add Course')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Judul Course</label>
@@ -98,7 +98,7 @@ export default function CoursePage() {
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
           <div className='flex flex-wrap gap-2 mb-4'>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari course...'
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari course...','Search course...')}
               className='flex-1 min-w-40 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             <div className='flex gap-1'>
               {['All','ILT','Self-Paced','Blended'].map(t=>(
@@ -117,7 +117,7 @@ export default function CoursePage() {
                   <td className='px-3 py-2.5 font-medium text-gray-700 max-w-40'><div className='line-clamp-2'>{d.title}</div></td>
                   <td className='px-3 py-2.5 text-xs text-gray-500 whitespace-nowrap'>{d.category}</td>
                   <td className='px-3 py-2.5'><span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${typeColor(d.type)}`}>{typeShort(d.type)}</span></td>
-                  <td className='px-3 py-2.5 text-gray-500 whitespace-nowrap'>{d.duration_hours} jam</td>
+                  <td className='px-3 py-2.5 text-gray-500 whitespace-nowrap'>{d.duration_hours} {t('jam','hrs')}</td>
                   <td className='px-3 py-2.5 text-gray-500 text-xs'>{d.instructor}</td>
                   <td className='px-3 py-2.5 text-gray-500'>{d.enrolled}</td>
                   <td className='px-3 py-2.5'><span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${d.status==='Active'?'bg-green-50 text-green-700':d.status==='Draft'?'bg-yellow-50 text-yellow-700':d.status==='Archived'?'bg-gray-100 text-gray-500':'bg-red-50 text-red-700'}`}>{d.status}</span></td>

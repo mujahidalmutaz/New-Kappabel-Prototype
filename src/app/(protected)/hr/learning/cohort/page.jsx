@@ -28,24 +28,24 @@ export default function MasterCohortPage() {
   const filtered = data.filter(d => d.name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.name) return flash('Nama cohort wajib diisi.', 'error')
+    if (!form.name) return flash(t('Nama cohort wajib diisi.','Cohort name is required.'), 'error')
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,member_count:Number(form.member_count)}:d))
-      flash('Cohort diperbarui.'); setEditing(null)
+      flash(t('Cohort diperbarui.','Cohort updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,member_count:Number(form.member_count)}])
-      flash('Cohort ditambahkan.')
+      flash(t('Cohort ditambahkan.','Cohort added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ name:item.name, target_type:item.target_type, target_value:item.target_value, member_count:String(item.member_count), assignment:item.assignment, linked_course:item.linked_course, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Cohort dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Cohort dihapus.','Cohort deleted.')) }
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Cohort</h1>
-      <p className='text-gray-500 text-sm mb-6'>Pengelompokan learner berdasarkan divisi, jabatan, grade, lokasi, atau kriteria tertentu untuk assignment training massal.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Cohort','Master Cohort')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Pengelompokan learner berdasarkan divisi, jabatan, grade, lokasi, atau kriteria tertentu untuk assignment training massal.','Group learners by division, position, grade, location, or specific criteria for mass training assignment.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Cohort', data.length, '👥', '#8B1A1A'],['Total Member', data.reduce((a,d)=>a+d.member_count,0), '👤', '#059669'],['Mandatory', data.filter(d=>d.assignment==='Mandatory').length, '📌', '#dc2626'],['Active', data.filter(d=>d.status==='Active').length, '✅', '#7c3aed']].map(([l,v,i,c])=>(
@@ -58,7 +58,7 @@ export default function MasterCohortPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Cohort':'➕ Tambah Cohort'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Cohort','✏️ Edit Cohort'):`➕ ${t('Tambah Cohort','Add Cohort')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             {[['Nama Cohort','name'],['Target / Nilai Kriteria','target_value'],['Course yang Ditautkan','linked_course']].map(([l,k])=>(
@@ -84,7 +84,7 @@ export default function MasterCohortPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari cohort...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari cohort...','Search cohort...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>

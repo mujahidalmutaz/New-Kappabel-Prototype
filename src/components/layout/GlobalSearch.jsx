@@ -1,50 +1,75 @@
 'use client'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useEmployeeStore }  from '@/store/employeeStore'
 import { useStructureStore } from '@/store/structureStore'
+import { useT } from '@/store/languageStore'
 
 // ─── Static page index ────────────────────────────────────────────────────────
 const PAGES = [
   // Dashboard
-  { label: 'Dashboard',              href: '/dashboard',                          icon: '🏠', section: 'Dashboard' },
+  { label: 'Dashboard',                  href: '/dashboard',                                    icon: '🏠', section: 'Dashboard' },
   // ESS
-  { label: 'Apply Leave',            href: '/ess/apply-leave',                    icon: '📝', section: 'Employee Self-Service' },
-  { label: 'Leave Balance',          href: '/ess/leave-balance',                  icon: '📊', section: 'Employee Self-Service' },
-  { label: 'Attendance',             href: '/ess/attendance',                     icon: '🕐', section: 'Employee Self-Service' },
-  { label: 'Payslip',                href: '/ess/payslip',                        icon: '💰', section: 'Employee Self-Service' },
+  { label: 'Apply Leave',                href: '/ess/apply-leave',                              icon: '📝', section: 'Employee Self-Service' },
+  { label: 'Leave Balance',              href: '/ess/leave-balance',                            icon: '📊', section: 'Employee Self-Service' },
+  { label: 'Attendance',                 href: '/ess/attendance',                               icon: '🕐', section: 'Employee Self-Service' },
+  { label: 'Payslip',                    href: '/ess/payslip',                                  icon: '💰', section: 'Employee Self-Service' },
+  { label: 'My Onboarding',              href: '/ess/onboarding',                               icon: '🎯', section: 'Employee Self-Service' },
   // MSS
-  { label: 'Apply Leave (My Team)',   href: '/mss/apply-leave-team',               icon: '📝', section: 'Manager Self-Service' },
-  { label: 'Approve Leave',          href: '/mss/approve-leave',                  icon: '✅', section: 'Manager Self-Service' },
-  { label: 'Team Attendance',        href: '/mss/team-attendance',                icon: '📋', section: 'Manager Self-Service' },
+  { label: 'Apply Leave (My Team)',      href: '/mss/apply-leave-team',                         icon: '📝', section: 'Manager Self-Service' },
+  { label: 'Approve Leave',             href: '/mss/approve-leave',                            icon: '✅', section: 'Manager Self-Service' },
+  { label: 'Onboarding Tracker',        href: '/mss/approve-onboarding',                       icon: '🎯', section: 'Manager Self-Service' },
+  { label: 'Team Attendance',           href: '/mss/team-attendance',                          icon: '📋', section: 'Manager Self-Service' },
   // HR - Employee
-  { label: 'Employee Data',          href: '/hr/employee',                        icon: '📋', section: 'HR Administration' },
-  { label: 'Apply Leave (HR)',       href: '/hr/apply-leave',                     icon: '📝', section: 'HR Administration' },
-  { label: 'Org Chart',             href: '/hr/org-chart',                       icon: '🌳', section: 'HR Administration' },
+  { label: 'Employee Data',             href: '/hr/employee',                                  icon: '📋', section: 'HR Administration' },
+  { label: 'Apply Leave (HR)',          href: '/hr/apply-leave',                               icon: '📝', section: 'HR Administration' },
+  { label: 'Org Chart',                 href: '/hr/org-chart',                                 icon: '🌳', section: 'HR Administration' },
+  // HR - Personnel Action
+  { label: 'Personnel Action',          href: '/hr/employee/personnel-action',                  icon: '🔄', section: 'HR · Personnel Action' },
+  { label: 'Promote',                   href: '/hr/employee/personnel-action/promote',          icon: '⬆️', section: 'HR · Personnel Action' },
+  { label: 'Transfer',                  href: '/hr/employee/personnel-action/transfer',         icon: '↔️', section: 'HR · Personnel Action' },
+  { label: 'Demote',                    href: '/hr/employee/personnel-action/demote',           icon: '⬇️', section: 'HR · Personnel Action' },
+  { label: 'Transfer Across Company',   href: '/hr/employee/personnel-action/transfer-across-company', icon: '🏢', section: 'HR · Personnel Action' },
+  { label: 'Terminate',                 href: '/hr/employee/personnel-action/terminate',        icon: '🚪', section: 'HR · Personnel Action' },
+  { label: 'Rehire',                    href: '/hr/employee/personnel-action/rehire',           icon: '🔄', section: 'HR · Personnel Action' },
+  { label: 'Change Employment Type',    href: '/hr/employee/personnel-action/change-employment-type', icon: '📋', section: 'HR · Personnel Action' },
+  { label: 'Extend Contract',           href: '/hr/employee/personnel-action/extend-contract',  icon: '📅', section: 'HR · Personnel Action' },
   // HR - Structure
-  { label: 'Enterprise',             href: '/hr/structure/enterprise',            icon: '🌐', section: 'HR · Structure' },
-  { label: 'Division',               href: '/hr/structure/division',              icon: '🏛️', section: 'HR · Structure' },
-  { label: 'Company',                href: '/hr/structure/company',               icon: '🏠', section: 'HR · Structure' },
-  { label: 'Business Unit',          href: '/hr/structure/business-unit',         icon: '💼', section: 'HR · Structure' },
-  { label: 'Department',             href: '/hr/structure/department',            icon: '🗂️', section: 'HR · Structure' },
-  { label: 'Job Family',             href: '/hr/structure/job-family',            icon: '🧩', section: 'HR · Structure' },
-  { label: 'Position',               href: '/hr/structure/position',              icon: '📌', section: 'HR · Structure' },
+  { label: 'Enterprise',                href: '/hr/structure/enterprise',                      icon: '🌐', section: 'HR · Structure' },
+  { label: 'Division',                  href: '/hr/structure/division',                        icon: '🏛️', section: 'HR · Structure' },
+  { label: 'Company',                   href: '/hr/structure/company',                         icon: '🏠', section: 'HR · Structure' },
+  { label: 'Business Unit',             href: '/hr/structure/business-unit',                   icon: '💼', section: 'HR · Structure' },
+  { label: 'Department',                href: '/hr/structure/department',                      icon: '🗂️', section: 'HR · Structure' },
+  { label: 'Job Family',                href: '/hr/structure/job-family',                      icon: '🧩', section: 'HR · Structure' },
+  { label: 'Position',                  href: '/hr/structure/position',                        icon: '📌', section: 'HR · Structure' },
+  { label: 'Position Profile',          href: '/hr/structure/position-profile',                icon: '🎯', section: 'HR · Structure' },
+  { label: 'Org Tree',                  href: '/hr/org-tree',                                  icon: '🌲', section: 'HR · Structure' },
+  // HR - Onboarding
+  { label: 'Onboarding Tracker (HR)',   href: '/hr/onboarding/tracker',                        icon: '📋', section: 'HR · Onboarding' },
+  { label: 'Master Onboarding',         href: '/hr/onboarding/master',                         icon: '📄', section: 'HR · Onboarding' },
+  { label: 'Form Evaluation',           href: '/hr/evaluation',                                icon: '📊', section: 'HR · Onboarding' },
   // HR - Time & Labour
-  { label: 'Shift Setting',          href: '/hr/time-labour/shift-setting',       icon: '🕐', section: 'HR · Time & Labour' },
-  { label: 'Shift Pattern',          href: '/hr/time-labour/shift-pattern',       icon: '🔄', section: 'HR · Time & Labour' },
-  { label: 'Work Schedule',          href: '/hr/time-labour/work-schedule',       icon: '📆', section: 'HR · Time & Labour' },
-  { label: 'Schedule Assignment',    href: '/hr/time-labour/schedule-assignment', icon: '🔗', section: 'HR · Time & Labour' },
+  { label: 'Shift Setting',             href: '/hr/time-labour/shift-setting',                 icon: '🕐', section: 'HR · Time & Labour' },
+  { label: 'Shift Pattern',             href: '/hr/time-labour/shift-pattern',                 icon: '🔄', section: 'HR · Time & Labour' },
+  { label: 'Work Schedule',             href: '/hr/time-labour/work-schedule',                 icon: '📆', section: 'HR · Time & Labour' },
+  { label: 'Schedule Assignment',       href: '/hr/time-labour/schedule-assignment',           icon: '🔗', section: 'HR · Time & Labour' },
   // HR - Absence
-  { label: 'Holiday Calendar',       href: '/hr/absence/holiday-calendar',        icon: '📅', section: 'HR · Absence' },
+  { label: 'Holiday Calendar',          href: '/hr/absence/holiday-calendar',                  icon: '📅', section: 'HR · Absence' },
   // HR - Payroll
-  { label: 'Payroll Run',            href: '/hr/payroll/run',                     icon: '💼', section: 'HR · Payroll' },
+  { label: 'Payroll Run',               href: '/hr/payroll/run',                               icon: '💼', section: 'HR · Payroll' },
   // Sysadmin
-  { label: 'User Management',        href: '/sysadmin/users',                     icon: '👥', section: 'System Administration' },
-  { label: 'Leave Workflow',         href: '/sysadmin/leave-workflow',            icon: '🔀', section: 'System Administration' },
+  { label: 'User Management',           href: '/sysadmin/users',                               icon: '👥', section: 'System Administration' },
+  { label: 'Leave Workflow',            href: '/sysadmin/leave-workflow',                      icon: '🔀', section: 'System Administration' },
+  { label: 'Workflow Settings',         href: '/sysadmin/workflow/settings',                   icon: '⚙️', section: 'System Administration' },
+  { label: 'Userlists',                 href: '/sysadmin/workflow/userlists',                  icon: '👥', section: 'System Administration' },
+  { label: 'Transaction Manager',       href: '/sysadmin/workflow/transaction-manager',        icon: '🗂️', section: 'System Administration' },
+  { label: 'Company Logo',              href: '/sysadmin/branding/company-logo',               icon: '🖼️', section: 'System Administration' },
+  { label: 'Login Theme',               href: '/sysadmin/branding/login-theme',                icon: '🎭', section: 'System Administration' },
 ]
 
 export default function GlobalSearch() {
-  const router    = useRouter()
+  const t      = useT()
+  const router = useRouter()
   const { employees } = useEmployeeStore()
   const { positions, departments, companies } = useStructureStore()
 
@@ -52,13 +77,12 @@ export default function GlobalSearch() {
   const deptName    = (id) => departments.find(d => d.id  === +id)?.name       || ''
   const companyCode = (id) => companies.find(c  => c.id  === +id)?.companyCode || ''
 
-  const [query,   setQuery  ] = useState('')
-  const [open,    setOpen   ] = useState(false)
-  const [cursor,  setCursor ] = useState(-1)
-  const inputRef  = useRef()
-  const boxRef    = useRef()
+  const [query,  setQuery ] = useState('')
+  const [open,   setOpen  ] = useState(false)
+  const [cursor, setCursor] = useState(-1)
+  const inputRef = useRef()
+  const boxRef   = useRef()
 
-  // ── compute results ────────────────────────────────────────────
   const q = query.trim().toLowerCase()
 
   const matchedPages = q.length < 1 ? [] : PAGES.filter(p =>
@@ -73,13 +97,11 @@ export default function GlobalSearch() {
 
   const totalResults = matchedPages.length + matchedEmps.length
 
-  // flat list for keyboard nav
   const flatResults = [
     ...matchedEmps.map(e => ({ type: 'employee', ...e })),
     ...matchedPages.map(p => ({ type: 'page',     ...p })),
   ]
 
-  // ── keyboard shortcut: Ctrl+K / Cmd+K ─────────────────────────
   useEffect(() => {
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -93,7 +115,6 @@ export default function GlobalSearch() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  // ── close on outside click ─────────────────────────────────────
   useEffect(() => {
     const handler = (e) => {
       if (!boxRef.current?.contains(e.target)) setOpen(false)
@@ -102,7 +123,6 @@ export default function GlobalSearch() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // ── keyboard nav ───────────────────────────────────────────────
   const handleKey = (e) => {
     if (!open) return
     if (e.key === 'ArrowDown') { e.preventDefault(); setCursor(c => Math.min(c + 1, flatResults.length - 1)) }
@@ -124,10 +144,8 @@ export default function GlobalSearch() {
     setCursor(-1)
   }
 
-  // ── render ─────────────────────────────────────────────────────
   return (
     <div ref={boxRef} className='relative w-72'>
-      {/* Input */}
       <div className='flex items-center gap-2 bg-white/15 border border-white/25 rounded-lg px-3 py-1.5 hover:bg-white/20 transition'>
         <span className='text-white/70 text-sm'>🔍</span>
         <input
@@ -136,7 +154,7 @@ export default function GlobalSearch() {
           onChange={handleChange}
           onFocus={() => { if (query) setOpen(true) }}
           onKeyDown={handleKey}
-          placeholder='Cari karyawan, halaman… (Ctrl+K)'
+          placeholder={t('Cari karyawan, halaman… (Ctrl+K)', 'Search employees, pages… (Ctrl+K)')}
           className='flex-1 bg-transparent text-white text-xs placeholder-white/50 outline-none'
         />
         {query && (
@@ -148,64 +166,58 @@ export default function GlobalSearch() {
         )}
       </div>
 
-      {/* Dropdown */}
       {open && q.length > 0 && (
         <div className='absolute top-full mt-2 left-0 w-96 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[999]'>
 
           {totalResults === 0 && (
             <div className='px-5 py-6 text-center text-gray-400 text-sm'>
-              Tidak ada hasil untuk <span className='font-semibold text-gray-600'>"{query}"</span>
+              {t('Tidak ada hasil untuk', 'No results for')} <span className='font-semibold text-gray-600'>"{query}"</span>
             </div>
           )}
 
-          {/* ── Employees ── */}
           {matchedEmps.length > 0 && (
             <div>
               <div className='px-4 pt-3 pb-1 text-xs font-bold text-gray-400 uppercase tracking-wide'>
-                👤 Karyawan
+                👤 {t('Karyawan', 'Employees')}
               </div>
-              {matchedEmps.map((e, i) => {
-                const idx = i
-                return (
-                  <button key={e.id} onClick={() => navigate({ type:'employee', ...e })}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition ${cursor===idx ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
-                    <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0 text-sm'>
-                      {e.photo
-                        ? <img src={e.photo} className='w-full h-full object-cover' />
-                        : (e.gender === 'Female' ? '👩' : '👨')
-                      }
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex items-center gap-2'>
-                        <span className='text-sm font-semibold text-gray-800'>
-                          <Highlight text={e.name} q={q} />
+              {matchedEmps.map((e, i) => (
+                <button key={e.id} onClick={() => navigate({ type:'employee', ...e })}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition ${cursor===i ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
+                  <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0 text-sm'>
+                    {e.photo
+                      ? <img src={e.photo} className='w-full h-full object-cover' />
+                      : (e.gender === 'Female' ? '👩' : '👨')
+                    }
+                  </div>
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center gap-2'>
+                      <span className='text-sm font-semibold text-gray-800'>
+                        <Highlight text={e.name} q={q} />
+                      </span>
+                      {companyCode(e.companyId) && (
+                        <span className='font-mono font-bold text-xs bg-red-50 text-red-700 px-1.5 py-0.5 rounded tracking-widest flex-shrink-0'>
+                          {companyCode(e.companyId)}
                         </span>
-                        {companyCode(e.companyId) && (
-                          <span className='font-mono font-bold text-xs bg-red-50 text-red-700 px-1.5 py-0.5 rounded tracking-widest flex-shrink-0'>
-                            {companyCode(e.companyId)}
-                          </span>
-                        )}
-                      </div>
-                      <div className='text-xs text-gray-400'>
-                        <Highlight text={e.nik} q={q} />
-                        {posName(e.positionId)    && <> · <span className='text-gray-600'>{posName(e.positionId)}</span></>}
-                        {deptName(e.departmentId) && <> · {deptName(e.departmentId)}</>}
-                      </div>
+                      )}
                     </div>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${e.status==='Active'?'bg-green-100 text-green-600':'bg-red-100 text-red-500'}`}>
-                      {e.employmentType || 'Permanent'}
-                    </span>
-                  </button>
-                )
-              })}
+                    <div className='text-xs text-gray-400'>
+                      <Highlight text={e.nik} q={q} />
+                      {posName(e.positionId)    && <> · <span className='text-gray-600'>{posName(e.positionId)}</span></>}
+                      {deptName(e.departmentId) && <> · {deptName(e.departmentId)}</>}
+                    </div>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${e.status==='Active'?'bg-green-100 text-green-600':'bg-red-100 text-red-500'}`}>
+                    {e.employmentType || 'Permanent'}
+                  </span>
+                </button>
+              ))}
             </div>
           )}
 
-          {/* ── Pages ── */}
           {matchedPages.length > 0 && (
             <div className={matchedEmps.length > 0 ? 'border-t border-gray-100' : ''}>
               <div className='px-4 pt-3 pb-1 text-xs font-bold text-gray-400 uppercase tracking-wide'>
-                📄 Halaman
+                📄 {t('Halaman', 'Pages')}
               </div>
               {matchedPages.map((p, i) => {
                 const idx = matchedEmps.length + i
@@ -226,12 +238,11 @@ export default function GlobalSearch() {
             </div>
           )}
 
-          {/* footer */}
           {totalResults > 0 && (
             <div className='px-4 py-2 border-t border-gray-100 flex gap-3 text-xs text-gray-400'>
-              <span>↑↓ navigasi</span>
-              <span>↵ buka</span>
-              <span>Esc tutup</span>
+              <span>↑↓ {t('navigasi', 'navigate')}</span>
+              <span>↵ {t('buka', 'open')}</span>
+              <span>Esc {t('tutup', 'close')}</span>
             </div>
           )}
         </div>
@@ -240,7 +251,6 @@ export default function GlobalSearch() {
   )
 }
 
-// Highlight matching text
 function Highlight({ text, q }) {
   if (!q || !text) return text
   const idx = text.toLowerCase().indexOf(q.toLowerCase())

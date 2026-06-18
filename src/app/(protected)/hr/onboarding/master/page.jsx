@@ -5,6 +5,7 @@ import { useEmployeeStore }         from '@/store/employeeStore'
 import { useStructureStore }        from '@/store/structureStore'
 import { useCourseBatchStore }      from '@/store/courseBatchStore'
 import { useT }                     from '@/store/languageStore'
+import { PageHeader, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
 
 // ── Row factory helpers ───────────────────────────────────────────────────────
 const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', mentorEmpId: '', mentorName: '', mentorPosition: '', category })
@@ -334,10 +335,7 @@ export default function MasterOnboardingPage() {
 
         <div className='space-y-5'>
           {/* ── Template Info ── */}
-          <div className='bg-white rounded-xl shadow-sm p-6'>
-            <h2 className='text-sm font-bold text-gray-700 mb-4'>
-              {t('Informasi Template','Template Info')}
-            </h2>
+          <SectionCard title={t('Informasi Template','Template Info')} icon='📋'>
             <div className='grid grid-cols-1 gap-4'>
               <div className='flex items-start gap-3'>
                 <label className='text-xs font-semibold text-gray-600 w-32 pt-2 flex-shrink-0'>
@@ -416,11 +414,11 @@ export default function MasterOnboardingPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* ── Main Sections ── */}
           {(form.mainSections ?? []).map((ms, msIdx) => (
-            <div key={ms.id} className='bg-white rounded-xl shadow-sm overflow-hidden'>
+            <div key={ms.id} className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
               <div className='flex items-center justify-between px-6 py-4 border-b border-gray-100'>
                 <div className='flex items-center gap-2 min-w-0'>
                   <div className='w-1 h-5 rounded-full flex-shrink-0' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
@@ -524,7 +522,7 @@ export default function MasterOnboardingPage() {
 
           {/* ── Periodic Review ── */}
           {form.reviewItems !== null && (
-            <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
+            <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
               <div className='flex items-center justify-between px-6 py-4 border-b border-gray-100'>
                 <div className='flex items-center gap-2'>
                   <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
@@ -594,13 +592,11 @@ export default function MasterOnboardingPage() {
 
           {/* ── Actions ── */}
           <div className='flex gap-3'>
-            <button onClick={handleSave}
-              className='px-6 py-2.5 text-sm font-semibold text-white rounded-xl transition'
-              style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-              💾 {editId ? t('Simpan Perubahan','Save Changes') : t('Simpan Template','Save Template')}
-            </button>
+            <ActionButton icon='💾' onClick={handleSave}>
+              {editId ? t('Simpan Perubahan','Save Changes') : t('Simpan Template','Save Template')}
+            </ActionButton>
             <button onClick={() => setView('list')}
-              className='px-6 py-2.5 text-sm font-semibold bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition'>
+              className='px-5 py-2.5 text-sm font-semibold bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition'>
               {t('Batal','Cancel')}
             </button>
           </div>
@@ -613,85 +609,82 @@ export default function MasterOnboardingPage() {
   return (
     <div>
       {Toast}
-      <div className='flex items-center justify-between mb-1'>
-        <h1 className='text-2xl font-bold text-gray-800'>{t('Master Onboarding Tracker','Master Onboarding Tracker')}</h1>
-        <button onClick={openNew}
-          className='px-4 py-2 text-sm font-semibold text-white rounded-lg transition'
-          style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-          + {t('Template Baru','New Template')}
-        </button>
-      </div>
-      <p className='text-gray-500 text-sm mb-6'>
-        {t('Kelola template agenda induksi yang dapat digunakan saat membuat Onboarding Tracker.',
-           'Manage induction agenda templates used when creating an Onboarding Tracker.')}
-      </p>
+      <PageHeader
+        icon='🗂️'
+        title={t('Master Onboarding Tracker','Master Onboarding Tracker')}
+        subtitle={t('Kelola template agenda induksi yang dapat digunakan saat membuat Onboarding Tracker.', 'Manage induction agenda templates used when creating an Onboarding Tracker.')}
+        actions={
+          <ActionButton icon='+' onClick={openNew}>
+            {t('Template Baru','New Template')}
+          </ActionButton>
+        }
+      />
 
-      <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
-        {templates.length === 0 ? (
-          <div className='px-6 py-16 text-center text-gray-400 text-sm'>
-            {t('Belum ada template. Klik "+ Template Baru" untuk membuat.','No templates yet. Click "+ New Template" to create.')}
-          </div>
-        ) : (
-          <table className='w-full text-sm'>
-            <thead>
-              <tr className='bg-gray-50 border-b border-gray-100'>
-                {[t('Nama Template','Template Name'), t('Deskripsi','Description'),
-                  'Main Section',
-                  'Status', t('Dibuat','Created'), t('Aksi','Action')].map((h, i) => (
-                  <th key={i} className='text-left px-4 py-3 text-xs font-semibold text-gray-500'>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-gray-100'>
-              {templates.map(tpl => (
-                <tr key={tpl.id} className='hover:bg-gray-50 transition'>
-                  <td className='px-4 py-3 font-semibold text-gray-800'>{tpl.name}</td>
-                  <td className='px-4 py-3 text-gray-500 text-xs max-w-xs'>
-                    <span className='line-clamp-2'>{tpl.description || '—'}</span>
-                  </td>
-                  <td className='px-4 py-3'>
-                    <div className='flex flex-wrap gap-1'>
-                      {(tpl.mainSections ?? []).filter(ms => ms.type).map(ms => (
-                        <span key={ms.id} className='text-xs bg-red-50 text-red-700 font-semibold px-2 py-0.5 rounded-full'>
-                          {ms.type}
-                        </span>
-                      ))}
-                      {(tpl.reviewItems ?? []).length > 0 && (
-                        <span className='text-xs bg-orange-50 text-orange-700 font-semibold px-2 py-0.5 rounded-full'>
-                          Periodic Review
-                        </span>
-                      )}
-                      {(tpl.mainSections ?? []).filter(ms => ms.type).length === 0 && (tpl.reviewItems ?? []).length === 0 && (
-                        <span className='text-xs text-gray-300 italic'>—</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className='px-4 py-3'>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tpl.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {tpl.active ? t('Aktif','Active') : t('Nonaktif','Inactive')}
+      {templates.length === 0 ? (
+        <EmptyState
+          icon='🗂️'
+          title={t('Belum ada template.', 'No templates yet.')}
+          description={t('Klik "Template Baru" untuk membuat template pertama.', 'Click "New Template" to create your first one.')}
+          action={<ActionButton size='sm' icon='+' onClick={openNew}>{t('Template Baru','New Template')}</ActionButton>}
+        />
+      ) : (
+        <DataTable
+          columns={[
+            { label: t('Nama Template','Template Name') },
+            { label: t('Deskripsi','Description') },
+            { label: 'Main Section' },
+            { label: 'Status' },
+            { label: t('Dibuat','Created') },
+            { label: t('Aksi','Action'), align: 'right' },
+          ]}
+        >
+          {templates.map(tpl => (
+            <Tr key={tpl.id}>
+              <Td className='font-semibold text-gray-800'>{tpl.name}</Td>
+              <Td className='text-gray-500 text-xs max-w-xs'>
+                <span className='line-clamp-2'>{tpl.description || '—'}</span>
+              </Td>
+              <Td>
+                <div className='flex flex-wrap gap-1'>
+                  {(tpl.mainSections ?? []).filter(ms => ms.type).map(ms => (
+                    <span key={ms.id} className='text-xs bg-red-50 text-red-700 font-semibold px-2 py-0.5 rounded-full'>
+                      {ms.type}
                     </span>
-                  </td>
-                  <td className='px-4 py-3 text-gray-400 text-xs'>
-                    {tpl.createdAt ? new Date(tpl.createdAt).toLocaleDateString('id-ID') : '—'}
-                  </td>
-                  <td className='px-4 py-3'>
-                    <div className='flex gap-2'>
-                      <button onClick={() => openEdit(tpl)}
-                        className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
-                        ✏️ {t('Edit','Edit')}
-                      </button>
-                      <button onClick={() => setDelId(tpl.id)}
-                        className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition'>
-                        🗑
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+                  ))}
+                  {(tpl.reviewItems ?? []).length > 0 && (
+                    <span className='text-xs bg-orange-50 text-orange-700 font-semibold px-2 py-0.5 rounded-full'>
+                      Periodic Review
+                    </span>
+                  )}
+                  {(tpl.mainSections ?? []).filter(ms => ms.type).length === 0 && (tpl.reviewItems ?? []).length === 0 && (
+                    <span className='text-xs text-gray-300 italic'>—</span>
+                  )}
+                </div>
+              </Td>
+              <Td>
+                <StatusBadge tone={tpl.active ? 'success' : 'neutral'}>
+                  {tpl.active ? t('Aktif','Active') : t('Nonaktif','Inactive')}
+                </StatusBadge>
+              </Td>
+              <Td className='text-gray-400 text-xs'>
+                {tpl.createdAt ? new Date(tpl.createdAt).toLocaleDateString('id-ID') : '—'}
+              </Td>
+              <Td align='right'>
+                <div className='flex gap-2 justify-end'>
+                  <button onClick={() => openEdit(tpl)}
+                    className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
+                    ✏️ {t('Edit','Edit')}
+                  </button>
+                  <button onClick={() => setDelId(tpl.id)}
+                    className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition'>
+                    🗑
+                  </button>
+                </div>
+              </Td>
+            </Tr>
+          ))}
+        </DataTable>
+      )}
 
       {/* Delete modal */}
       {delId && (

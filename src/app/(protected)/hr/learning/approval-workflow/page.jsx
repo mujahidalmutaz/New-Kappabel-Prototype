@@ -28,28 +28,28 @@ export default function ApprovalWorkflowPage() {
   const filtered = data.filter(d => d.workflow_name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSave = () => {
-    if (!form.workflow_name) return flash('Nama workflow wajib diisi.', 'error')
+    if (!form.workflow_name) return flash(t('Nama workflow wajib diisi.','Workflow name is required.'), 'error')
     const levels = Number(form.levels)
     const approvers = [form.approver_1, form.approver_2, form.approver_3].filter(Boolean).slice(0, levels)
     if (editing) {
       setData(prev=>prev.map(d=>d.id===editing?{...d,...form,levels,sla_days:Number(form.sla_days),approvers}:d))
-      flash('Workflow diperbarui.'); setEditing(null)
+      flash(t('Workflow diperbarui.','Workflow updated.')); setEditing(null)
     } else {
       setData(prev=>[...prev,{id:Date.now(),...form,levels,sla_days:Number(form.sla_days),approvers}])
-      flash('Workflow ditambahkan.')
+      flash(t('Workflow ditambahkan.','Workflow added.'))
     }
     setForm(EMPTY)
   }
 
   const handleEdit = (item) => { setEditing(item.id); setForm({ workflow_name:item.workflow_name, process:item.process, levels:String(item.levels), approver_1:item.approvers[0]||'', approver_2:item.approvers[1]||'', approver_3:item.approvers[2]||'', sla_days:String(item.sla_days), auto_escalate:item.auto_escalate, status:item.status }) }
-  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash('Workflow dihapus.') }
+  const handleDelete = (id) => { setData(prev=>prev.filter(d=>d.id!==id)); flash(t('Workflow dihapus.','Workflow deleted.')) }
 
   const levels = Number(form.levels) || 1
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Approval Workflow</h1>
-      <p className='text-gray-500 text-sm mb-6'>Pengaturan alur approval dalam LMS untuk training request, enrollment, sertifikasi, dan reimbursement.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Approval Workflow','Master Approval Workflow')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Pengaturan alur approval dalam LMS untuk training request, enrollment, sertifikasi, dan reimbursement.','Approval workflow settings in the LMS for training requests, enrollment, certification, and reimbursement.')}</p>
 
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[['Total Workflow', data.length, '🔀', '#8B1A1A'],['Active', data.filter(d=>d.status==='Active').length, '✅', '#059669'],['Multi-Level', data.filter(d=>d.levels>1).length, '📊', '#7c3aed'],['Auto Escalate', data.filter(d=>d.auto_escalate).length, '⚡', '#d97706']].map(([l,v,i,c])=>(
@@ -62,7 +62,7 @@ export default function ApprovalWorkflowPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='bg-white rounded-xl p-6 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?'✏️ Edit Workflow':'➕ Tambah Workflow'}</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>{editing?t('✏️ Edit Workflow','✏️ Edit Workflow'):`➕ ${t('Tambah Workflow','Add Workflow')}`}</h2>
           {msg && <div className={`text-xs px-3 py-2 rounded-lg mb-3 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
           <div className='flex flex-col gap-3'>
             <div><label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Workflow</label>
@@ -115,7 +115,7 @@ export default function ApprovalWorkflowPage() {
         </div>
 
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari workflow...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari workflow...','Search workflow...')}
             className='w-full max-w-sm px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 mb-4' />
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>

@@ -6,28 +6,23 @@ import { useWorkflowStore }  from '@/store/workflowStore'
 import { useEmployeeStore }  from '@/store/employeeStore'
 import { useStructureStore } from '@/store/structureStore'
 import { daysBetween }       from '@/utils/dateUtils'
+import { calcLeaveUsed, LEAVE_STATUS_BADGE, validateLeaveForm } from '@/utils/leaveUtils'
 import WorkflowMonitor       from '@/components/WorkflowMonitor'
-import { useT } from '@/store/languageStore'
-
-const badge = (s) => ({
-  Approved: 'bg-green-100 text-green-700',
-  Pending:  'bg-yellow-100 text-yellow-700',
-  Rejected: 'bg-red-100 text-red-700',
-}[s] || 'bg-gray-100 text-gray-600')
+import { useT }              from '@/store/languageStore'
 
 export default function ApplyLeaveHRPage() {
   const t = useT()
-  const { currentUser }                        = useAuthStore()
-  const { leaves, leaveTypes, submitLeave }    = useLeaveStore()
-  const { getLevelsForPage }                   = useWorkflowStore()
-  const { employees }                          = useEmployeeStore()
-  const { positions, departments, companies }  = useStructureStore()
+  const { currentUser }                       = useAuthStore()
+  const { leaves, leaveTypes, submitLeave }   = useLeaveStore()
+  const { getLevelsForPage }                  = useWorkflowStore()
+  const { employees }                         = useEmployeeStore()
+  const { positions, departments, companies } = useStructureStore()
 
-  const [form,           setForm          ] = useState({ empId: '', type: '', start: '', end: '', note: '' })
-  const [search,         setSearch        ] = useState('')
-  const [filterDept,     setFilterDept    ] = useState('')
-  const [filterCo,       setFilterCo      ] = useState('')
-  const [msg,            setMsg           ] = useState(null)
+  const [form,            setForm           ] = useState({ empId: '', type: '', start: '', end: '', note: '' })
+  const [search,          setSearch         ] = useState('')
+  const [filterDept,      setFilterDept     ] = useState('')
+  const [filterCo,        setFilterCo       ] = useState('')
+  const [msg,             setMsg            ] = useState(null)
   const [selectedLeaveId, setSelectedLeaveId] = useState(() =>
     [...leaves].sort((a, b) => b.id - a.id)[0]?.id ?? null
   )
@@ -43,23 +38,12 @@ export default function ApplyLeaveHRPage() {
 
   const selectedEmp = employees.find(e => e.id === +form.empId)
 
-  const leaveUsed = (empId, typeName) =>
-    leaves.filter(l => l.userId === empId && l.type === typeName && l.status === 'Approved')
-      .reduce((sum, l) => sum + daysBetween(l.start, l.end), 0)
-
   const handleSubmit = () => {
-    if (!form.empId || !form.type || !form.start || !form.end) {
-      setMsg({ type: 'error', text: t('Karyawan, jenis cuti, dan tanggal wajib diisi.','Employee, leave type, and dates are required.') }); return
-    }
-    if (form.end < form.start) {
-      setMsg({ type: 'error', text: 'Tanggal selesai tidak boleh sebelum tanggal mulai.' }); return
-    }
-    const lt   = leaveTypes.find(t => t.name === form.type)
-    const used = leaveUsed(+form.empId, form.type)
-    const req  = daysBetween(form.start, form.end)
-    if (lt && used + req > lt.maxDays) {
-      setMsg({ type: 'error', text: `Saldo ${form.type} tidak cukup! Sisa: ${lt.maxDays - used} hari.` }); return
-    }
+    const err = validateLeaveForm(
+      { empId: +form.empId || null, type: form.type, start: form.start, end: form.end },
+      leaves, leaveTypes, t, true
+    )
+    if (err) { setMsg({ type: 'error', text: err }); return }
     submitLeave({
       userId:          +form.empId,
       name:            selectedEmp?.name ?? '',
@@ -69,7 +53,7 @@ export default function ApplyLeaveHRPage() {
       ...form,
     }, getLevelsForPage('Apply Leave (HR)'))
     setForm({ empId: '', type: '', start: '', end: '', note: '' })
-    setMsg({ type: 'success', text: `Cuti berhasil diajukan untuk ${selectedEmp?.name}.` })
+    setMsg({ type: 'success', text: t(`Cuti berhasil diajukan untuk ${selectedEmp?.name}.`, `Leave submitted for ${selectedEmp?.name}.`) })
     setTimeout(() => setMsg(null), 3000)
     setTimeout(() => {
       const latest = useLeaveStore.getState().leaves.slice().sort((a, b) => b.id - a.id)[0]
@@ -85,41 +69,35 @@ export default function ApplyLeaveHRPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Apply Leave — HR</h1>
-      <p className='text-gray-500 text-sm mb-6'>Ajukan cuti atas nama seluruh karyawan.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Apply Leave — HR', 'Apply Leave — HR')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Ajukan cuti atas nama seluruh karyawan.', 'Submit leave on behalf of any employee.')}</p>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
 
         {/* Employee picker */}
         <div className='bg-white rounded-xl p-5 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-3'>👤 Pilih Karyawan</h2>
-
-          {/* Filters */}
+          <h2 className='text-sm font-bold text-gray-700 mb-3'>👤 {t('Pilih Karyawan', 'Select Employee')}</h2>
           <div className='space-y-2 mb-3'>
             <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder='Cari nama / NIK…'
+              placeholder={t('Cari nama / NIK…', 'Search name / ID…')}
               className='w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-400' />
             <select value={filterCo} onChange={e => setFilterCo(e.target.value)}
               className='w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-400'>
-              <option value=''>Semua Perusahaan</option>
+              <option value=''>{t('Semua Perusahaan', 'All Companies')}</option>
               {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
               className='w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-400'>
-              <option value=''>Semua Departemen</option>
+              <option value=''>{t('Semua Departemen', 'All Departments')}</option>
               {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
-
-          <div className='text-xs text-gray-400 mb-2'>{filteredEmps.length} karyawan</div>
-
+          <div className='text-xs text-gray-400 mb-2'>{filteredEmps.length} {t('karyawan', 'employees')}</div>
           <div className='space-y-1.5 max-h-80 overflow-y-auto pr-1'>
             {filteredEmps.map(e => (
               <button key={e.id} onClick={() => setForm(f => ({ ...f, empId: String(e.id) }))}
                 className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border text-left transition ${
-                  form.empId === String(e.id)
-                    ? 'border-red-400 bg-red-50'
-                    : 'border-gray-200 hover:bg-gray-50'
+                  form.empId === String(e.id) ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:bg-gray-50'
                 }`}>
                 <div className='w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-sm flex-shrink-0 overflow-hidden'>
                   {e.photo ? <img src={e.photo} className='w-full h-full object-cover' /> : (e.gender === 'Female' ? '👩' : '👨')}
@@ -135,7 +113,7 @@ export default function ApplyLeaveHRPage() {
 
         {/* Form */}
         <div className='lg:col-span-2 bg-white rounded-xl p-5 shadow-sm'>
-          <h2 className='text-sm font-bold text-gray-700 mb-4'>📝 Ajukan Cuti</h2>
+          <h2 className='text-sm font-bold text-gray-700 mb-4'>📝 {t('Ajukan Cuti', 'Submit Leave')}</h2>
 
           {msg && (
             <div className={`text-sm px-4 py-2.5 rounded-lg mb-4 ${msg.type === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
@@ -143,7 +121,6 @@ export default function ApplyLeaveHRPage() {
             </div>
           )}
 
-          {/* Selected employee summary */}
           {selectedEmp && (
             <div className='flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl mb-4'>
               <div className='w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg overflow-hidden flex-shrink-0'>
@@ -156,27 +133,32 @@ export default function ApplyLeaveHRPage() {
               </div>
               {form.type && (
                 <div className='ml-auto text-right flex-shrink-0'>
-                  <div className='text-xs text-gray-500'>Sisa saldo</div>
+                  <div className='text-xs text-gray-500'>{t('Sisa saldo', 'Remaining balance')}</div>
                   <div className='text-xl font-bold text-blue-700'>
-                    {(leaveTypes.find(t => t.name === form.type)?.maxDays ?? 0) - leaveUsed(+form.empId, form.type)} hari
+                    {(() => {
+                      const lt = leaveTypes.find(lt => lt.name === form.type)
+                      const { approved, pending } = calcLeaveUsed(leaves, +form.empId, form.type)
+                      return (lt?.maxDays ?? 0) - approved - pending
+                    })()} {t('hari', 'days')}
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* Leave balance for selected employee */}
+          {/* Leave balance mini-cards for selected employee */}
           {selectedEmp && (
             <div className='grid grid-cols-3 gap-2 mb-4'>
               {activeTypes.map(lt => {
-                const used = leaveUsed(+form.empId, lt.name)
-                const sisa = lt.maxDays - used
+                const { approved, pending } = calcLeaveUsed(leaves, +form.empId, lt.name)
+                const sisa = lt.maxDays - approved - pending
                 return (
                   <div key={lt.id} className='border border-gray-100 rounded-lg px-3 py-2 text-center'>
                     <div className='text-xs text-gray-500 truncate'>{lt.name}</div>
                     <div className='text-lg font-bold text-gray-700'>{sisa}
                       <span className='text-xs font-normal text-gray-400'>/{lt.maxDays}</span>
                     </div>
+                    {pending > 0 && <div className='text-xs text-amber-500'>{pending}p</div>}
                   </div>
                 )
               })}
@@ -185,29 +167,34 @@ export default function ApplyLeaveHRPage() {
 
           <div className='grid grid-cols-2 gap-4'>
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Jenis Cuti</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Jenis Cuti', 'Leave Type')}</label>
               <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
                 className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                <option value=''>— Pilih Jenis —</option>
-                {activeTypes.map(t => {
-                  const sisa = form.empId ? (t.maxDays - leaveUsed(+form.empId, t.name)) : t.maxDays
-                  return <option key={t.id} value={t.name}>{t.name} (sisa: {sisa} hari)</option>
+                <option value=''>— {t('Pilih Jenis', 'Select Type')} —</option>
+                {activeTypes.map(lt => {
+                  const { approved, pending } = form.empId ? calcLeaveUsed(leaves, +form.empId, lt.name) : { approved: 0, pending: 0 }
+                  const sisa = lt.maxDays - approved - pending
+                  return (
+                    <option key={lt.id} value={lt.name}>
+                      {lt.name} ({t('sisa', 'remaining')}: {sisa} {t('hari', 'days')})
+                    </option>
+                  )
                 })}
               </select>
             </div>
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Keterangan</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Keterangan', 'Note')}</label>
               <input value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
-                placeholder={t('Opsional','Optional')}
+                placeholder={t('Opsional', 'Optional')}
                 className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             </div>
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Tanggal Mulai</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Tanggal Mulai', 'Start Date')}</label>
               <input type='date' value={form.start} onChange={e => setForm(f => ({ ...f, start: e.target.value }))}
                 className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             </div>
             <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Tanggal Selesai</label>
+              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Tanggal Selesai', 'End Date')}</label>
               <input type='date' value={form.end} onChange={e => setForm(f => ({ ...f, end: e.target.value }))}
                 className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
             </div>
@@ -215,41 +202,40 @@ export default function ApplyLeaveHRPage() {
 
           {form.start && form.end && form.end >= form.start && (
             <p className='text-xs text-blue-600 font-semibold mt-2'>
-              Durasi: {daysBetween(form.start, form.end)} hari kerja
+              {t('Durasi', 'Duration')}: {daysBetween(form.start, form.end)} {t('hari kerja', 'working days')}
             </p>
           )}
 
           <button onClick={handleSubmit}
             className='mt-4 px-6 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
             style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-            Ajukan Cuti
+            {t('Ajukan Cuti', 'Submit Leave')}
           </button>
         </div>
       </div>
 
-      {/* History — all employees */}
+      {/* History */}
       <div className='bg-white rounded-xl p-6 shadow-sm'>
         <h2 className='text-sm font-bold text-gray-700 mb-4'>
-          📄 Semua Riwayat Cuti
-          <span className='ml-2 text-xs font-normal text-gray-400'>({allLeaves.length} pengajuan)</span>
+          📄 {t('Semua Riwayat Cuti', 'All Leave History')}
+          <span className='ml-2 text-xs font-normal text-gray-400'>({allLeaves.length} {t('pengajuan', 'submissions')})</span>
         </h2>
         <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead>
               <tr className='bg-gray-50'>
-                {['Karyawan','Departemen','Jenis','Mulai','Selesai','Hari','Keterangan','Status'].map(h => (
+                {[t('Karyawan','Employee'), t('Departemen','Department'), t('Jenis','Type'), t('Mulai','Start'), t('Selesai','End'), t('Hari','Days'), t('Keterangan','Note'), 'Status'].map(h => (
                   <th key={h} className='text-left px-4 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {allLeaves.length ? allLeaves.map(l => {
-                const emp      = employees.find(e => e.id === l.userId)
-                const isSelected = selectedLeaveId === l.id
+                const emp = employees.find(e => e.id === l.userId)
                 return (
                   <tr key={l.id}
                     onClick={() => setSelectedLeaveId(l.id)}
-                    className={`border-t border-gray-100 cursor-pointer transition ${isSelected ? 'bg-red-50 border-l-2 border-l-red-400' : 'hover:bg-gray-50'}`}>
+                    className={`border-t border-gray-100 cursor-pointer transition ${selectedLeaveId === l.id ? 'bg-red-50 border-l-2 border-l-red-400' : 'hover:bg-gray-50'}`}>
                     <td className='px-4 py-2.5 font-medium'>{l.name}</td>
                     <td className='px-4 py-2.5 text-gray-500 text-xs'>{emp ? deptName(emp.departmentId) : '—'}</td>
                     <td className='px-4 py-2.5'>{l.type}</td>
@@ -258,24 +244,23 @@ export default function ApplyLeaveHRPage() {
                     <td className='px-4 py-2.5'>{daysBetween(l.start, l.end)}</td>
                     <td className='px-4 py-2.5 text-gray-500'>{l.note || '—'}</td>
                     <td className='px-4 py-2.5'>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badge(l.status)}`}>{l.status}</span>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${LEAVE_STATUS_BADGE[l.status] || ''}`}>{l.status}</span>
                     </td>
                   </tr>
                 )
               }) : (
-                <tr><td colSpan={8} className='px-4 py-8 text-center text-gray-400 text-sm'>Belum ada pengajuan.</td></tr>
+                <tr><td colSpan={8} className='px-4 py-8 text-center text-gray-400 text-sm'>{t('Belum ada pengajuan.', 'No submissions yet.')}</td></tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Workflow Monitor — hanya tampilkan 1 baris yang dipilih */}
       {selectedLeaveId && (
         <div className='mt-6'>
           <WorkflowMonitor
             leaves={allLeaves.filter(l => l.id === selectedLeaveId)}
-            title='Workflow Monitor'
+            title={t('Workflow Monitor', 'Workflow Monitor')}
             expandedId={selectedLeaveId}
           />
         </div>

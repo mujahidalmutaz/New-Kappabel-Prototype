@@ -20,9 +20,9 @@ export default function MssRequestExternalPage() {
   const flash = (text) => { setMsg(text); setTimeout(()=>setMsg(null), 3000) }
 
   const handleSave = () => {
-    if (!form.employee || !form.course || !form.vendor || !form.date) return flash('Isi semua field yang wajib.')
+    if (!form.employee || !form.course || !form.vendor || !form.date) return flash(t('Isi semua field yang wajib.','Please fill in all required fields.'))
     setData(prev=>[...prev, { ...form, id:Date.now(), cost:Number(form.cost)||0, status:'Pending HR', submittedBy:'manager' }])
-    flash('Request external training berhasil dikirim ke HR.')
+    flash(t('Request external training berhasil dikirim ke HR.','External training request has been sent to HR.'))
     setShowForm(false)
     setForm({ employee:'', course:'', vendor:'', date:'', cost:'', justification:'' })
   }
@@ -31,8 +31,8 @@ export default function MssRequestExternalPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Request External Training (Tim)</h1>
-      <p className='text-gray-500 text-sm mb-6'>Ajukan permintaan training eksternal untuk anggota tim Anda ke HR/L&D.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Request External Training (Tim)','Request External Training (Team)')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Ajukan permintaan training eksternal untuk anggota tim Anda ke HR/L&D.','Submit external training requests for your team members to HR/L&D.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
