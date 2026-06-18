@@ -46,12 +46,26 @@ export default function ProtectedLayout({ children }) {
         className='fixed top-0 left-0 right-0 h-14 z-50 flex items-center justify-between px-6 shadow-md'
         style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}
       >
-        <img
-          src={topbarLogo || '/logos/new-kappabel-prototype.png'}
-          alt='Manusistem'
-          className='object-contain flex-shrink-0'
-          style={{ height: '42px', maxWidth: '160px' }}
-        />
+        {topbarLogo ? (
+          <img src={topbarLogo} alt='Logo' className='object-contain flex-shrink-0' style={{ height: '42px', maxWidth: '160px' }} />
+        ) : (
+          <div className='flex items-center gap-2 flex-shrink-0'>
+            {/* K icon */}
+            <div className='flex items-center justify-center rounded-md bg-white' style={{ width: 36, height: 36 }}>
+              <svg width='22' height='22' viewBox='0 0 24 24' fill='none'>
+                <path d='M5 3h4v7.5l6-7.5h5L12.5 12 20 21h-5l-6-7.5V21H5V3z' fill='#D7252B'/>
+              </svg>
+            </div>
+            {/* Text */}
+            <div className='leading-none'>
+              <div className='flex items-baseline gap-1'>
+                <span className='text-white font-bold text-lg tracking-tight'>appabel</span>
+                <span className='text-white/50 text-[10px] font-semibold border border-white/30 rounded px-1 py-0.5 leading-none'>Prototype</span>
+              </div>
+              <div className='text-white/60 text-[10px] font-medium tracking-wide'>by Dexa Group</div>
+            </div>
+          </div>
+        )}
         <div className='flex-1 flex justify-center px-4'>
           <GlobalSearch />
         </div>

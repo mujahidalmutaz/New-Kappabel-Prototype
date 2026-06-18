@@ -51,9 +51,25 @@ export default function LoginPage() {
       <div className='relative bg-white rounded-2xl px-10 py-8 w-96 shadow-2xl z-10'>
 
         {/* Logo */}
-        <div className='text-center mb-6'>
-          <img src={logoSrc} alt='Manusistem' className='object-contain mx-auto'
-            style={{ height: '80px', maxWidth: '240px' }} />
+        <div className='flex flex-col items-center mb-6'>
+          {loginLogo ? (
+            <img src={loginLogo} alt='Logo' className='object-contain mx-auto' style={{ height: '80px', maxWidth: '240px' }} />
+          ) : (
+            <div className='flex items-center gap-3'>
+              <div className='flex items-center justify-center rounded-xl' style={{ width: 52, height: 52, background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                <svg width='30' height='30' viewBox='0 0 24 24' fill='none'>
+                  <path d='M5 3h4v7.5l6-7.5h5L12.5 12 20 21h-5l-6-7.5V21H5V3z' fill='white'/>
+                </svg>
+              </div>
+              <div className='leading-none'>
+                <div className='flex items-baseline gap-1.5'>
+                  <span className='font-bold text-2xl tracking-tight text-gray-800'>appabel</span>
+                  <span className='text-[10px] font-semibold border border-gray-300 rounded px-1 py-0.5 text-gray-500 leading-none'>Prototype</span>
+                </div>
+                <div className='text-[11px] font-medium text-gray-400 tracking-wide mt-0.5'>by Dexa Group</div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Form */}
