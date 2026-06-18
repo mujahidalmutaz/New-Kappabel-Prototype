@@ -101,7 +101,9 @@ export default function TeamProgressPage() {
                       <div className='flex-1'>
                         <div className='font-medium text-gray-700 text-sm'>{c.name}</div>
                       </div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColor[c.status]}`}>{c.status}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColor[c.status]}`}>
+                        {c.status==='Completed' ? t('Selesai','Completed') : c.status==='In Progress' ? t('Sedang Berjalan','In Progress') : c.status==='Overdue' ? t('Terlambat','Overdue') : t('Belum Dimulai','Not Started')}
+                      </span>
                       <div className='flex items-center gap-2 w-32'>
                         <div className='flex-1 bg-gray-200 rounded-full h-1.5'>
                           <div className={`h-1.5 rounded-full ${c.status==='Overdue'?'bg-red-400':'bg-red-500'}`} style={{width:`${c.progress}%`}}></div>
