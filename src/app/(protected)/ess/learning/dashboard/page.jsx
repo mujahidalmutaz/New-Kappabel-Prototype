@@ -24,10 +24,10 @@ export default function MyLearningDashboard() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Learning Dashboard</h1>
-      <p className='text-gray-500 text-sm mb-6'>Selamat datang! Pantau progress belajar, kursus yang ditugaskan, dan pencapaian Anda.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Selamat datang! Pantau progress belajar, kursus yang ditugaskan, dan pencapaian Anda.','Welcome! Monitor your learning progress, assigned courses, and achievements.')}</p>
 
       <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
-        {[['Course Aktif', MY_COURSES.filter(c=>c.status==='In Progress').length, '📖', '#8B1A1A'],['Selesai', completedCourses, '✅', '#059669'],['CPD Points', totalPoints, '⭐', '#d97706'],['Overdue', MY_COURSES.filter(c=>c.status==='Overdue').length, '⚠️', '#dc2626']].map(([l,v,i,c])=>(
+        {[[t('Course Aktif','Active Courses'), MY_COURSES.filter(c=>c.status==='In Progress').length, '📖', '#8B1A1A'],[t('Selesai','Completed'), completedCourses, '✅', '#059669'],['CPD Points', totalPoints, '⭐', '#d97706'],['Overdue', MY_COURSES.filter(c=>c.status==='Overdue').length, '⚠️', '#dc2626']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-2xl font-bold text-gray-800'>{v}</p></div>
@@ -40,7 +40,7 @@ export default function MyLearningDashboard() {
           <div className='bg-white rounded-xl p-6 shadow-sm'>
             <div className='flex items-center justify-between mb-4'>
               <h2 className='font-bold text-gray-700'>📚 My Learning — In Progress</h2>
-              <Link href='/ess/learning/my-courses' className='text-xs text-red-600 font-semibold hover:underline'>Lihat Semua →</Link>
+              <Link href='/ess/learning/my-courses' className='text-xs text-red-600 font-semibold hover:underline'>{t('Lihat Semua →','View All →')}</Link>
             </div>
             <div className='space-y-4'>
               {MY_COURSES.filter(c=>c.status!=='Completed').map(c=>(
@@ -59,7 +59,7 @@ export default function MyLearningDashboard() {
                     <div className='flex-1 bg-gray-200 rounded-full h-2'><div className='h-2 rounded-full bg-red-500' style={{ width:`${c.progress}%` }}></div></div>
                     <span className='text-xs font-semibold text-gray-600'>{c.progress}%</span>
                     <button className='px-3 py-1 text-xs font-semibold text-white rounded-lg' style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                      {c.status==='Not Started'?'Mulai':'Lanjutkan'}
+                      {c.status==='Not Started'?t('Mulai','Start'):t('Lanjutkan','Continue')}
                     </button>
                   </div>
                 </div>
@@ -68,14 +68,14 @@ export default function MyLearningDashboard() {
           </div>
 
           <div className='bg-white rounded-xl p-6 shadow-sm'>
-            <h2 className='font-bold text-gray-700 mb-4'>🏆 Pencapaian Terbaru</h2>
+            <h2 className='font-bold text-gray-700 mb-4'>🏆 {t('Pencapaian Terbaru','Recent Achievements')}</h2>
             <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
-              {[['🎓 Course Champion','Selesaikan 1 Course','Diraih'],['⭐ Top Scorer','Nilai >= 90%','Diraih'],['🔥 7-Day Streak','Belajar 7 hari','Diraih'],['🌟 100 CPD Points','100 CPD Points','Belum']].map(([b,d,s])=>(
-                <div key={b} className={`text-center p-3 rounded-xl border ${s==='Diraih'?'border-yellow-200 bg-yellow-50':'border-gray-200 bg-gray-50'}`}>
+              {[['🎓 Course Champion',t('Selesaikan 1 Course','Complete 1 Course'),t('Diraih','Earned')],['⭐ Top Scorer',t('Nilai >= 90%','Score >= 90%'),t('Diraih','Earned')],['🔥 7-Day Streak',t('Belajar 7 hari','Study 7 days'),t('Diraih','Earned')],['🌟 100 CPD Points','100 CPD Points',t('Belum','Not Yet')]].map(([b,d,s])=>(
+                <div key={b} className={`text-center p-3 rounded-xl border ${s===t('Diraih','Earned')?'border-yellow-200 bg-yellow-50':'border-gray-200 bg-gray-50'}`}>
                   <div className='text-2xl mb-1'>{b.split(' ')[0]}</div>
-                  <div className={`text-xs font-semibold mb-0.5 ${s==='Diraih'?'text-yellow-700':'text-gray-400'}`}>{b.substring(b.indexOf(' ')+1)}</div>
+                  <div className={`text-xs font-semibold mb-0.5 ${s===t('Diraih','Earned')?'text-yellow-700':'text-gray-400'}`}>{b.substring(b.indexOf(' ')+1)}</div>
                   <div className='text-xs text-gray-400'>{d}</div>
-                  {s==='Diraih'&&<div className='text-xs text-green-600 font-semibold mt-1'>✅ Diraih</div>}
+                  {s===t('Diraih','Earned')&&<div className='text-xs text-green-600 font-semibold mt-1'>✅ {t('Diraih','Earned')}</div>}
                 </div>
               ))}
             </div>
@@ -84,7 +84,7 @@ export default function MyLearningDashboard() {
 
         <div className='space-y-4'>
           <div className='bg-white rounded-xl p-6 shadow-sm'>
-            <h2 className='font-bold text-gray-700 mb-4'>🔔 Notifikasi Learning</h2>
+            <h2 className='font-bold text-gray-700 mb-4'>🔔 {t('Notifikasi Learning','Learning Notifications')}</h2>
             <div className='space-y-3'>
               {NOTIFICATIONS.map(n=>(
                 <div key={n.id} className={`flex gap-3 p-3 rounded-lg ${n.type==='reminder'?'bg-yellow-50':n.type==='achievement'?'bg-green-50':'bg-blue-50'}`}>

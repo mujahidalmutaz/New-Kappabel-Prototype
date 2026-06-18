@@ -26,8 +26,8 @@ const BADGES_SHOWCASE = [
 
 export default function LeaderboardPage() {
   const t = useT()
-  const [period, setPeriod] = useState('Bulan Ini')
-  const [scope, setScope] = useState('Semua Departemen')
+  const [period, setPeriod] = useState(t('Bulan Ini','This Month'))
+  const [scope, setScope] = useState(t('Semua Departemen','All Departments'))
 
   const rankColor = (r) => r===1?'text-yellow-500':r===2?'text-gray-400':r===3?'text-amber-600':'text-gray-400'
   const rankBg   = (r) => r===1?'bg-yellow-50 border-yellow-200':r===2?'bg-gray-50 border-gray-200':r===3?'bg-amber-50 border-amber-200':'bg-white border-gray-100'
@@ -37,21 +37,20 @@ export default function LeaderboardPage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Leaderboard Learning</h1>
-      <p className='text-gray-500 text-sm mb-6'>Lihat posisi Anda dan berikan semangat belajar untuk terus naik peringkat!</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Lihat posisi Anda dan berikan semangat belajar untuk terus naik peringkat!','See your position and keep the learning momentum to climb the ranks!')}</p>
 
-      {/* My Position */}
       <div className='p-5 rounded-xl text-white mb-6' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-4'>
             <div className='w-14 h-14 rounded-full bg-white/20 flex items-center justify-center font-bold text-xl'>{MY_RANK.avatar}</div>
             <div>
-              <div className='text-xs text-white/70 mb-0.5'>Posisi Anda</div>
+              <div className='text-xs text-white/70 mb-0.5'>{t('Posisi Anda','Your Position')}</div>
               <div className='text-3xl font-bold'>#{MY_RANK.rank}</div>
               <div className='text-sm text-white/80'>{MY_RANK.name} · {MY_RANK.dept}</div>
             </div>
           </div>
           <div className='grid grid-cols-3 gap-6 text-center'>
-            {[[MY_RANK.points+' pts','🏅 Poin'],[MY_RANK.badges,'🏆 Badge'],[MY_RANK.streak+' hari','🔥 Streak']].map(([v,l])=>(
+            {[[MY_RANK.points+' pts',t('🏅 Poin','🏅 Points')],[MY_RANK.badges,'🏆 Badge'],[MY_RANK.streak+t(' hari',' days'),'🔥 Streak']].map(([v,l])=>(
               <div key={l}>
                 <div className='text-xl font-bold'>{v}</div>
                 <div className='text-xs text-white/70'>{l}</div>
@@ -62,7 +61,7 @@ export default function LeaderboardPage() {
       </div>
 
       <div className='flex gap-3 mb-6 flex-wrap'>
-        {['Bulan Ini','Kuartal Ini','Tahun Ini'].map(p=>(
+        {[t('Bulan Ini','This Month'),t('Kuartal Ini','This Quarter'),t('Tahun Ini','This Year')].map(p=>(
           <button key={p} onClick={()=>setPeriod(p)}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${period===p?'text-white':'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
             style={period===p?{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}:{}}>
@@ -71,7 +70,7 @@ export default function LeaderboardPage() {
         ))}
         <select value={scope} onChange={e=>setScope(e.target.value)}
           className='ml-auto px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none bg-white'>
-          {['Semua Departemen','Finance','HR','IT','Marketing','Operations'].map(d=><option key={d}>{d}</option>)}
+          {[t('Semua Departemen','All Departments'),'Finance','HR','IT','Marketing','Operations'].map(d=><option key={d}>{d}</option>)}
         </select>
       </div>
 
@@ -91,9 +90,9 @@ export default function LeaderboardPage() {
                   <div className='text-xs text-gray-400'>{u.dept}</div>
                 </div>
                 <div className='flex gap-5 text-center text-xs'>
-                  <div><div className='font-bold text-gray-800'>{u.points}</div><div className='text-gray-400'>Poin</div></div>
+                  <div><div className='font-bold text-gray-800'>{u.points}</div><div className='text-gray-400'>{t('Poin','Points')}</div></div>
                   <div><div className='font-bold text-gray-800'>{u.badges}</div><div className='text-gray-400'>Badge</div></div>
-                  <div><div className='font-bold text-gray-800'>{u.completed}</div><div className='text-gray-400'>Selesai</div></div>
+                  <div><div className='font-bold text-gray-800'>{u.completed}</div><div className='text-gray-400'>{t('Selesai','Completed')}</div></div>
                   <div><div className='font-bold text-gray-800'>{u.streak}d</div><div className='text-gray-400'>Streak</div></div>
                 </div>
                 <div className={`text-xs font-bold w-8 text-center ${changeColor(u.change)}`}>
@@ -119,13 +118,13 @@ export default function LeaderboardPage() {
           </div>
 
           <div className='bg-white rounded-xl p-5 shadow-sm'>
-            <h3 className='font-bold text-gray-700 mb-3'>📈 Progress ke Rank Berikutnya</h3>
+            <h3 className='font-bold text-gray-700 mb-3'>📈 {t('Progress ke Rank Berikutnya','Progress to Next Rank')}</h3>
             <div className='text-center mb-3'>
               <span className='text-3xl font-bold text-gray-800'>#23</span>
               <span className='text-gray-400 text-sm mx-2'>→</span>
               <span className='text-2xl font-bold text-red-700'>#22</span>
             </div>
-            <div className='text-xs text-gray-500 mb-2 text-center'>Butuh <span className='font-bold text-red-700'>80 poin</span> lagi</div>
+            <div className='text-xs text-gray-500 mb-2 text-center'>{t('Butuh','Need')} <span className='font-bold text-red-700'>80 {t('poin','points')}</span> {t('lagi','more')}</div>
             <div className='w-full bg-gray-200 rounded-full h-3'>
               <div className='h-3 rounded-full bg-gradient-to-r from-red-500 to-indigo-500' style={{width:'84%'}}></div>
             </div>

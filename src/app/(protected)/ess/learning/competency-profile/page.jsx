@@ -33,14 +33,13 @@ export default function CompetencyProfilePage() {
   return (
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Competency Profile</h1>
-      <p className='text-gray-500 text-sm mb-6'>Profil kompetensi Anda berdasarkan penilaian terakhir dan gap terhadap target jabatan.</p>
+      <p className='text-gray-500 text-sm mb-6'>{t('Profil kompetensi Anda berdasarkan penilaian terakhir dan gap terhadap target jabatan.','Your competency profile based on the latest assessment and gap against your target role.')}</p>
 
-      {/* Summary Cards */}
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[
-          ['Total Kompetensi', COMPETENCIES.reduce((a,c)=>a+c.items.length,0), '📊', '#8B1A1A'],
-          ['Expert / Proficient', COMPETENCIES.flatMap(c=>c.items).filter(i=>i.level==='Expert'||i.level==='Proficient').length, '⭐', '#059669'],
-          ['Perlu Dikembangkan', COMPETENCIES.flatMap(c=>c.items).filter(i=>i.current<i.target).length, '📈', '#d97706'],
+          [t('Total Kompetensi','Total Competencies'), COMPETENCIES.reduce((a,c)=>a+c.items.length,0), '📊', '#8B1A1A'],
+          [t('Expert / Proficient','Expert / Proficient'), COMPETENCIES.flatMap(c=>c.items).filter(i=>i.level==='Expert'||i.level==='Proficient').length, '⭐', '#059669'],
+          [t('Perlu Dikembangkan','Needs Development'), COMPETENCIES.flatMap(c=>c.items).filter(i=>i.current<i.target).length, '📈', '#d97706'],
           ['Avg Score', (COMPETENCIES.flatMap(c=>c.items).reduce((a,i)=>a+i.current,0)/COMPETENCIES.flatMap(c=>c.items).length).toFixed(1)+'/5', '🎯', '#7c3aed'],
         ].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
@@ -57,7 +56,7 @@ export default function CompetencyProfilePage() {
               onClick={()=>setExpanded(expanded===c.category?null:c.category)}>
               <div className='flex items-center gap-3'>
                 <span className='font-bold text-gray-800'>{c.category}</span>
-                <span className='text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full'>{c.items.length} kompetensi</span>
+                <span className='text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full'>{c.items.length} {t('kompetensi','competencies')}</span>
                 {gapCount(c.items) > 0 && (
                   <span className='text-xs bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full'>{gapCount(c.items)} gap</span>
                 )}
@@ -97,7 +96,7 @@ export default function CompetencyProfilePage() {
                       )}
                       {item.current >= item.target && (
                         <div className='flex items-center gap-1 text-xs text-green-700 bg-green-50 px-3 py-1.5 rounded-lg'>
-                          <span>✅</span><span>Tercapai</span>
+                          <span>✅</span><span>{t('Tercapai','Achieved')}</span>
                         </div>
                       )}
                     </div>
@@ -112,10 +111,10 @@ export default function CompetencyProfilePage() {
       <div className='mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-3'>
         <span className='text-2xl'>💡</span>
         <div>
-          <p className='font-semibold text-blue-700'>Rekomendasi Pengembangan</p>
-          <p className='text-xs text-blue-600 mt-0.5'>Berdasarkan gap kompetensi Anda, 3 course disarankan untuk menutup gap: <span className='font-semibold'>Leadership Fundamentals L1</span>, <span className='font-semibold'>Team Building Workshop</span>, dan <span className='font-semibold'>SAP Financial Module</span>.</p>
+          <p className='font-semibold text-blue-700'>{t('Rekomendasi Pengembangan','Development Recommendation')}</p>
+          <p className='text-xs text-blue-600 mt-0.5'>{t('Berdasarkan gap kompetensi Anda, 3 course disarankan untuk menutup gap:','Based on your competency gaps, 3 courses are recommended to close them:')} <span className='font-semibold'>Leadership Fundamentals L1</span>, <span className='font-semibold'>Team Building Workshop</span>, {t('dan','and')} <span className='font-semibold'>SAP Financial Module</span>.</p>
         </div>
-        <button className='ml-auto px-4 py-2 text-xs font-semibold text-white rounded-lg whitespace-nowrap hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>Lihat Rekomendasi →</button>
+        <button className='ml-auto px-4 py-2 text-xs font-semibold text-white rounded-lg whitespace-nowrap hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>{t('Lihat Rekomendasi →','View Recommendations →')}</button>
       </div>
     </div>
   )
