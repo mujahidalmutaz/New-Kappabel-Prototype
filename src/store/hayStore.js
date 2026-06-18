@@ -48,6 +48,21 @@ export const useHayStore = create(
           id: Date.now(),
           status: 'Submitted',
           submittedAt: new Date().toISOString(),
+          createdBy: 'employee',
+          managerReply: '',
+          repliedAt: null,
+          ...data,
+        }
+        set(s => ({ sessions: [newSession, ...s.sessions] }))
+        return newSession.id
+      },
+
+      submitHayByManager: (data) => {
+        const newSession = {
+          id: Date.now(),
+          status: 'Manager-Created',
+          submittedAt: new Date().toISOString(),
+          createdBy: 'manager',
           managerReply: '',
           repliedAt: null,
           ...data,
