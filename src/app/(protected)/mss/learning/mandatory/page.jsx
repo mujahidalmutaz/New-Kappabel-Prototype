@@ -31,11 +31,11 @@ export default function MandatoryTrainingMonitoringPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Mandatory Training Monitoring</h1>
-      <p className='text-gray-500 text-sm mb-6'>Pantau status training wajib (mandatory/compliance) seluruh anggota tim Anda.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Mandatory Training Monitoring', 'Mandatory Training Monitoring')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Pantau status training wajib (mandatory/compliance) seluruh anggota tim Anda.', 'Monitor mandatory/compliance training status for all your team members.')}</p>
 
       <div className='grid grid-cols-5 gap-3 mb-6'>
-        {[['Total',stats.total,'📋','#8B1A1A'],['Completed',stats.completed,'✅','#059669'],['In Progress',stats.inProgress,'🔵','#2563eb'],['Overdue',stats.overdue,'⚠️','#dc2626'],['Compliance Rate',rate+'%','📈','#7c3aed']].map(([l,v,i,c])=>(
+        {[[t('Total', 'Total'),stats.total,'📋','#8B1A1A'],[t('Selesai', 'Completed'),stats.completed,'✅','#059669'],[t('Sedang Berjalan', 'In Progress'),stats.inProgress,'🔵','#2563eb'],[t('Terlambat', 'Overdue'),stats.overdue,'⚠️','#dc2626'],[t('Tingkat Kepatuhan', 'Compliance Rate'),rate+'%','📈','#7c3aed']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-3 shadow-sm flex items-center gap-2'>
             <div className='w-8 h-8 rounded-lg flex items-center justify-center text-base' style={{ background:c+'22' }}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-lg font-bold text-gray-800'>{v}</p></div>
@@ -47,16 +47,16 @@ export default function MandatoryTrainingMonitoringPage() {
         <div className='bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3'>
           <span className='text-xl'>⚠️</span>
           <div>
-            <p className='font-semibold text-red-700'>Perhatian: {stats.overdue} mandatory training OVERDUE di tim Anda</p>
-            <p className='text-xs text-red-500 mt-0.5'>Segera tindaklanjuti agar tidak mempengaruhi compliance perusahaan.</p>
+            <p className='font-semibold text-red-700'>{t(`Perhatian: ${stats.overdue} mandatory training OVERDUE di tim Anda`, `Warning: ${stats.overdue} mandatory training(s) OVERDUE in your team`)}</p>
+            <p className='text-xs text-red-500 mt-0.5'>{t('Segera tindaklanjuti agar tidak mempengaruhi compliance perusahaan.', 'Take immediate action to avoid impacting company compliance.')}</p>
           </div>
-          <button className='ml-auto px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700'>Kirim Reminder</button>
+          <button className='ml-auto px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700'>{t('Kirim Reminder', 'Send Reminder')}</button>
         </div>
       )}
 
       <div className='bg-white rounded-xl p-6 shadow-sm'>
         <div className='flex flex-wrap gap-3 mb-4'>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Cari nama atau course...'
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari nama atau course...', 'Search name or course...')}
             className='flex-1 min-w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
           <div className='flex gap-1'>
             {STATUS_OPTS.map(s=>(
@@ -67,7 +67,7 @@ export default function MandatoryTrainingMonitoringPage() {
         </div>
         <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
-            <thead><tr className='bg-gray-50'>{['Karyawan','NIK','Dept','Course Mandatory','Due Date','Progress','Status','Aksi'].map(h=>(
+            <thead><tr className='bg-gray-50'>{[t('Karyawan','Employee'),t('NIK','NIK'),t('Dept','Dept'),t('Course Mandatory','Mandatory Course'),t('Due Date','Due Date'),t('Progress','Progress'),t('Status','Status'),t('Aksi','Action')].map(h=>(
               <th key={h} className='text-left px-3 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
             ))}</tr></thead>
             <tbody>{filtered.map(d=>(
@@ -84,7 +84,7 @@ export default function MandatoryTrainingMonitoringPage() {
                   </div>
                 </td>
                 <td className='px-3 py-2.5'><span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColor(d.status)}`}>{d.status}</span></td>
-                <td className='px-3 py-2.5'><button className='px-2.5 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>Remind</button></td>
+                <td className='px-3 py-2.5'><button className='px-2.5 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-100'>{t('Ingatkan', 'Remind')}</button></td>
               </tr>
             ))}</tbody>
           </table>

@@ -31,8 +31,8 @@ export default function MssRequestExternalPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Request External Training (Tim)</h1>
-      <p className='text-gray-500 text-sm mb-6'>Ajukan permintaan training eksternal untuk anggota tim Anda ke HR/L&D.</p>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Request External Training (Tim)','Request External Training (Team)')}</h1>
+      <p className='text-gray-500 text-sm mb-6'>{t('Ajukan permintaan training eksternal untuk anggota tim Anda ke HR/L&D.','Submit external training requests for your team members to HR/L&D.')}</p>
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 

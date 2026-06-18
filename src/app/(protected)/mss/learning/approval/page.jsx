@@ -30,13 +30,13 @@ export default function TrainingApprovalPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Training Approval Center</h1>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Pusat Persetujuan Training','Training Approval Center')}</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Review dan setujui/tolak permintaan training anggota tim Anda.','Review and approve/reject training requests from your team members.')}</p>
 
       {msg && <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
 
       <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[[t('Menunggu Approval','Pending Approval'), pending.length, '⏳', '#d97706'],['Approved', data.filter(d=>d.status==='Approved').length, '✅', '#059669'],['Rejected', data.filter(d=>d.status==='Rejected').length, '❌', '#dc2626']].map(([l,v,i,c])=>(
+        {[[t('Menunggu Approval','Pending Approval'), pending.length, '⏳', '#d97706'],[t('Disetujui','Approved'), data.filter(d=>d.status==='Approved').length, '✅', '#059669'],[t('Ditolak','Rejected'), data.filter(d=>d.status==='Rejected').length, '❌', '#dc2626']].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
             <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
@@ -79,8 +79,8 @@ export default function TrainingApprovalPage() {
                     className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' placeholder={t('Tambahkan catatan untuk karyawan...','Add a note for the employee...')} />
                 </div>
                 <div className='flex gap-3'>
-                  <button onClick={()=>handleAction(d.id,'approve')} className='flex-1 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition'>✅ Approve</button>
-                  <button onClick={()=>handleAction(d.id,'reject')} className='flex-1 py-2.5 bg-red-50 text-red-600 text-sm font-semibold rounded-lg hover:bg-red-100 transition border border-red-200'>❌ Reject</button>
+                  <button onClick={()=>handleAction(d.id,'approve')} className='flex-1 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition'>✅ {t('Setujui','Approve')}</button>
+                  <button onClick={()=>handleAction(d.id,'reject')} className='flex-1 py-2.5 bg-red-50 text-red-600 text-sm font-semibold rounded-lg hover:bg-red-100 transition border border-red-200'>❌ {t('Tolak','Reject')}</button>
                 </div>
               </div>
             ))}
@@ -93,7 +93,7 @@ export default function TrainingApprovalPage() {
           <h2 className='font-bold text-gray-700 mb-4 text-lg'>📋 {t('Riwayat Approval','Approval History')}</h2>
           <div className='bg-white rounded-xl p-6 shadow-sm overflow-x-auto'>
             <table className='w-full text-sm'>
-              <thead><tr className='bg-gray-50'>{[t('Karyawan','Employee'),t('Course','Course'),t('Tipe','Type'),t('Biaya','Cost'),t('Tgl Submit','Submit Date'),'Status',t('Catatan','Note')].map(h=>(
+              <thead><tr className='bg-gray-50'>{[t('Karyawan','Employee'),t('Course','Course'),t('Tipe','Type'),t('Biaya','Cost'),t('Tgl Submit','Submit Date'),t('Status','Status'),t('Catatan','Note')].map(h=>(
                 <th key={h} className='text-left px-3 py-2.5 text-xs font-semibold text-gray-500'>{h}</th>
               ))}</tr></thead>
               <tbody>{history.map(d=>(
