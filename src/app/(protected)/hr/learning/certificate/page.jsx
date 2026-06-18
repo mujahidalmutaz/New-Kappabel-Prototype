@@ -509,7 +509,7 @@ export default function MasterCertificatePage() {
 
       {/* Tabs */}
       <div className='flex gap-2 mb-6'>
-        {[['templates', '📄 Template'], ['variables', '{ } Referensi Variabel']].map(([k, l]) => (
+        {[['templates', '📄 Template']].map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)}
             className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition ${tab === k ? 'text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
             style={tab === k ? { background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' } : {}}>
