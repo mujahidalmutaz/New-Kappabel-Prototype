@@ -11,33 +11,35 @@ export default function HolidayCalendarPage() {
   const { holidays, addHoliday, updateHoliday, deleteHoliday } = useHolidayStore()
   const [country, setCountry] = useState('ID')
   const [year,    setYear   ] = useState(new Date().getFullYear())
-  const [form,    setForm   ] = useState({ name: '', date: '', type: 'National', recurring: false })
+  const [form,    setForm   ] = useState({ name:'', date:'', type:'National', recurring:false })
   const [editing, setEditing] = useState(null)
   const [msg,     setMsg    ] = useState(null)
 
   const filtered = holidays
     .filter(h => h.country === country && new Date(h.date).getFullYear() === year)
-    .sort((a, b) => a.date.localeCompare(b.date))
+    .sort((a,b) => a.date.localeCompare(b.date))
 
-  const flash = (text, type = 'success') => { setMsg({ text, type }); setTimeout(() => setMsg(null), 3000) }
+  const flash = (text, type='success') => {
+    setMsg({ text, type })
+    setTimeout(() => setMsg(null), 3000)
+  }
 
   const handleSave = () => {
-    if (!form.name || !form.date)
-      return flash(t('Nama dan tanggal wajib diisi.', 'Name and date are required.'), 'error')
+    if (!form.name || !form.date) return flash('Nama dan tanggal wajib diisi.', 'error')
     if (editing) {
       updateHoliday(editing, { ...form, country })
       setEditing(null)
-      flash(t('Hari libur diperbarui.', 'Holiday updated.'))
+      flash('Hari libur diperbarui.')
     } else {
       addHoliday({ ...form, country })
-      flash(t('Hari libur ditambahkan.', 'Holiday added.'))
+      flash('Hari libur ditambahkan.')
     }
-    setForm({ name: '', date: '', type: 'National', recurring: false })
+    setForm({ name:'', date:'', type:'National', recurring:false })
   }
 
   const handleEdit = (h) => {
     setEditing(h.id)
-    setForm({ name: h.name, date: h.date, type: h.type, recurring: h.recurring })
+    setForm({ name:h.name, date:h.date, type:h.type, recurring:h.recurring })
   }
 
   const resetForm = () => { setEditing(null); setForm({ name:'', date:'', type:'National', recurring:false }) }
