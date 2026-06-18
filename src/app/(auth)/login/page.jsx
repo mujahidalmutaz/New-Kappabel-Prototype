@@ -1,32 +1,28 @@
 'use client'
-import { useState, useEffect }  from 'react'
-import { useRouter }            from 'next/navigation'
-import { useAuthStore }         from '@/store/authStore'
-import { useBrandingStore }     from '@/store/brandingStore'
+import { useState, useEffect } from 'react'
+import { useRouter }           from 'next/navigation'
+import { useAuthStore }        from '@/store/authStore'
+import { useBrandingStore }    from '@/store/brandingStore'
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError]       = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [mounted, setMounted]   = useState(false)
-  const [showDemo, setShowDemo] = useState(false)
-  const { login }               = useAuthStore()
-  const { loginLogo, getActiveTheme } = useBrandingStore()
-  const router    = useRouter()
+  const [username, setUsername]   = useState('')
+  const [password, setPassword]   = useState('')
+  const [showPass, setShowPass]   = useState(false)
+  const [error, setError]         = useState('')
+  const [fieldErr, setFieldErr]   = useState({ username: '', password: '' })
+  const [loading, setLoading]     = useState(false)
+  const [mounted, setMounted]     = useState(false)
+  const [showDemo, setShowDemo]   = useState(false)
+  const { login }                 = useAuthStore()
+  const { loginLogo }             = useBrandingStore()
+  const router = useRouter()
 
   useEffect(() => { setMounted(true) }, [])
 
-  // Defer store-dependent values until after first client render to avoid
-  // server/client HTML mismatch (Zustand rehydrates from localStorage on client)
-  const activeTheme = mounted ? getActiveTheme() : null
-  const logoSrc     = mounted ? (loginLogo || '/logos/new-kappabel-prototype.png') : '/logos/new-kappabel-prototype.png'
-
   const handleLogin = async () => {
-    if (!username || !password) {
-      setError('Username dan password wajib diisi.')
-      return
-    }
+    const errs = { username: username ? '' : 'Please enter your email', password: password ? '' : 'Please enter your password' }
+    setFieldErr(errs)
+    if (errs.username || errs.password) return
     setLoading(true)
     setError('')
     const ok = login(username, password)
@@ -39,102 +35,152 @@ export default function LoginPage() {
     }
   }
 
-  const bgStyle = activeTheme?.image
-    ? { backgroundImage: `url(${activeTheme.image})`, backgroundSize:'cover', backgroundPosition:'center' }
-    : { background: 'linear-gradient(135deg,#1a1a2e,#16213e,#8B1A1A)' }
-
   return (
-    <div className='min-h-screen flex flex-col items-center justify-center gap-4 py-8 relative' style={bgStyle}>
-      {activeTheme?.image && <div className='absolute inset-0 bg-black/40' />}
+    <div className='min-h-screen flex' style={{ background: 'linear-gradient(120deg, #f4a97a 0%, #f8d5c0 30%, #fff 60%, #f9f0ee 100%)' }}>
 
-      {/* Login card */}
-      <div className='relative bg-white rounded-2xl px-10 py-8 w-96 shadow-2xl z-10'>
+      {/* Left: login card column */}
+      <div className='flex flex-col justify-center items-center w-full md:w-[520px] lg:w-[560px] px-8 py-12 relative z-10'>
 
-        {/* Logo */}
-        <div className='flex flex-col items-center mb-6'>
-          {loginLogo ? (
-            <img src={loginLogo} alt='Logo' className='object-contain mx-auto' style={{ height: '80px', maxWidth: '240px' }} />
-          ) : (
-            <div className='flex items-center gap-3'>
-              <div style={{ width: 50, height: 50, borderRadius: 12, border: '2.5px solid #D7252B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width='28' height='28' viewBox='0 0 20 20' fill='none'>
-                  <path d='M4 2.5h3v5.8l4.6-5.8h3.8L10 10l5.4 7.5h-3.8L7 11.7V17.5H4V2.5z' fill='#D7252B'/>
-                </svg>
-              </div>
-              <div className='leading-none'>
-                <div className='flex items-baseline gap-1.5'>
-                  <span className='font-bold text-2xl tracking-tight text-gray-800'>appabel</span>
-                  <span className='text-[10px] font-semibold border border-gray-300 rounded px-1 py-0.5 text-gray-400 leading-none'>Prototype</span>
+        <div className='w-full max-w-[420px] bg-white rounded-3xl shadow-2xl overflow-hidden'>
+
+          {/* Card body */}
+          <div className='px-10 pt-10 pb-6'>
+
+            {/* Logo */}
+            <div className='mb-5'>
+              {mounted && loginLogo ? (
+                <img src={loginLogo} alt='Logo' className='h-10 object-contain' />
+              ) : (
+                <div className='flex items-center gap-2'>
+                  <svg width='32' height='32' viewBox='0 0 32 32' fill='none'>
+                    <rect width='32' height='32' rx='7' fill='#D7252B'/>
+                    <path d='M8 6h5v9.2L21.2 6H27L18 16l9 10h-5.8L13 17.2V26H8V6z' fill='white'/>
+                  </svg>
+                  <div className='leading-none'>
+                    <div className='flex items-baseline gap-1'>
+                      <span className='font-bold text-xl tracking-tight text-gray-900'>Kappabel</span>
+                      <span className='text-[9px] font-semibold border border-gray-300 rounded px-1 py-0.5 text-gray-400 leading-none'>Prototype</span>
+                    </div>
+                    <div className='text-[10px] text-gray-400 font-medium tracking-wide'>by Dexa Group</div>
+                  </div>
                 </div>
-                <div className='text-[11px] font-medium text-gray-400 tracking-wide mt-0.5'>by Dexa Group</div>
+              )}
+            </div>
+
+            {/* Greeting */}
+            <h1 className='text-3xl font-bold text-gray-900 mb-0.5'>Hi, Dexan</h1>
+            <div className='flex items-center justify-between mb-6'>
+              <p className='text-sm text-gray-400'>Welcome!</p>
+              <button onClick={() => setShowDemo(v => !v)}
+                className='flex items-center gap-1.5 text-xs text-gray-400 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:border-gray-400 transition'>
+                <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+                  <rect x='3' y='3' width='7' height='7'/><rect x='14' y='3' width='7' height='7'/>
+                  <rect x='3' y='14' width='7' height='7'/><path d='M14 14h3M17 14v3M14 17h3'/>
+                </svg>
+                QR
+              </button>
+            </div>
+
+            {/* Email */}
+            <div className='mb-4'>
+              <label className='block text-sm font-semibold text-gray-700 mb-1.5'>Email</label>
+              <input value={username} onChange={e => { setUsername(e.target.value); setFieldErr(p => ({ ...p, username: '' })) }}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                className={`w-full px-4 py-3 rounded-xl text-sm outline-none transition border ${fieldErr.username ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50 focus:border-red-400 focus:bg-white'}`}
+                placeholder='Enter your email' disabled={loading} />
+              {fieldErr.username && <p className='text-xs text-red-500 mt-1'>{fieldErr.username}</p>}
+            </div>
+
+            {/* Password */}
+            <div className='mb-5'>
+              <label className='block text-sm font-semibold text-gray-700 mb-1.5'>Password</label>
+              <div className='relative'>
+                <input type={showPass ? 'text' : 'password'} value={password}
+                  onChange={e => { setPassword(e.target.value); setFieldErr(p => ({ ...p, password: '' })) }}
+                  onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                  className={`w-full px-4 py-3 pr-11 rounded-xl text-sm outline-none transition border ${fieldErr.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50 focus:border-red-400 focus:bg-white'}`}
+                  placeholder='Enter password' disabled={loading} />
+                <button type='button' onClick={() => setShowPass(v => !v)}
+                  className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition'>
+                  {showPass ? (
+                    <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24'/><line x1='1' y1='1' x2='23' y2='23'/></svg>
+                  ) : (
+                    <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/></svg>
+                  )}
+                </button>
+              </div>
+              {fieldErr.password && <p className='text-xs text-red-500 mt-1'>{fieldErr.password}</p>}
+            </div>
+
+            {error && (
+              <div className='bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2.5 rounded-xl mb-4'>{error}</div>
+            )}
+
+            <button onClick={handleLogin} disabled={loading}
+              className='w-full py-3.5 rounded-xl text-white font-semibold text-sm transition hover:opacity-90 disabled:opacity-60'
+              style={{ background: '#8B1A1A' }}>
+              {loading ? 'Signing in...' : 'Login'}
+            </button>
+          </div>
+
+          {/* Demo accounts */}
+          {showDemo && (
+            <div className='border-t border-gray-100 px-10 py-4 bg-gray-50'>
+              <p className='text-xs font-semibold text-gray-500 mb-2'>Demo Accounts</p>
+              <div className='grid grid-cols-3 gap-x-3 gap-y-1 text-xs'>
+                <span className='text-gray-400 font-semibold'>Username</span>
+                <span className='text-gray-400 font-semibold'>Password</span>
+                <span className='text-gray-400 font-semibold'>Role</span>
+                {[
+                  ['employee','pass123','Employee'],
+                  ['manager','pass123','Manager'],
+                  ['hr','pass123','HR'],
+                  ['admin','pass123','Superadmin'],
+                  ['rizky','pass123','CTO (Mgr)'],
+                  ['kartika','pass123','CHRO (HR)'],
+                ].map(([u,p,r]) => (
+                  <><span key={u} className='text-gray-700 font-mono cursor-pointer hover:text-red-600' onClick={() => setUsername(u)}>{u}</span>
+                  <span className='text-gray-500 font-mono'>{p}</span>
+                  <span className='text-gray-400'>{r}</span></>
+                ))}
               </div>
             </div>
           )}
-        </div>
 
-        {/* Form */}
-        <div className='mb-3'>
-          <label className='block text-sm font-semibold text-gray-600 mb-1.5'>Username</label>
-          <input value={username} onChange={e => setUsername(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            className='w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 transition'
-            placeholder='Masukkan username' disabled={loading} />
-        </div>
+          {/* Bottom stripe */}
+          <div className='h-1.5' style={{ background: 'linear-gradient(90deg,#8B1A1A,#D7252B,#f4a97a,#f9d276,#8B1A1A)' }} />
 
-        <div className='mb-4'>
-          <label className='block text-sm font-semibold text-gray-600 mb-1.5'>Password</label>
-          <input type='password' value={password} onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            className='w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 transition'
-            placeholder='Masukkan password' disabled={loading} />
-        </div>
-
-        {error && (
-          <div className='bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2.5 rounded-lg mb-4'>
-            {error}
+          {/* Footer */}
+          <div className='text-center py-2.5'>
+            <span className='text-[10px] text-gray-300'>© 2025 Kappabel</span>
           </div>
-        )}
-
-        <button onClick={handleLogin} disabled={loading}
-          className='w-full py-3 rounded-lg text-white font-semibold text-sm transition hover:opacity-90 disabled:opacity-60'
-          style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-          {loading ? 'Signing in...' : 'Sign In'}
-        </button>
+        </div>
       </div>
 
-      {/* Demo Accounts — collapsible card */}
-      <div className='relative z-10 w-96'>
-        <button onClick={() => setShowDemo(v => !v)}
-          className='w-full flex items-center justify-center gap-2 py-2 text-xs text-white/50 hover:text-white/80 transition'>
-          <span>{showDemo ? '▲' : '▼'}</span>
-          <span>Demo Accounts</span>
-          <span>{showDemo ? '▲' : '▼'}</span>
-        </button>
-
-        {showDemo && (
-          <div className='bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-4 shadow-lg mt-1'>
-            <div className='grid grid-cols-3 gap-x-4 gap-y-1.5 text-xs'>
-              <div className='text-white/40 font-semibold'>Username</div>
-              <div className='text-white/40 font-semibold'>Password</div>
-              <div className='text-white/40 font-semibold'>Role</div>
-              <div className='text-white/80'>👤 employee</div><div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>Employee</div>
-              <div className='text-white/80'>👥 manager</div> <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>Manager</div>
-              <div className='text-white/80'>🗂️ hr</div>       <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>HR</div>
-              <div className='text-white/80'>⚙️ admin</div>    <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>Superadmin</div>
-              <div className='col-span-3 border-t border-white/15 mt-1 pt-2 text-white/40 font-semibold'>Indirect Supervisor</div>
-              <div className='text-white/80'>👥 rizky</div>    <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>CTO (Mgr)</div>
-              <div className='text-white/80'>🗂️ kartika</div>  <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>CHRO (HR)</div>
-              <div className='col-span-3 border-t border-white/15 mt-1 pt-2 text-white/40 font-semibold'>HR Team</div>
-              <div className='text-white/80'>🗂️ bagas</div>   <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>HR Mgr NTK</div>
-              <div className='text-white/80'>🗂️ desi</div>    <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>HR Off NTK</div>
-              <div className='text-white/80'>🗂️ faisal</div>  <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>HR Off NTK</div>
-              <div className='text-white/80'>🗂️ yuliani</div> <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>HR Mgr NFC</div>
-              <div className='text-white/80'>🗂️ hendri</div>  <div className='text-white/60 font-mono'>pass123</div><div className='text-white/50'>HR Off NFC</div>
+      {/* Right: decorative panel */}
+      <div className='hidden md:flex flex-1 items-center justify-center px-12'>
+        {/* Dexa Group 56 anniversary mark */}
+        <div className='text-center select-none'>
+          <div className='flex items-center gap-6'>
+            {/* "56" with ring stripes */}
+            <div className='relative' style={{ width: 140, height: 140 }}>
+              <svg viewBox='0 0 140 140' width='140' height='140' fill='none'>
+                {/* outer rings */}
+                <circle cx='70' cy='70' r='65' stroke='#D7252B' strokeWidth='4' strokeDasharray='8 6' opacity='0.25'/>
+                <circle cx='70' cy='70' r='52' stroke='#D7252B' strokeWidth='5' strokeDasharray='12 6' opacity='0.4'/>
+                <circle cx='70' cy='70' r='38' stroke='#D7252B' strokeWidth='6' opacity='0.6'/>
+                {/* 56 text */}
+                <text x='50%' y='54%' dominantBaseline='middle' textAnchor='middle' fontSize='48' fontWeight='900' fill='#D7252B' fontFamily='Arial,sans-serif'>56</text>
+              </svg>
+            </div>
+            <div className='text-left'>
+              <p className='text-xs font-semibold text-red-700 tracking-widest uppercase mb-1'>dexa group</p>
+              <p className='text-4xl font-black text-gray-900 leading-tight'>Serempak<br/>Bergerak</p>
+              <p className='text-base font-medium text-gray-500 mt-1 italic'>Sinergi untuk masa depan</p>
             </div>
           </div>
-        )}
+        </div>
       </div>
-
     </div>
   )
 }
