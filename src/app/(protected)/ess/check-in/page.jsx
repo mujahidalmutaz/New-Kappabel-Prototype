@@ -78,9 +78,15 @@ export default function EssCheckInPage() {
     setView('list')
   }
 
-  const statusColor = (s) => s === 'Replied'
-    ? 'bg-green-50 text-green-700'
+  const statusColor = (s) =>
+    s === 'Replied' ? 'bg-green-50 text-green-700'
+    : s === 'Manager-Created' ? 'bg-blue-50 text-blue-700'
     : 'bg-yellow-50 text-yellow-700'
+
+  const statusLabel = (s) =>
+    s === 'Replied' ? t('Dibalas', 'Replied')
+    : s === 'Manager-Created' ? t('Dari Atasan', 'From Manager')
+    : t('Menunggu', 'Pending')
 
   return (
     <div>
@@ -189,7 +195,9 @@ export default function EssCheckInPage() {
             </div>
             <div className='flex items-center gap-3'>
               <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${statusColor(selected.status)}`}>
-                {selected.status === 'Replied' ? t('Sudah Dibalas', 'Replied') : t('Menunggu Balasan', 'Awaiting Reply')}
+                {selected.status === 'Replied' ? t('Sudah Dibalas', 'Replied')
+                  : selected.status === 'Manager-Created' ? t('Dari Atasan', 'From Manager')
+                  : t('Menunggu Balasan', 'Awaiting Reply')}
               </span>
               <button onClick={() => setView('list')} className='text-sm text-gray-400 hover:text-gray-600'>
                 ← {t('Kembali', 'Back')}
@@ -252,7 +260,7 @@ export default function EssCheckInPage() {
                   </div>
                   <div className='flex items-center gap-3 shrink-0'>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${statusColor(h.status)}`}>
-                      {h.status === 'Replied' ? t('Dibalas', 'Replied') : t('Menunggu', 'Pending')}
+                      {statusLabel(h.status)}
                     </span>
                     <span className='text-gray-300'>›</span>
                   </div>
