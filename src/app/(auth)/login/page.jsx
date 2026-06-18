@@ -73,7 +73,7 @@ export default function LoginPage() {
               <p className='text-sm text-gray-400'>Welcome!</p>
               <button onClick={() => setShowDemo(v => !v)}
                 className='flex items-center gap-1.5 text-xs text-gray-400 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:border-gray-400 transition'>
-                Demo Account
+                Demo Accounts
               </button>
             </div>
 
