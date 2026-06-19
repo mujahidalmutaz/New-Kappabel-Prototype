@@ -71,11 +71,21 @@ export default function ProtectedLayout({ children }) {
       const isAction = ACTION_KEYWORDS.some(kw => lower.includes(kw))
       if (!isAction) return
 
-      // Small delay so the page's own handler fires first
+      // Small delay so the page's own handler fires first.
+      // If a page-level error flash appeared, or 'action-failed' event was dispatched, skip toast.
+      let cancelled = false
+      const cancelFn = () => { cancelled = true }
+      window.addEventListener('action-failed', cancelFn, { once: true })
+
       setTimeout(() => {
+        window.removeEventListener('action-failed', cancelFn)
+        if (cancelled) return
+        // Check if a page-level error message appeared (flash error renders with bg-red-50 text-red-600)
+        const errorFlash = document.querySelector('.bg-red-50.text-red-600, .bg-red-50.text-red-700')
+        if (errorFlash && errorFlash.textContent.trim()) return
         const cfg = getToastConfig(raw)
         showToast(cfg.msg, cfg.type)
-      }, 300)
+      }, 400)
     }
 
     document.addEventListener('click', handler)
