@@ -29,10 +29,36 @@ const ORIENTATIONS = ['Landscape', 'Portrait']
 const FONTS        = ['Georgia, serif', 'Arial, sans-serif', 'Times New Roman, serif', '"Courier New", monospace', 'Verdana, sans-serif']
 const FONT_LABELS  = ['Georgia', 'Arial', 'Times New Roman', 'Courier New', 'Verdana']
 
+const DUMMY_DATA = {
+  '[[learner_name]]':       'Budi Santoso',
+  '[[nik]]':                '10045',
+  '[[position]]':           'Senior Engineer',
+  '[[department]]':         'Technology',
+  '[[company_name]]':       'PT Kappabel Maju Bersama',
+  '[[course_name]]':        'Leadership Fundamentals',
+  '[[course_code]]':        'LDR-2025-01',
+  '[[training_hours]]':     '16 Jam',
+  '[[completion_date]]':    '20 Juni 2025',
+  '[[score]]':              '92',
+  '[[grade]]':              'A',
+  '[[validity_date]]':      '20 Juni 2026',
+  '[[certificate_number]]': 'CERT/2025/0042',
+  '[[approver_name]]':      'Siti Rahayu',
+  '[[approver_title]]':     'Direktur SDM',
+  '[[issue_date]]':         '20 Juni 2025',
+  '[[period]]':             'Juni 2025',
+}
+
+function applyDummy(text) {
+  if (!text) return text
+  return Object.entries(DUMMY_DATA).reduce((t, [k, v]) => t.replaceAll(k, v), text)
+}
+
 const EMPTY_TPL = {
   name: '', type: CERT_TYPES[0], orientation: 'Landscape',
   backgroundImageUrl: null, uploadFileName: null,
   elements: [], showCertNo: false, signatoryIds: [],
+  certNumberFormat: 'CERT/[[YYYY]]/[[SEQ:4]]',
   validityMonths: 0, notes: '', status: 'Draft',
 }
 
@@ -359,12 +385,13 @@ function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories
 // ─── Canvas Editor ─────────────────────────────────────────────────────────────
 function CanvasEditor({ tpl, onSave, onCancel }) {
   const { signatories } = useCertificateStore()
-  const [form,       setForm      ] = useState({ ...tpl, elements: tpl.elements ? [...tpl.elements] : [], signatoryIds: tpl.signatoryIds || [] })
-  const [selectedId, setSelectedId] = useState(null)
-  const [dragging,   setDragging  ] = useState(null)
-  const [editingId,  setEditingId ] = useState(null)
-  const [tab,        setTab       ] = useState('elements')
-  const [msg,        setMsg       ] = useState(null)
+  const [form,        setForm      ] = useState({ ...tpl, elements: tpl.elements ? [...tpl.elements] : [], signatoryIds: tpl.signatoryIds || [], certNumberFormat: tpl.certNumberFormat || 'CERT/[[YYYY]]/[[SEQ:4]]' })
+  const [selectedId,  setSelectedId] = useState(null)
+  const [dragging,    setDragging  ] = useState(null)
+  const [editingId,   setEditingId ] = useState(null)
+  const [tab,         setTab       ] = useState('elements')
+  const [msg,         setMsg       ] = useState(null)
+  const [previewMode, setPreviewMode] = useState(false)
   const canvasRef   = useRef()
   const bgRef       = useRef()
   const textareaRef = useRef()
@@ -406,9 +433,21 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
 
   // ── Elements ───────────────────────────────────────────────────────────────
   const addText = () => {
-    const el = { id: Date.now(), type: 'text', content: 'Teks baru', x: 10, y: 10, fontSize: 14, color: '#1f2937', bold: false, italic: false, align: 'left', fontFamily: FONTS[0] }
+    const el = { id: Date.now(), type: 'text', content: 'Teks baru', x: 10, y: 10, fontSize: 14, color: '#1f2937', bold: false, italic: false, align: 'left', fontFamily: FONTS[0], wrap: false }
     setForm(p => ({ ...p, elements: [...p.elements, el] }))
     setSelectedId(el.id); setTab('props')
+  }
+
+  const imgUploadRef = useRef()
+  const addImageElement = (file) => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = e => {
+      const el = { id: Date.now(), type: 'image', src: e.target.result, x: 10, y: 10, widthPct: 20 }
+      setForm(p => ({ ...p, elements: [...p.elements, el] }))
+      setSelectedId(el.id); setTab('props')
+    }
+    reader.readAsDataURL(file)
   }
 
   // Insert variable string at textarea cursor position
@@ -483,7 +522,7 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     onSave({ ...form, status })
   }
 
-  const elemIcon = (el) => el.type === 'signature' ? '✍️' : 'T'
+  const elemIcon = (el) => el.type === 'signature' ? '✍' : el.type === 'image' ? '🖼' : 'T'
 
   return (
     <div className='fixed inset-0 z-50 bg-gray-900 flex flex-col' style={{ fontFamily: 'system-ui, sans-serif' }}>
@@ -512,6 +551,10 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
         )}
 
         <div className='flex gap-2'>
+          <button onClick={() => setPreviewMode(p => !p)}
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${previewMode ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
+            {previewMode ? '✕ Tutup Preview' : '👁 Preview'}
+          </button>
           <button onClick={() => handleSave('Draft')}
             className='px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition'>
             Simpan Draft
@@ -519,10 +562,16 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
           <button onClick={() => handleSave('Active')}
             className='px-4 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90 transition'
             style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-            ✅ Aktifkan
+            Aktifkan
           </button>
         </div>
       </div>
+
+      {previewMode && (
+        <div className='bg-blue-600 text-white text-xs font-semibold text-center py-1.5 shrink-0'>
+          Mode Preview — variabel diganti dengan data contoh. Klik "Tutup Preview" untuk kembali mengedit.
+        </div>
+      )}
 
       <div className='flex flex-1 overflow-hidden'>
 
@@ -543,16 +592,22 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
             {/* ── Elements tab ── */}
             {tab === 'elements' && (
               <>
-                <div className='grid grid-cols-2 gap-2'>
+                <div className='grid grid-cols-3 gap-2'>
                   <button onClick={addText}
                     className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-red-300 hover:bg-red-50 transition text-gray-500 hover:text-red-600'>
-                    <span className='text-xl'>T</span>
-                    <span className='text-[10px] font-semibold'>Tambah Teks</span>
+                    <span className='text-xl font-bold'>T</span>
+                    <span className='text-[10px] font-semibold'>Teks</span>
+                  </button>
+                  <button onClick={() => imgUploadRef.current?.click()}
+                    className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition text-gray-500 hover:text-blue-600'>
+                    <input ref={imgUploadRef} type='file' accept='image/*' className='hidden' onChange={e => addImageElement(e.target.files[0])} />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span className='text-[10px] font-semibold'>Gambar</span>
                   </button>
                   <button onClick={() => setTab('sign')}
                     className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-amber-300 hover:bg-amber-50 transition text-gray-500 hover:text-amber-600'>
-                    <span className='text-xl'>✍️</span>
-                    <span className='text-[10px] font-semibold'>Tanda Tangan</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+                    <span className='text-[10px] font-semibold'>TTD</span>
                   </button>
                 </div>
 
@@ -646,16 +701,22 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                       </div>
                     </div>
 
-                    {selected.type === 'signature' && (
+                    {(selected.type === 'signature' || selected.type === 'image') && (
                       <>
                         <div className='bg-gray-50 rounded-xl p-3'>
                           {selected.src
-                            ? <img src={selected.src} alt='ttd' className='max-h-16 object-contain' />
-                            : <span className='text-gray-300 text-xs italic'>Tidak ada gambar</span>}
+                            ? <img src={selected.src} alt='' className='max-h-16 object-contain' />
+                            : <span className='text-gray-300 text-xs italic'>Belum ada gambar</span>}
                         </div>
+                        {selected.type === 'image' && (
+                          <button onClick={() => imgUploadRef.current?.click()}
+                            className='w-full py-2 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition'>
+                            Ganti Gambar
+                          </button>
+                        )}
                         <div>
                           <label className='block text-[10px] font-bold text-gray-500 mb-1'>Lebar (%)</label>
-                          <input type='number' min='5' max='50' value={selected.widthPct || 15}
+                          <input type='number' min='5' max='80' value={selected.widthPct || 15}
                             onChange={e => updateEl(selected.id, 'widthPct', Number(e.target.value))}
                             className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
                         </div>
@@ -732,10 +793,14 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                           {['left','center','right'].map(a => (
                             <button key={a} onClick={() => updateEl(selected.id, 'align', a)}
                               className={`flex-1 py-2 text-xs rounded-lg border transition ${selected.align===a?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                              {a==='left'?'⬅':a==='center'?'⬛':'➡'}
+                              {a==='left'?'←':a==='center'?'≡':'→'}
                             </button>
                           ))}
                         </div>
+                        <button onClick={() => updateEl(selected.id, 'wrap', !selected.wrap)}
+                          className={`w-full py-2 text-xs rounded-lg border transition font-semibold ${selected.wrap?'border-blue-400 bg-blue-50 text-blue-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                          {selected.wrap ? '↵ Word Wrap: ON' : '→ Word Wrap: OFF'}
+                        </button>
                       </>
                     )}
                   </div>
@@ -769,6 +834,13 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                       </button>
                     ))}
                   </div>
+                </div>
+                <div>
+                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Format Nomor Sertifikat</label>
+                  <input value={form.certNumberFormat || ''} onChange={e => setF('certNumberFormat', e.target.value)}
+                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 font-mono'
+                    placeholder='CERT/[[YYYY]]/[[SEQ:4]]' />
+                  <p className='text-[10px] text-gray-400 mt-1'>Token: <code>[[YYYY]]</code> tahun · <code>[[MM]]</code> bulan · <code>[[SEQ:4]]</code> nomor urut 4 digit</p>
                 </div>
                 <div>
                   <label className='block text-[10px] font-bold text-gray-500 mb-1'>Masa Berlaku (bulan, 0 = selamanya)</label>
@@ -814,36 +886,30 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                 draggable={false} />
 
               {form.elements.map(el => {
-                if (el.type === 'signature') {
+                const isSelected = selectedId === el.id
+                const dragCursor = dragging?.id === el.id ? 'grabbing' : 'grab'
+                const selOutline = isSelected ? '1.5px dashed #D7252B' : '1.5px dashed transparent'
+                const dragLabel  = <span style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', fontSize:9, color:'#D7252B', background:'white', padding:'1px 4px', borderRadius:3, border:'1px solid #fca5a5', whiteSpace:'nowrap', pointerEvents:'none' }}>✥ drag</span>
+
+                if (el.type === 'signature' || el.type === 'image') {
                   return (
                     <div key={el.id}
                       onMouseDown={e => onElemMouseDown(e, el.id)}
-                      style={{
-                        position: 'absolute',
-                        left: `${el.x}%`,
-                        top:  `${el.y}%`,
-                        width: `${el.widthPct || 15}%`,
-                        cursor: dragging?.id === el.id ? 'grabbing' : 'grab',
-                        outline: selectedId === el.id ? '1.5px dashed #D7252B' : '1.5px dashed transparent',
-                        outlineOffset: 3,
-                        zIndex: selectedId === el.id ? 10 : 1,
-                      }}>
+                      style={{ position:'absolute', left:`${el.x}%`, top:`${el.y}%`, width:`${el.widthPct||15}%`, cursor:dragCursor, outline:selOutline, outlineOffset:3, zIndex:isSelected?10:1 }}>
                       {el.src
-                        ? <img src={el.src} alt='signature' className='w-full h-auto' draggable={false} />
-                        : <div className='w-full h-10 border border-dashed border-gray-400 flex items-center justify-center text-xs text-gray-400'>✍️</div>}
-                      {selectedId === el.id && (
-                        <span style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', fontSize:9, color:'#D7252B', background:'white', padding:'1px 4px', borderRadius:3, border:'1px solid #fca5a5', whiteSpace:'nowrap', pointerEvents:'none' }}>
-                          ✥ drag
-                        </span>
-                      )}
+                        ? <img src={el.src} alt='' className='w-full h-auto' draggable={false} />
+                        : <div className='w-full h-10 border border-dashed border-gray-400 flex items-center justify-center text-xs text-gray-400'>{el.type==='signature'?'Tanda Tangan':'Gambar'}</div>}
+                      {isSelected && !previewMode && dragLabel}
                     </div>
                   )
                 }
 
+                const displayContent = previewMode ? applyDummy(el.content) : el.content
+
                 return (
                   <div key={el.id}
-                    onMouseDown={e => onElemMouseDown(e, el.id)}
-                    onDoubleClick={e => { e.stopPropagation(); if (el.type === 'text') setEditingId(el.id) }}
+                    onMouseDown={e => previewMode ? null : onElemMouseDown(e, el.id)}
+                    onDoubleClick={e => { if (previewMode) return; e.stopPropagation(); if (el.type === 'text') setEditingId(el.id) }}
                     style={{
                       position:  'absolute',
                       left:      `${el.x}%`,
@@ -854,17 +920,18 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                       fontStyle:   el.italic ? 'italic' : 'normal',
                       textAlign:   el.align || 'left',
                       fontFamily:  el.fontFamily || 'Georgia, serif',
-                      cursor:      dragging?.id === el.id ? 'grabbing' : 'grab',
+                      cursor:      previewMode ? 'default' : dragCursor,
                       userSelect:  'none',
-                      whiteSpace:  'nowrap',
-                      outline:     selectedId === el.id ? '1.5px dashed #D7252B' : '1.5px dashed transparent',
+                      whiteSpace:  el.wrap ? 'pre-wrap' : 'nowrap',
+                      maxWidth:    el.wrap ? '40%' : undefined,
+                      outline:     previewMode ? 'none' : selOutline,
                       outlineOffset: '3px',
                       padding:     '2px 4px',
                       borderRadius: 2,
-                      background:  selectedId === el.id ? 'rgba(215,37,43,0.06)' : 'transparent',
-                      zIndex:      selectedId === el.id ? 10 : 1,
+                      background:  (!previewMode && isSelected) ? 'rgba(215,37,43,0.06)' : 'transparent',
+                      zIndex:      isSelected ? 10 : 1,
                     }}>
-                    {editingId === el.id ? (
+                    {editingId === el.id && !previewMode ? (
                       <input
                         autoFocus
                         value={el.content}
@@ -872,24 +939,12 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                         onBlur={() => setEditingId(null)}
                         onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingId(null) }}
                         onClick={e => e.stopPropagation()}
-                        style={{
-                          fontSize:   el.fontSize,
-                          color:      el.color,
-                          fontWeight: el.bold   ? 700 : 400,
-                          fontStyle:  el.italic ? 'italic' : 'normal',
-                          fontFamily: el.fontFamily,
-                          background: 'rgba(255,255,255,0.9)',
-                          border:     '1px solid #D7252B',
-                          outline:    'none',
-                          borderRadius: 2,
-                          padding:    '1px 4px',
-                          minWidth:   80,
-                        }}
+                        style={{ fontSize:el.fontSize, color:el.color, fontWeight:el.bold?700:400, fontStyle:el.italic?'italic':'normal', fontFamily:el.fontFamily, background:'rgba(255,255,255,0.9)', border:'1px solid #D7252B', outline:'none', borderRadius:2, padding:'1px 4px', minWidth:80 }}
                       />
-                    ) : el.content}
-                    {selectedId === el.id && (
+                    ) : displayContent}
+                    {isSelected && !previewMode && (
                       <span style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', fontSize:9, color:'#D7252B', background:'white', padding:'1px 4px', borderRadius:3, border:'1px solid #fca5a5', whiteSpace:'nowrap', pointerEvents:'none' }}>
-                        ✥ drag {el.type==='text'?'· dbl-click edit':''}
+                        ✥ drag · dbl-click edit
                       </span>
                     )}
                   </div>
@@ -900,24 +955,24 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
         </div>
 
         {/* ── Right mini panel ───────────────────────────────────────────────── */}
-        <div className='w-14 bg-gray-900 flex flex-col items-center py-4 gap-3 shrink-0'>
-          {[
-            { icon:'T',   label:'Teks', action: addText },
-            { icon:'✍️',  label:'TTD',  action: () => setTab('sign') },
-            { icon:'📤',  label:'BG',   action: () => bgRef.current?.click() },
-          ].map(item => (
-            <button key={item.icon} onClick={item.action} title={item.label}
-              className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white text-xs font-bold transition'>
-              {item.icon}
+        {!previewMode && (
+          <div className='w-14 bg-gray-900 flex flex-col items-center py-4 gap-3 shrink-0'>
+            <button onClick={addText} title='Tambah Teks'
+              className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white text-xs font-bold transition'>T</button>
+            <button onClick={() => imgUploadRef.current?.click()} title='Tambah Gambar'
+              className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white transition'>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             </button>
-          ))}
-          {selectedId && (
-            <button onClick={() => deleteEl(selectedId)} title='Hapus elemen terpilih'
-              className='w-10 h-10 rounded-xl bg-red-900 hover:bg-red-700 flex items-center justify-center text-white text-xs transition'>
-              🗑
-            </button>
-          )}
-        </div>
+            <button onClick={() => setTab('sign')} title='Tanda Tangan'
+              className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white text-xs font-bold transition'>✍</button>
+            <button onClick={() => bgRef.current?.click()} title='Background'
+              className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white text-xs font-bold transition'>BG</button>
+            {selectedId && (
+              <button onClick={() => deleteEl(selectedId)} title='Hapus elemen terpilih'
+                className='w-10 h-10 rounded-xl bg-red-900 hover:bg-red-700 flex items-center justify-center text-white text-xs transition'>✕</button>
+            )}
+          </div>
+        )}
 
       </div>
     </div>
