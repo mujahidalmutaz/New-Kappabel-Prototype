@@ -338,18 +338,17 @@ export default function Sidebar() {
   const canSA  = r === 'superadmin'
   const canMgr = r === 'manager' || r === 'superadmin' || employees.some(e => e.managerId === currentUser?.id)
 
+  const initialized = useRef(false)
   const [openId, setOpenId] = useState(null)
 
   useEffect(() => {
-    setOpenId(prev => {
-      if (prev !== null) return prev
-      if (pathname.startsWith('/ess/learning') || pathname.startsWith('/mss/learning')) return 'lms'
-      if (pathname.startsWith('/ess'))      return 'ess'
-      if (pathname.startsWith('/mss'))      return 'mss'
-      if (pathname.startsWith('/hr'))       return 'hr'
-      if (pathname.startsWith('/sysadmin')) return 'sysadmin'
-      return null
-    })
+    if (initialized.current) return
+    initialized.current = true
+    if (pathname.startsWith('/ess/learning') || pathname.startsWith('/mss/learning')) setOpenId('lms')
+    else if (pathname.startsWith('/ess'))      setOpenId('ess')
+    else if (pathname.startsWith('/mss'))      setOpenId('mss')
+    else if (pathname.startsWith('/hr'))       setOpenId('hr')
+    else if (pathname.startsWith('/sysadmin')) setOpenId('sysadmin')
   }, [pathname])
 
   useEffect(() => {
