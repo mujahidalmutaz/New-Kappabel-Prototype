@@ -146,12 +146,12 @@ function FlyGroup({ title, icon, items, isParent, subGroups, isSubGroup, onClose
 // ─── Navigation data ──────────────────────────────────────────────────────────
 const ESS_GROUPS = [
   { title: 'Personal', icon: '👤', items: [
+    { label: 'My Profile',           href: '/ess/profile',        icon: ic('user') },
     { label: 'Apply Leave',          href: '/ess/apply-leave',    icon: ic('calendar') },
     { label: 'Leave Balance',        href: '/ess/leave-balance',  icon: ic('briefcase') },
     { label: 'Attendance',           href: '/ess/attendance',     icon: ic('clock') },
     { label: 'Payslip',              href: '/ess/payslip',        icon: ic('money') },
     { label: 'My Onboarding',        href: '/ess/onboarding',     icon: ic('checkCircle') },
-    { label: 'My Profile',           href: '/ess/profile',        icon: ic('user') },
   ]},
   { title: 'Performance', icon: '🎯', items: [
     { label: 'Performance Check-In', href: '/ess/check-in',       icon: ic('gauge') },
@@ -423,7 +423,7 @@ export default function Sidebar() {
           <div className='py-3 px-1'>
             {activeSec.groups?.map((g, i) => (
               <FlyGroup key={i} title={g.title} icon={g.icon} items={g.items}
-                isParent={g.isParent} subGroups={g.subGroups} onClose={() => {}} />
+                isParent={g.isParent} subGroups={g.subGroups} onClose={() => setOpenId(null)} />
             ))}
           </div>
         </div>
