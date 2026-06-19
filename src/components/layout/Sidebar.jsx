@@ -352,8 +352,7 @@ export default function Sidebar() {
       {openId && openId !== 'dashboard' && activeSec && (
         <div ref={flyoutRef}
           className='fixed left-14 bottom-0 z-30 overflow-y-auto'
-          style={{ top: topOffset }}
-          style={{ width: 260, background: '#fff', borderRight: '1px solid #e5e7eb', boxShadow: '4px 0 16px rgba(0,0,0,0.08)' }}>
+          style={{ top: topOffset, width: 260, background: '#fff', borderRight: '1px solid #e5e7eb', boxShadow: '4px 0 16px rgba(0,0,0,0.08)' }}>
 
           {/* Panel header */}
           <div className='sticky top-0 bg-white z-10 flex items-center justify-between px-4 py-3'
