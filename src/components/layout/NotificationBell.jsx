@@ -4,6 +4,9 @@ import { useAuthStore }       from '@/store/authStore'
 import { useEmployeeStore }   from '@/store/employeeStore'
 import { useLeaveStore }      from '@/store/leaveStore'
 import { useOnboardingStore } from '@/store/onboardingStore'
+import { useHayStore }        from '@/store/hayStore'
+import { useVipStore }        from '@/store/vipStore'
+import { usePipStore }        from '@/store/pipStore'
 import { useT } from '@/store/languageStore'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -313,6 +316,9 @@ export default function NotificationBell() {
   const { employees }                                          = useEmployeeStore()
   const { leaves,     approveStep: leaveApprove, rejectStep: leaveReject } = useLeaveStore()
   const { onboardings, approveStep: obApprove,   rejectStep: obReject    } = useOnboardingStore()
+  const { sessions: haySessions }  = useHayStore()
+  const { sessions: vipSessions }  = useVipStore()
+  const { sessions: pipSessions }  = usePipStore()
 
   const [open,       setOpen      ] = useState(false)
   const [readIds,    setReadIds   ] = useState([])
@@ -385,6 +391,93 @@ export default function NotificationBell() {
           at: o.submittedAt, type: 'onboarding', recordId: o.id,
         })
       })
+
+    // ── HAY (Performance Check-In) ──────────────────────────────────────────
+    haySessions
+      .filter(h => h.status === 'Pending Manager' && h.managerId === uid)
+      .forEach(h => {
+        notifications.push({
+          id: `hay-mgr-${h.id}`,
+          icon: '📝',
+          text: t(
+            `${h.employeeName} telah mengisi formulir HAY Check-In dan menunggu tanggapan Anda.`,
+            `${h.employeeName} has submitted a HAY Check-In form awaiting your response.`,
+          ),
+          at: h.submittedAt, type: 'hay', recordId: h.id, href: '/mss/check-in',
+        })
+      })
+
+    haySessions
+      .filter(h => h.status === 'Pending Employee' && h.employeeId === uid)
+      .forEach(h => {
+        notifications.push({
+          id: `hay-emp-${h.id}`,
+          icon: '📝',
+          text: t(
+            `Atasan Anda (${h.managerName}) telah mengisi HAY Check-In. Giliran Anda untuk mengisi.`,
+            `Your manager (${h.managerName}) has responded to the HAY Check-In. Your turn to fill in.`,
+          ),
+          at: h.managerFilledAt, type: 'hay', recordId: h.id, href: '/ess/check-in',
+        })
+      })
+
+    haySessions
+      .filter(h => h.status === 'Completed' && h.employeeId === uid && h.managerFilledAt)
+      .forEach(h => {
+        notifications.push({
+          id: `hay-done-${h.id}`,
+          icon: '✅',
+          text: t(
+            `Sesi HAY Check-In "${h.date}" telah selesai diisi oleh kedua pihak.`,
+            `HAY Check-In session "${h.date}" has been completed by both parties.`,
+          ),
+          at: h.managerFilledAt, type: 'hay', recordId: h.id, href: '/ess/check-in',
+        })
+      })
+
+    // ── VIP (Performance Goal Check-In) ────────────────────────────────────
+    vipSessions
+      .filter(v => v.managerId === uid)
+      .forEach(v => {
+        notifications.push({
+          id: `vip-mgr-${v.id}`,
+          icon: '🎯',
+          text: t(
+            `${v.employeeName} telah mengisi VIP Goal Check-In "${v.name}" dan perlu ditinjau.`,
+            `${v.employeeName} submitted VIP Goal Check-In "${v.name}" and it needs your review.`,
+          ),
+          at: v.submittedAt, type: 'vip', recordId: v.id, href: '/mss/check-in',
+        })
+      })
+
+    // ── PIP (Performance Improvement Plan) ─────────────────────────────────
+    pipSessions
+      .filter(p => p.status === 'Pending Approval' && p.managerId === uid)
+      .forEach(p => {
+        notifications.push({
+          id: `pip-mgr-${p.id}`,
+          icon: '⚠️',
+          text: t(
+            `PIP untuk ${p.employeeName} menunggu persetujuan Anda.`,
+            `PIP for ${p.employeeName} is awaiting your approval.`,
+          ),
+          at: p.submittedAt, type: 'pip', recordId: p.id, href: '/mss/check-in',
+        })
+      })
+
+    pipSessions
+      .filter(p => p.status === 'Approved' && p.employeeId === uid)
+      .forEach(p => {
+        notifications.push({
+          id: `pip-approved-${p.id}`,
+          icon: '📄',
+          text: t(
+            `PIP Anda telah disetujui oleh ${p.managerName}.`,
+            `Your PIP has been approved by ${p.managerName}.`,
+          ),
+          at: p.approvedAt, type: 'pip', recordId: p.id, href: '/ess/check-in',
+        })
+      })
   }
 
   notifications.sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0))
@@ -395,6 +488,12 @@ export default function NotificationBell() {
 
   const handleItemClick = (n) => {
     setReadIds(ids => ids.includes(n.id) ? ids : [...ids, n.id])
+    // For types with a direct href (HAY/VIP/PIP), navigate instead of opening popup
+    if (n.href && n.type !== 'leave' && n.type !== 'onboarding') {
+      setOpen(false)
+      window.location.href = n.href
+      return
+    }
     setActiveItem(n)
     setOpen(false)
   }
