@@ -409,6 +409,10 @@ export default function EmployeeDataPage() {
                     </>
                   ) : (
                     <>
+                      <button onClick={() => router.push(`/hr/employee/${emp.id}`)}
+                        className='px-4 py-2 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-100 transition flex items-center gap-1.5'>
+                        👤 <span>{t('Profil Lengkap', 'Full Profile')}</span>
+                      </button>
                       <button onClick={() => router.push(`/hr/org-chart?focus=${emp.id}`)}
                         className='px-4 py-2 bg-green-50 text-green-700 text-xs font-semibold rounded-lg hover:bg-green-100 transition flex items-center gap-1.5'>
                         🌳 <span>Org Chart</span>

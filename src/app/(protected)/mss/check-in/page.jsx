@@ -1,11 +1,12 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useT } from '@/store/languageStore'
 import { useAuthStore } from '@/store/authStore'
 import { useHayStore } from '@/store/hayStore'
 import { useVipStore } from '@/store/vipStore'
 import { usePipStore, PERNYATAAN } from '@/store/pipStore'
 import { useEmployeeStore } from '@/store/employeeStore'
+import { useStructureStore } from '@/store/structureStore'
 
 const EMPTY_HAY = { topic: '', goal: '', reality: '', options: '', wayForward: '' }
 const HAY_FIELDS = [
@@ -45,6 +46,8 @@ export default function MssCheckInPage() {
   const { getByManager: getVipByManager } = useVipStore()
   const { submitPip, getByManager: getPipByManager } = usePipStore()
 
+  const { departments, positions } = useStructureStore()
+
   const mid = currentUser?.id || 2
 
   /* ── tab: 'hay' | 'vip' | 'pip' ─────────────────────────────────── */
@@ -81,6 +84,22 @@ export default function MssCheckInPage() {
     selectedEmpId: '',
   }
   const [pipForm, setPipForm] = useState(EMPTY_PIP)
+
+  useEffect(() => {
+    if (!pipForm.selectedEmpId) return
+    const emp = employees.find(e => String(e.id) === pipForm.selectedEmpId)
+    if (!emp) return
+    const deptName = departments.find(d => d.id === emp.departmentId)?.name || ''
+    const posName  = positions.find(p => p.id === emp.positionId)?.name || ''
+    const mgr      = employees.find(e => e.id === emp.managerId)
+    setPipForm(f => ({
+      ...f,
+      employeeDept:     deptName,
+      employeePosition: posName,
+      employeeIdNo:     emp.nik || '',
+      managerIdNo:      mgr?.nik || '',
+    }))
+  }, [pipForm.selectedEmpId, employees, departments, positions])
 
   const [msg, setMsg] = useState(null)
   const flash = (text, type = 'success') => { setMsg({ text, type }); setTimeout(() => setMsg(null), 3500) }
@@ -589,17 +608,17 @@ export default function MssCheckInPage() {
                 <div>
                   <label className='block text-xs font-bold text-gray-600 mb-1'>{t('Departemen', 'Department')}</label>
                   <input value={pipForm.employeeDept} onChange={e => setPipForm(f => ({ ...f, employeeDept: e.target.value }))}
-                    className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 transition' />
+                    className={`w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-red-400 transition ${pipForm.employeeDept ? 'border-blue-200 bg-blue-50/40' : 'border-gray-200'}`} />
                 </div>
                 <div>
                   <label className='block text-xs font-bold text-gray-600 mb-1'>Employee ID {t('Atasan', 'Manager')}</label>
                   <input value={pipForm.managerIdNo} onChange={e => setPipForm(f => ({ ...f, managerIdNo: e.target.value }))}
-                    className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 transition' />
+                    className={`w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-red-400 transition ${pipForm.managerIdNo ? 'border-blue-200 bg-blue-50/40' : 'border-gray-200'}`} />
                 </div>
                 <div>
                   <label className='block text-xs font-bold text-gray-600 mb-1'>{t('Posisi', 'Position')}</label>
                   <input value={pipForm.employeePosition} onChange={e => setPipForm(f => ({ ...f, employeePosition: e.target.value }))}
-                    className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 transition' />
+                    className={`w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-red-400 transition ${pipForm.employeePosition ? 'border-blue-200 bg-blue-50/40' : 'border-gray-200'}`} />
                 </div>
                 <div>
                   <label className='block text-xs font-bold text-gray-600 mb-1'>{t('Tanggal Mulai PIP', 'PIP Start Date')} *</label>
@@ -609,7 +628,7 @@ export default function MssCheckInPage() {
                 <div>
                   <label className='block text-xs font-bold text-gray-600 mb-1'>Employee ID {t('Pekerja', 'Employee')}</label>
                   <input value={pipForm.employeeIdNo} onChange={e => setPipForm(f => ({ ...f, employeeIdNo: e.target.value }))}
-                    className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 transition' />
+                    className={`w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-red-400 transition ${pipForm.employeeIdNo ? 'border-blue-200 bg-blue-50/40' : 'border-gray-200'}`} />
                 </div>
                 <div>
                   <label className='block text-xs font-bold text-gray-600 mb-1'>{t('Tanggal Akhir PIP', 'PIP End Date')} *</label>
