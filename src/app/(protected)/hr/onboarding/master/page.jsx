@@ -498,13 +498,7 @@ export default function MasterOnboardingPage() {
                   <span className='text-xs font-semibold text-gray-400 uppercase tracking-wide flex-shrink-0'>
                     Main Section
                   </span>
-                  <select
-                    value={ms.type}
-                    onChange={e => setForm(f => ({ ...f, mainSections: f.mainSections.map(s => s.id === ms.id ? { ...s, type: e.target.value } : s) }))}
-                    className='text-sm font-bold text-gray-800 bg-transparent border-0 border-b border-gray-300 outline-none focus:border-red-400 cursor-pointer pr-1'>
-                    <option value='Materi Induksi General'>Materi Induksi General</option>
-                    <option value='Materi Induksi Teknis'>Materi Induksi Teknis</option>
-                  </select>
+                  <span className='text-sm font-bold text-gray-800'>{ms.type}</span>
                   <span className='text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex-shrink-0'>
                     {ms.items.length} {t('baris','rows')}
                   </span>
