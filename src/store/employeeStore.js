@@ -500,7 +500,7 @@ const SEED_EMPLOYEES = [
     id:16, nik:'EMP016', status:'Active', photo:null,
     companyId:2, divisionId:3, businessUnitId:5, departmentId:6,
     positionId:25, gradeId:20, employmentType:'Permanent',
-    managerId:15, joinDate:'2022-09-01', endDate:'', role:'hr',
+    managerId:2, joinDate:'2022-09-01', endDate:'', role:'hr',
     name:'Hendri Wijaksono', gender:'Male', birthPlace:'Surabaya',
     birthDate:'1993-11-23', nationality:'Indonesian', religion:'Islam',
     maritalStatus:'Single', ktp:'3578012311930001', npwp:'', bpjs: '',

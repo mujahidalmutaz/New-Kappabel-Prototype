@@ -144,6 +144,6 @@ export const useHayStore = create(
       getByManager: (managerId) =>
         get().sessions.filter(h => h.managerId === managerId),
     }),
-    { name: 'hay-store' }
+    { name: 'hay-store-v2' }
   )
 )

@@ -55,6 +55,6 @@ export const useVipStore = create(
       getByManager: (managerId) =>
         get().sessions.filter(s => s.managerId === managerId),
     }),
-    { name: 'vip-store' }
+    { name: 'vip-store-v2' }
   )
 )
