@@ -105,7 +105,7 @@ export default function OnboardingTrackerPage() {
   const t                                           = useT()
   const { currentUser }                             = useAuthStore()
   const { employees }                               = useEmployeeStore()
-  const { positions, departments }                  = useStructureStore()
+  const { positions, departments, companies }        = useStructureStore()
   const { getLevelsForPage }                        = useWorkflowStore()
   const { onboardings, addOnboarding, updateOnboarding,
           deleteOnboarding, submitOnboarding }       = useOnboardingStore()
@@ -118,9 +118,11 @@ export default function OnboardingTrackerPage() {
   const [viewOnly,   setViewOnly  ] = useState(false)
   const [msg,        setMsg       ] = useState(null)
   const [delId,      setDelId     ] = useState(null)
-  const [templateId,    setTemplateId   ] = useState('')
-  const [perTypeTplId,  setPerTypeTplId ] = useState({})
-  const [form,          setForm         ] = useState(null)
+  const [templateId,     setTemplateId   ] = useState('')
+  const [perTypeTplId,   setPerTypeTplId ] = useState({})
+  const [form,           setForm         ] = useState(null)
+  const [autoAssignOpen, setAutoAssignOpen] = useState(false)
+  const [autoAssignRows, setAutoAssignRows] = useState([])
 
   const flash = (text, type = 'success') => {
     setMsg({ text, type })
@@ -239,6 +241,81 @@ export default function OnboardingTrackerPage() {
       setForm(f => ({ ...f, mainSections: [...(f.mainSections ?? []), newSection] }))
     }
     setPerTypeTplId(prev => ({ ...prev, [type]: '' }))
+  }
+
+  const openAutoAssign = () => {
+    const autoTemplates = templates.filter(tpl => tpl.active && tpl.autoAssign)
+    if (autoTemplates.length === 0) {
+      flash(t('Belum ada template dengan Auto Assign aktif. Aktifkan di Master Onboarding.', 'No templates with Auto Assign enabled. Enable it in Master Onboarding.'), 'error')
+      return
+    }
+    const assignedEmpIds = new Set(onboardings.map(o => Number(o.employeeId)))
+    const candidates = employees.filter(e =>
+      e.status === 'Active' && !assignedEmpIds.has(e.id)
+    )
+    const rows = candidates.map(emp => {
+      const dept = departments.find(d => d.id === emp.departmentId)
+      const matched = autoTemplates.find(tpl => {
+        const c = tpl.criteria ?? {}
+        const etOk = !c.employmentTypes?.length || c.employmentTypes.includes(emp.employmentType)
+        const deptOk = !c.departmentIds?.length || c.departmentIds.includes(emp.departmentId)
+        return etOk && deptOk
+      })
+      return { emp, dept, template: matched || null }
+    }).filter(r => r.template !== null)
+    setAutoAssignRows(rows)
+    setAutoAssignOpen(true)
+  }
+
+  const runAutoAssign = () => {
+    const addRuntime = (item) => ({ ...item, id: Math.random(), date: '', completed: false })
+    let count = 0
+    autoAssignRows.forEach(({ emp, template }) => {
+      const supervisor = employees.find(e => e.id === emp.managerId)
+      const dept = departments.find(d => d.id === emp.departmentId)
+
+      let mainSections = (template.mainSections ?? []).filter(ms => ms.type).map(ms => ({
+        ...ms,
+        id: `ms_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+        sections: (ms.sections ?? []).map(s => ({ ...s })),
+        items: (ms.items ?? []).map(addRuntime),
+      }))
+      if (mainSections.length === 0) {
+        const genSec  = (template.generalSections  ?? []).map(s => ({ ...s }))
+        const genItem = (template.generalItems     ?? []).map(addRuntime)
+        const techSec = (template.technicalSections ?? []).map(s => ({ ...s }))
+        const techItem= (template.technicalItems   ?? []).map(addRuntime)
+        if (genItem.length > 0 || genSec.length > 0)
+          mainSections.push({ id: `ms_gen_${Date.now()}_${count}`, type: 'Materi Induksi General', sections: genSec, items: genItem })
+        if (techItem.length > 0 || techSec.length > 0)
+          mainSections.push({ id: `ms_tech_${Date.now()}_${count}`, type: 'Materi Induksi Teknis', sections: techSec, items: techItem })
+      }
+
+      const rawReview = (template.reviewItems ?? []).map(addRuntime)
+      const reviewItems = rawReview.length > 0
+        ? rawReview.map(item => item.isDirectManager
+            ? { ...item, reviewerEmpId: String(supervisor?.id ?? ''), reviewerName: supervisor?.name ?? 'Direct Manager', reviewerPosition: '' }
+            : item)
+        : null
+
+      addOnboarding({
+        employeeId:         emp.id,
+        employeeName:       emp.name,
+        department:         dept?.name ?? '',
+        supervisorName:     supervisor?.name ?? '',
+        supervisorPosition: positions.find(p => p.id === supervisor?.positionId)?.name ?? '',
+        employmentStatus:   'New Hire',
+        probationPeriod:    '3',
+        mainSections,
+        reviewItems,
+        hasilInductionChecked: false,
+        buddyAssignment: { ...BLANK_BUDDY },
+      })
+      count++
+    })
+    setAutoAssignOpen(false)
+    setAutoAssignRows([])
+    flash(t(`${count} onboarding berhasil dibuat secara otomatis.`, `${count} onboarding records created automatically.`))
   }
 
   const handleEmployeeChange = (empId) => {
@@ -938,9 +1015,15 @@ export default function OnboardingTrackerPage() {
         title={t('Onboarding Tracker', 'Onboarding Tracker')}
         subtitle={t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
         actions={
-          <ActionButton icon='+' onClick={openNew}>
-            {t('Tambah Onboarding', 'New Onboarding')}
-          </ActionButton>
+          <div className='flex gap-2'>
+            <button onClick={openAutoAssign}
+              className='flex items-center gap-2 px-4 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition'>
+              ⚡ {t('Auto Assign', 'Auto Assign')}
+            </button>
+            <ActionButton icon='+' onClick={openNew}>
+              {t('Tambah Onboarding', 'New Onboarding')}
+            </ActionButton>
+          </div>
         }
       />
 
@@ -1041,6 +1124,80 @@ export default function OnboardingTrackerPage() {
                 {t('Batal','Cancel')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Auto Assign Modal ── */}
+      {autoAssignOpen && (
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'
+          onClick={() => setAutoAssignOpen(false)}>
+          <div className='bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col'
+            onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className='px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0'>
+              <div>
+                <h2 className='text-base font-bold text-gray-800'>⚡ {t('Auto Assign Onboarding','Auto Assign Onboarding')}</h2>
+                <p className='text-xs text-gray-400 mt-0.5'>
+                  {autoAssignRows.length === 0
+                    ? t('Semua karyawan aktif sudah memiliki onboarding atau tidak ada template yang cocok.', 'All active employees already have onboarding or no matching template found.')
+                    : t(`${autoAssignRows.length} karyawan akan dibuatkan onboarding secara otomatis.`, `${autoAssignRows.length} employees will be assigned onboarding automatically.`)}
+                </p>
+              </div>
+              <button onClick={() => setAutoAssignOpen(false)} className='text-gray-400 hover:text-gray-600 text-lg'>✕</button>
+            </div>
+
+            {/* Body */}
+            <div className='flex-1 overflow-y-auto px-6 py-4'>
+              {autoAssignRows.length === 0 ? (
+                <div className='text-center py-10 text-gray-400 text-sm'>
+                  {t('Tidak ada karyawan yang perlu di-assign.', 'No employees need to be assigned.')}
+                </div>
+              ) : (
+                <table className='w-full text-xs'>
+                  <thead>
+                    <tr className='border-b border-gray-100'>
+                      <th className='text-left py-2 px-2 font-semibold text-gray-500'>Karyawan</th>
+                      <th className='text-left py-2 px-2 font-semibold text-gray-500'>Department</th>
+                      <th className='text-left py-2 px-2 font-semibold text-gray-500'>{t('Tipe','Type')}</th>
+                      <th className='text-left py-2 px-2 font-semibold text-gray-500'>Template</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {autoAssignRows.map(({ emp, dept, template }) => (
+                      <tr key={emp.id} className='border-b border-gray-50 hover:bg-gray-50'>
+                        <td className='py-2 px-2'>
+                          <div className='font-semibold text-gray-800'>{emp.name}</div>
+                          <div className='text-gray-400'>{emp.nik}</div>
+                        </td>
+                        <td className='py-2 px-2 text-gray-600'>{dept?.name || '—'}</td>
+                        <td className='py-2 px-2'>
+                          <span className='px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs'>{emp.employmentType || '—'}</span>
+                        </td>
+                        <td className='py-2 px-2'>
+                          <span className='px-2 py-0.5 bg-blue-50 text-blue-700 font-semibold rounded-full'>{template.name}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Footer */}
+            {autoAssignRows.length > 0 && (
+              <div className='px-6 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0'>
+                <button onClick={runAutoAssign}
+                  className='flex-1 py-2.5 text-sm font-semibold text-white rounded-xl hover:opacity-90 transition'
+                  style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                  ⚡ {t(`Buat ${autoAssignRows.length} Onboarding`, `Create ${autoAssignRows.length} Onboarding Records`)}
+                </button>
+                <button onClick={() => setAutoAssignOpen(false)}
+                  className='px-6 py-2.5 text-sm font-semibold bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition'>
+                  {t('Batal','Cancel')}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

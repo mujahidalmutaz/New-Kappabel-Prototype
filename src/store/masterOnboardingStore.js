@@ -93,10 +93,11 @@ let _nextId = 4
 
 function migrateTemplate(t) {
   const copy = { ...t }
-  // Strip empty-type mainSection entries (from old EMPTY_FORM default)
   if (Array.isArray(copy.mainSections)) {
     copy.mainSections = copy.mainSections.filter(ms => ms.type)
   }
+  if (!copy.criteria) copy.criteria = { employmentTypes: [], departmentIds: [] }
+  if (copy.autoAssign === undefined) copy.autoAssign = false
   return copy
 }
 
