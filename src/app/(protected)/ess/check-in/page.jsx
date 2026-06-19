@@ -518,7 +518,7 @@ export default function EssCheckInPage() {
                   </div>
                   <div>
                     <p className='text-xs font-bold text-gray-700'>{selectedHay.managerName}</p>
-                    <p className='text-[10px] text-gray-400'>{t('Isian Atasan (Referensi)', 'Manager's Input (Reference)')}</p>
+                    <p className='text-[10px] text-gray-400'>{t('Isian Atasan (Referensi)', "Manager's Input (Reference)")}</p>
                   </div>
                 </div>
                 <div className='space-y-3'>
