@@ -353,50 +353,44 @@ export default function MasterOnboardingPage() {
                   rows={2} placeholder={t('Deskripsi singkat template…','Short description…')}
                   className='flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />
               </div>
-              {/* ── Main Section LOV ── */}
+              {/* ── Main Section Type ── */}
               <div className='flex items-start gap-3'>
                 <label className='text-xs font-semibold text-gray-600 w-32 pt-2 flex-shrink-0'>
                   Main Section
                 </label>
-                <div className='flex flex-wrap gap-3'>
+                <div className='flex flex-wrap gap-2'>
                   {MAIN_SECTION_TYPES.map(type => {
                     const isReview = type === 'Periodic Review'
-                    const checked  = isReview
+                    const selected = isReview
                       ? form.reviewItems !== null
                       : (form.mainSections ?? []).some(ms => ms.type === type)
-                    const toggle = () => {
+                    const select = () => {
+                      // Clear all existing, then set the chosen one
                       if (isReview) {
-                        if (checked) {
-                          if (confirm(t('Hapus Periodic Review?', 'Remove Periodic Review?')))
-                            setForm(f => ({ ...f, reviewItems: null }))
-                        } else {
-                          setForm(f => ({ ...f, reviewItems: JSON.parse(JSON.stringify(DEFAULT_REVIEW_ITEMS)) }))
-                        }
+                        setForm(f => ({
+                          ...f,
+                          mainSections: [],
+                          reviewItems: JSON.parse(JSON.stringify(DEFAULT_REVIEW_ITEMS)),
+                        }))
                       } else {
-                        if (checked) {
-                          const ms = (form.mainSections ?? []).find(s => s.type === type)
-                          if (ms) delMainSection(ms.id)
-                        } else {
-                          addMainSection(type)
-                        }
+                        setForm(f => ({
+                          ...f,
+                          mainSections: [{ id: `ms_${Date.now()}`, type, sections: [], items: [] }],
+                          reviewItems: null,
+                        }))
                       }
                     }
                     return (
-                      <button
-                        key={type}
-                        type='button'
-                        onClick={toggle}
+                      <button key={type} type='button' onClick={select}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-xs font-semibold transition
-                          ${checked
-                            ? isReview
-                              ? 'bg-orange-50 border-orange-400 text-orange-700'
-                              : 'bg-red-50 border-red-400 text-red-700'
+                          ${selected
+                            ? isReview ? 'bg-orange-50 border-orange-400 text-orange-700' : 'bg-red-50 border-red-500 text-red-700'
                             : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'}`}>
-                        <span className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold flex-shrink-0
-                          ${checked
-                            ? isReview ? 'bg-orange-400 border-orange-400 text-white' : 'bg-red-500 border-red-500 text-white'
+                        <span className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center
+                          ${selected
+                            ? isReview ? 'border-orange-400 bg-orange-400' : 'border-red-500 bg-red-500'
                             : 'border-gray-300'}`}>
-                          {checked ? '✓' : ''}
+                          {selected && <span className='w-1.5 h-1.5 rounded-full bg-white' />}
                         </span>
                         {type}
                       </button>
