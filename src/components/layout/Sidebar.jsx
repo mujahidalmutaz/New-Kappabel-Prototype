@@ -341,11 +341,15 @@ export default function Sidebar() {
   const [openId, setOpenId] = useState(null)
 
   useEffect(() => {
-    if (pathname.startsWith('/ess/learning') || pathname.startsWith('/mss/learning')) { setOpenId('lms');      return }
-    if (pathname.startsWith('/ess'))      { setOpenId('ess');      return }
-    if (pathname.startsWith('/mss'))      { setOpenId('mss');      return }
-    if (pathname.startsWith('/hr'))       { setOpenId('hr');       return }
-    if (pathname.startsWith('/sysadmin')) { setOpenId('sysadmin'); return }
+    setOpenId(prev => {
+      if (prev !== null) return prev
+      if (pathname.startsWith('/ess/learning') || pathname.startsWith('/mss/learning')) return 'lms'
+      if (pathname.startsWith('/ess'))      return 'ess'
+      if (pathname.startsWith('/mss'))      return 'mss'
+      if (pathname.startsWith('/hr'))       return 'hr'
+      if (pathname.startsWith('/sysadmin')) return 'sysadmin'
+      return null
+    })
   }, [pathname])
 
   useEffect(() => {
