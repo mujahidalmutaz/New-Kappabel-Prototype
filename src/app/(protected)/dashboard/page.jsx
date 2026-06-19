@@ -393,8 +393,7 @@ export default function DashboardPage() {
           {/* Main tabs */}
           <div className='flex border-b border-gray-100'>
             {[
-              ['todo',   t('Things To Do', 'Things To Do')],
-              ['myteam', t('My Team', 'My Team')],
+              ['todo', t('Things To Do', 'Things To Do')],
             ].map(([key, label]) => (
               <button key={key} onClick={() => setMainTab(key)}
                 className={`px-5 py-3.5 text-sm font-semibold transition relative ${
@@ -468,35 +467,6 @@ export default function DashboardPage() {
             </>
           )}
 
-          {/* My Team content */}
-          {mainTab === 'myteam' && (
-            <div className='p-5'>
-              {myTeam.length === 0 ? (
-                <div className='flex flex-col items-center justify-center py-12 text-gray-400 gap-2'>
-                  <span className='text-4xl'>👥</span>
-                  <p className='text-sm'>{t('Tidak ada anggota tim langsung.', 'No direct team members.')}</p>
-                </div>
-              ) : (
-                <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3'>
-                  {myTeam.map(emp => {
-                    const initials = emp.name.trim().split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase()
-                    return (
-                      <div key={emp.id} className='flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2.5'>
-                        <div className='w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0'
-                          style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                          {initials}
-                        </div>
-                        <div className='min-w-0'>
-                          <p className='text-xs font-semibold text-gray-800 truncate'>{emp.name}</p>
-                          <p className='text-[10px] text-gray-400 truncate'>{emp.position}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
