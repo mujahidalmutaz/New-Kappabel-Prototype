@@ -65,7 +65,7 @@ const EMPTY_TPL = {
 // ─── Signatory Manager ────────────────────────────────────────────────────────
 function SignatoryManager() {
   const { signatories, addSignatory, updateSignatory, deleteSignatory } = useCertificateStore()
-  const [form,     setForm    ] = useState(null)   // null=closed, {}=new, {id,...}=edit
+  const [form,     setForm    ] = useState(null)
   const [msg,      setMsg     ] = useState(null)
   const [preview,  setPreview ] = useState(null)
   const sigRef = useRef()
@@ -113,7 +113,6 @@ function SignatoryManager() {
           <div key={sg.id} className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden hover:shadow-md transition'>
             <div className='h-1.5' style={{ background: 'linear-gradient(90deg,#8B1A1A,#D7252B)' }} />
             <div className='p-5'>
-              {/* Signature image */}
               <div className='mb-4 flex items-center justify-between'>
                 <div className='flex items-center gap-3'>
                   <div className='w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0'
@@ -132,7 +131,6 @@ function SignatoryManager() {
 
               <p className='text-xs text-gray-500 mb-3'>{sg.title}</p>
 
-              {/* Signature preview box */}
               <div className='border border-gray-100 rounded-xl bg-gray-50 p-3 mb-4 flex items-center justify-center'
                 style={{ minHeight: 80 }}>
                 {sg.signatureImage ? (
@@ -149,11 +147,11 @@ function SignatoryManager() {
                   style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
                   ✏️ Edit
                 </button>
-                <button onClick={() => setPreview(sg)}
+                <button onClick={() => setPreview(sg)} title='Pratinjau tanda tangan'
                   className='px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition'>
                   🔍
                 </button>
-                <button onClick={() => { if (confirm(`Hapus "${sg.name}"?`)) deleteSignatory(sg.id) }}
+                <button onClick={() => { if (confirm(`Hapus "${sg.name}"?`)) deleteSignatory(sg.id) }} title='Hapus penandatangan'
                   className='px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition'>
                   🗑
                 </button>
@@ -204,7 +202,6 @@ function SignatoryManager() {
                   placeholder='Departemen' />
               </div>
 
-              {/* Signature upload */}
               <div>
                 <label className='block text-xs font-bold text-gray-500 mb-2'>Gambar Tanda Tangan</label>
                 <div className='border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition'
@@ -385,27 +382,87 @@ function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories
 // ─── Canvas Editor ─────────────────────────────────────────────────────────────
 function CanvasEditor({ tpl, onSave, onCancel }) {
   const { signatories } = useCertificateStore()
-  const [form,        setForm      ] = useState({ ...tpl, elements: tpl.elements ? [...tpl.elements] : [], signatoryIds: tpl.signatoryIds || [], certNumberFormat: tpl.certNumberFormat || 'CERT/[[YYYY]]/[[SEQ:4]]' })
+
+  const initialForm = { ...tpl, elements: tpl.elements ? [...tpl.elements] : [], signatoryIds: tpl.signatoryIds || [], certNumberFormat: tpl.certNumberFormat || 'CERT/[[YYYY]]/[[SEQ:4]]' }
+
+  const [form,        setForm      ] = useState(initialForm)
   const [selectedId,  setSelectedId] = useState(null)
   const [dragging,    setDragging  ] = useState(null)
   const [editingId,   setEditingId ] = useState(null)
-  const [tab,         setTab       ] = useState('elements')
+  // Panel tab: 'desain' | 'properti' | 'pengaturan'
+  const [panelTab,    setPanelTab  ] = useState('desain')
   const [msg,         setMsg       ] = useState(null)
   const [previewMode, setPreviewMode] = useState(false)
-  const canvasRef   = useRef()
-  const bgRef       = useRef()
-  const textareaRef = useRef()
+  // Collapsible variables section in Desain tab
+  const [varsOpen,    setVarsOpen  ] = useState(false)
+  // Variable popup on double-click: null | { elId, x, y }
+  const [varPopup,    setVarPopup  ] = useState(null)
+  // Soft delete undo: null | { el, timeout }
+  const [deletedEl,   setDeletedEl ] = useState(null)
+
+  // History for undo/redo
+  const historyRef = useRef([initialForm])
+  const historyIdx = useRef(0)
+
+  const canvasRef    = useRef()
+  const bgRef        = useRef()
+  const textareaRef  = useRef()
+  const imgUploadRef = useRef()
 
   const setF = (k, v) => setForm(p => ({ ...p, [k]: v }))
   const flash = (t, type='error') => { setMsg({t, type}); setTimeout(() => setMsg(null), 3000) }
 
   const selected = form.elements.find(e => e.id === selectedId)
 
-  // ── Drag ──────────────────────────────────────────────────────────────────
+  // ── History ────────────────────────────────────────────────────────────────
+  const pushHistory = (newForm) => {
+    // Truncate forward history
+    const newHistory = historyRef.current.slice(0, historyIdx.current + 1)
+    newHistory.push(newForm)
+    historyRef.current = newHistory
+    historyIdx.current = newHistory.length - 1
+  }
+
+  const canUndo = historyIdx.current > 0
+  const canRedo = historyIdx.current < historyRef.current.length - 1
+
+  const undo = useCallback(() => {
+    if (historyIdx.current > 0) {
+      historyIdx.current -= 1
+      setForm(historyRef.current[historyIdx.current])
+      setSelectedId(null)
+    }
+  }, [])
+
+  const redo = useCallback(() => {
+    if (historyIdx.current < historyRef.current.length - 1) {
+      historyIdx.current += 1
+      setForm(historyRef.current[historyIdx.current])
+      setSelectedId(null)
+    }
+  }, [])
+
+  // Keyboard: Ctrl+Z = undo, Ctrl+Y / Ctrl+Shift+Z = redo
+  useEffect(() => {
+    const handler = (e) => {
+      // Don't intercept when typing in inputs
+      const tag = e.target?.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+      if (e.ctrlKey && !e.shiftKey && e.key === 'z') { e.preventDefault(); undo() }
+      if (e.ctrlKey && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); redo() }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [undo, redo])
+
+  // ── Drag with snap-to-grid ────────────────────────────────────────────────
+  const snap = (v) => Math.round(v / 2.5) * 2.5
+
   const onElemMouseDown = (e, id) => {
     if (editingId === id) return
     e.preventDefault(); e.stopPropagation()
     setSelectedId(id)
+    setVarPopup(null)
     const rect = canvasRef.current.getBoundingClientRect()
     const el   = form.elements.find(x => x.id === id)
     setDragging({ id, offsetX: e.clientX - (el.x / 100 * rect.width), offsetY: e.clientY - (el.y / 100 * rect.height) })
@@ -415,12 +472,23 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     if (!dragging) return
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
-    const x = Math.max(0, Math.min(95, ((e.clientX - dragging.offsetX) / rect.width)  * 100))
-    const y = Math.max(0, Math.min(95, ((e.clientY - dragging.offsetY) / rect.height) * 100))
+    const rawX = ((e.clientX - dragging.offsetX) / rect.width)  * 100
+    const rawY = ((e.clientY - dragging.offsetY) / rect.height) * 100
+    const x = snap(Math.max(0, Math.min(95, rawX)))
+    const y = snap(Math.max(0, Math.min(95, rawY)))
     setForm(p => ({ ...p, elements: p.elements.map(el => el.id === dragging.id ? { ...el, x, y } : el) }))
   }, [dragging])
 
-  const onCanvasMouseUp = useCallback(() => setDragging(null), [])
+  const onCanvasMouseUp = useCallback(() => {
+    if (dragging) {
+      // Push history after drag ends
+      setForm(p => {
+        pushHistory(p)
+        return p
+      })
+      setDragging(null)
+    }
+  }, [dragging])
 
   useEffect(() => {
     window.addEventListener('mousemove', onCanvasMouseMove)
@@ -434,18 +502,26 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
   // ── Elements ───────────────────────────────────────────────────────────────
   const addText = () => {
     const el = { id: Date.now(), type: 'text', content: 'Teks baru', x: 10, y: 10, fontSize: 14, color: '#1f2937', bold: false, italic: false, align: 'left', fontFamily: FONTS[0], wrap: false }
-    setForm(p => ({ ...p, elements: [...p.elements, el] }))
-    setSelectedId(el.id); setTab('props')
+    const newForm = (p) => ({ ...p, elements: [...p.elements, el] })
+    setForm(p => {
+      const nf = newForm(p)
+      pushHistory(nf)
+      return nf
+    })
+    setSelectedId(el.id); setPanelTab('properti')
   }
 
-  const imgUploadRef = useRef()
   const addImageElement = (file) => {
     if (!file) return
     const reader = new FileReader()
     reader.onload = e => {
       const el = { id: Date.now(), type: 'image', src: e.target.result, x: 10, y: 10, widthPct: 20 }
-      setForm(p => ({ ...p, elements: [...p.elements, el] }))
-      setSelectedId(el.id); setTab('props')
+      setForm(p => {
+        const nf = { ...p, elements: [...p.elements, el] }
+        pushHistory(nf)
+        return nf
+      })
+      setSelectedId(el.id); setPanelTab('properti')
     }
     reader.readAsDataURL(file)
   }
@@ -465,31 +541,83 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     }
   }
 
+  // Insert variable into a specific element by id (used by var popup)
+  const insertVarIntoEl = (elId, varStr) => {
+    setForm(p => {
+      const nf = { ...p, elements: p.elements.map(el => el.id === elId ? { ...el, content: (el.content || '') + varStr } : el) }
+      pushHistory(nf)
+      return nf
+    })
+    setVarPopup(null)
+  }
+
   // Insert signature image + name + title as canvas elements
   const insertSignatoryToCanvas = (sg) => {
     const now = Date.now()
     const imgEl  = { id: now,     type: 'signature', signatoryId: sg.id, src: sg.signatureImage, x: 62, y: 76, widthPct: 18 }
     const nameEl = { id: now+1,   type: 'text', content: sg.name,  x: 62, y: 88, fontSize: 11, color: '#1f2937', bold: true,  italic: false, align: 'center', fontFamily: FONTS[0] }
     const titleEl= { id: now+2,   type: 'text', content: sg.title, x: 62, y: 92, fontSize: 9,  color: '#6b7280', bold: false, italic: false, align: 'center', fontFamily: FONTS[0] }
-    setForm(p => ({ ...p, elements: [...p.elements, imgEl, nameEl, titleEl] }))
+    setForm(p => {
+      const nf = { ...p, elements: [...p.elements, imgEl, nameEl, titleEl] }
+      pushHistory(nf)
+      return nf
+    })
     flash(`Tanda tangan "${sg.name}" ditambahkan ke canvas.`, 'success')
-    setTab('elements')
+    setPanelTab('desain')
   }
 
   const updateEl = (id, k, v) => {
-    setForm(p => ({ ...p, elements: p.elements.map(el => el.id === id ? { ...el, [k]: v } : el) }))
+    setForm(p => {
+      const nf = { ...p, elements: p.elements.map(el => el.id === id ? { ...el, [k]: v } : el) }
+      pushHistory(nf)
+      return nf
+    })
   }
 
+  // Soft delete: remove immediately but allow undo via snackbar
   const deleteEl = (id) => {
-    setForm(p => ({ ...p, elements: p.elements.filter(el => el.id !== id) }))
+    const el = form.elements.find(e => e.id === id)
+    if (!el) return
+
+    // Clear any existing timeout
+    if (deletedEl?.timeout) clearTimeout(deletedEl.timeout)
+
+    const timeout = setTimeout(() => {
+      setDeletedEl(null)
+    }, 3000)
+
+    setDeletedEl({ el, timeout })
+
+    setForm(p => {
+      const nf = { ...p, elements: p.elements.filter(e => e.id !== id) }
+      pushHistory(nf)
+      return nf
+    })
     if (selectedId === id) setSelectedId(null)
+  }
+
+  const undoDeleteEl = () => {
+    if (!deletedEl) return
+    clearTimeout(deletedEl.timeout)
+    const el = deletedEl.el
+    setDeletedEl(null)
+    setForm(p => {
+      const nf = { ...p, elements: [...p.elements, el] }
+      pushHistory(nf)
+      return nf
+    })
+    setSelectedId(el.id)
   }
 
   const duplicateEl = (id) => {
     const el = form.elements.find(e => e.id === id)
     if (!el) return
     const copy = { ...el, id: Date.now(), x: el.x + 2, y: el.y + 2 }
-    setForm(p => ({ ...p, elements: [...p.elements, copy] }))
+    setForm(p => {
+      const nf = { ...p, elements: [...p.elements, copy] }
+      pushHistory(nf)
+      return nf
+    })
     setSelectedId(copy.id)
   }
 
@@ -497,7 +625,9 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     setForm(p => {
       const rest = p.elements.filter(e => e.id !== id)
       const el   = p.elements.find(e => e.id === id)
-      return { ...p, elements: [...rest, el] }
+      const nf   = { ...p, elements: [...rest, el] }
+      pushHistory(nf)
+      return nf
     })
   }
 
@@ -505,14 +635,22 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     setForm(p => {
       const rest = p.elements.filter(e => e.id !== id)
       const el   = p.elements.find(e => e.id === id)
-      return { ...p, elements: [el, ...rest] }
+      const nf   = { ...p, elements: [el, ...rest] }
+      pushHistory(nf)
+      return nf
     })
   }
 
   const handleBgUpload = (file) => {
     if (!file) return
     const reader = new FileReader()
-    reader.onload = e => setForm(p => ({ ...p, backgroundImageUrl: e.target.result, uploadFileName: file.name }))
+    reader.onload = e => {
+      setForm(p => {
+        const nf = { ...p, backgroundImageUrl: e.target.result, uploadFileName: file.name }
+        pushHistory(nf)
+        return nf
+      })
+    }
     reader.readAsDataURL(file)
   }
 
@@ -524,13 +662,155 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
 
   const elemIcon = (el) => el.type === 'signature' ? '✍' : el.type === 'image' ? '🖼' : 'T'
 
+  // ── Grid overlay lines ─────────────────────────────────────────────────────
+  const GridOverlay = () => (
+    <div className='absolute inset-0 pointer-events-none' style={{ zIndex: 5 }}>
+      {[10,20,30,40,50,60,70,80,90].map(pct => (
+        <div key={`v${pct}`} style={{ position:'absolute', left:`${pct}%`, top:0, bottom:0, width:1, background:'rgba(150,150,150,0.25)' }} />
+      ))}
+      {[10,20,30,40,50,60,70,80,90].map(pct => (
+        <div key={`h${pct}`} style={{ position:'absolute', top:`${pct}%`, left:0, right:0, height:1, background:'rgba(150,150,150,0.25)' }} />
+      ))}
+    </div>
+  )
+
+  // ── Property panel content ─────────────────────────────────────────────────
+  const PropertiesPanel = () => (
+    <>
+      {!selected ? (
+        <div className='text-center py-8 text-gray-400 text-xs'>
+          <div className='text-3xl mb-2'>👆</div>
+          Klik elemen di canvas untuk mengedit propertinya
+        </div>
+      ) : (
+        <div className='space-y-3'>
+          <div className='flex items-center justify-between'>
+            <span className='text-xs font-bold text-gray-600'>
+              {selected.type === 'signature' ? '✍️ Tanda Tangan' : 'T Teks'}
+            </span>
+            <div className='flex gap-1'>
+              <button onClick={() => bringFront(selected.id)} title='Pindah ke depan' className='text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded'>↑</button>
+              <button onClick={() => sendBack(selected.id)} title='Pindah ke belakang' className='text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded'>↓</button>
+              <button onClick={() => duplicateEl(selected.id)} title='Duplikat elemen' className='text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded'>⧉</button>
+              <button onClick={() => deleteEl(selected.id)} title='Hapus elemen' className='text-[10px] text-red-400 hover:text-red-600 bg-red-50 px-2 py-1 rounded'>🗑</button>
+            </div>
+          </div>
+
+          {(selected.type === 'signature' || selected.type === 'image') && (
+            <>
+              <div className='bg-gray-50 rounded-xl p-3'>
+                {selected.src
+                  ? <img src={selected.src} alt='' className='max-h-16 object-contain' />
+                  : <span className='text-gray-300 text-xs italic'>Belum ada gambar</span>}
+              </div>
+              {selected.type === 'image' && (
+                <button onClick={() => imgUploadRef.current?.click()}
+                  className='w-full py-2 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition'>
+                  Ganti Gambar
+                </button>
+              )}
+              <div>
+                <label className='block text-[10px] font-bold text-gray-500 mb-1'>Lebar (%)</label>
+                <input type='number' min='5' max='80' value={selected.widthPct || 15}
+                  onChange={e => updateEl(selected.id, 'widthPct', Number(e.target.value))}
+                  className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
+              </div>
+            </>
+          )}
+
+          {(selected.type === 'text' || selected.type === 'variable') && (
+            <div>
+              <label className='block text-[10px] font-bold text-gray-500 mb-1'>Isi Teks</label>
+              <textarea ref={textareaRef} value={selected.content} rows={3}
+                onChange={e => updateEl(selected.id, 'content', e.target.value)}
+                className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300 resize-none font-mono' />
+
+              {/* Variable insertion chips */}
+              <div className='mt-2'>
+                <p className='text-[10px] text-gray-400 mb-1.5'>Sisipkan variabel ke posisi kursor:</p>
+                <div className='flex flex-wrap gap-1'>
+                  {RTF_VARIABLES.map(v => (
+                    <button key={v.var} onClick={() => insertVarIntoSelected(v.var)}
+                      title={v.desc}
+                      className='text-[9px] font-mono bg-red-50 text-red-700 border border-red-100 px-1.5 py-0.5 rounded hover:bg-red-100 transition'>
+                      {v.var.replace(/\[\[|\]\]/g, '')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className='grid grid-cols-2 gap-2'>
+            <div>
+              <label className='block text-[10px] font-bold text-gray-500 mb-1'>X (%)</label>
+              <input type='number' min='0' max='98' value={Math.round(selected.x)}
+                onChange={e => updateEl(selected.id, 'x', Number(e.target.value))}
+                className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
+            </div>
+            <div>
+              <label className='block text-[10px] font-bold text-gray-500 mb-1'>Y (%)</label>
+              <input type='number' min='0' max='98' value={Math.round(selected.y)}
+                onChange={e => updateEl(selected.id, 'y', Number(e.target.value))}
+                className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
+            </div>
+          </div>
+
+          {selected.type !== 'signature' && (
+            <>
+              <div>
+                <label className='block text-[10px] font-bold text-gray-500 mb-1'>Font</label>
+                <select value={selected.fontFamily} onChange={e => updateEl(selected.id, 'fontFamily', e.target.value)}
+                  className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300'>
+                  {FONTS.map((f, i) => <option key={f} value={f}>{FONT_LABELS[i]}</option>)}
+                </select>
+              </div>
+              <div className='grid grid-cols-2 gap-2'>
+                <div>
+                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Ukuran</label>
+                  <input type='number' min='6' max='72' value={selected.fontSize}
+                    onChange={e => updateEl(selected.id, 'fontSize', Number(e.target.value))}
+                    className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
+                </div>
+                <div>
+                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Warna</label>
+                  <input type='color' value={selected.color} onChange={e => updateEl(selected.id, 'color', e.target.value)}
+                    className='w-full h-[34px] px-1 py-1 border border-gray-200 rounded-lg cursor-pointer' />
+                </div>
+              </div>
+              <div className='flex gap-2'>
+                {[['bold','B','font-bold'],['italic','I','italic']].map(([k,l,cls]) => (
+                  <button key={k} onClick={() => updateEl(selected.id, k, !selected[k])}
+                    className={`flex-1 py-2 text-xs rounded-lg border transition ${cls} ${selected[k]?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                    {l}
+                  </button>
+                ))}
+                {['left','center','right'].map(a => (
+                  <button key={a} onClick={() => updateEl(selected.id, 'align', a)}
+                    title={`Rata ${a==='left'?'kiri':a==='center'?'tengah':'kanan'}`}
+                    className={`flex-1 py-2 text-xs rounded-lg border transition ${selected.align===a?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                    {a==='left'?'←':a==='center'?'≡':'→'}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => updateEl(selected.id, 'wrap', !selected.wrap)}
+                className={`w-full py-2 text-xs rounded-lg border transition font-semibold ${selected.wrap?'border-blue-400 bg-blue-50 text-blue-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                {selected.wrap ? '↵ Word Wrap: ON' : '→ Word Wrap: OFF'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </>
+  )
+
   return (
     <div className='fixed inset-0 z-50 bg-gray-900 flex flex-col' style={{ fontFamily: 'system-ui, sans-serif' }}>
 
       {/* Top bar */}
       <div className='flex items-center justify-between px-5 py-3 bg-white border-b border-gray-200 shrink-0'>
         <div className='flex items-center gap-3'>
-          <button onClick={onCancel} className='text-gray-400 hover:text-gray-600 transition'>
+          <button onClick={onCancel} title='Kembali' className='text-gray-400 hover:text-gray-600 transition'>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
           </button>
           <div>
@@ -550,7 +830,17 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
           <div className={`text-xs px-3 py-1.5 rounded-lg ${msg.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>{msg.t}</div>
         )}
 
-        <div className='flex gap-2'>
+        <div className='flex gap-2 items-center'>
+          {/* Undo / Redo buttons */}
+          <button onClick={undo} disabled={!canUndo} title='Batalkan (Ctrl+Z)'
+            className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm transition ${canUndo ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-gray-50 text-gray-300 cursor-not-allowed'}`}>
+            ←
+          </button>
+          <button onClick={redo} disabled={!canRedo} title='Ulangi (Ctrl+Y)'
+            className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm transition ${canRedo ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-gray-50 text-gray-300 cursor-not-allowed'}`}>
+            →
+          </button>
+
           <button onClick={() => setPreviewMode(p => !p)}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${previewMode ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
             {previewMode ? '✕ Tutup Preview' : '👁 Preview'}
@@ -575,298 +865,215 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
 
       <div className='flex flex-1 overflow-hidden'>
 
-        {/* ── Left panel ─────────────────────────────────────────────────────── */}
-        <div className='w-72 bg-white border-r border-gray-200 flex flex-col shrink-0'>
+        {/* ── Left panel — hidden in preview mode ────────────────────────────── */}
+        {!previewMode && (
+          <div className='w-72 bg-white border-r border-gray-200 flex flex-col shrink-0'>
 
-          <div className='flex border-b border-gray-100'>
-            {[['elements','🧩 Elemen'],['vars','{ } Variabel'],['sign','✍️ TTD'],['props','✏️ Teks'],['settings','🗂️ Info']].map(([k,l]) => (
-              <button key={k} onClick={() => setTab(k)}
-                className={`flex-1 py-2.5 text-[9px] font-bold whitespace-nowrap transition border-b-2 ${tab===k?'border-red-600 text-red-700 bg-red-50':'border-transparent text-gray-400 hover:text-gray-600'}`}>
-                {l}
-              </button>
-            ))}
-          </div>
+            {/* 2-row tab structure: top row = mode selector */}
+            <div className='flex border-b border-gray-100 bg-gray-50'>
+              {[['desain','Desain'],['properti','Properti'],['pengaturan','Pengaturan']].map(([k,l]) => (
+                <button key={k} onClick={() => setPanelTab(k)}
+                  className={`flex-1 py-2.5 text-xs font-bold whitespace-nowrap transition border-b-2 ${panelTab===k?'border-red-600 text-red-700 bg-white':'border-transparent text-gray-400 hover:text-gray-600 bg-gray-50'}`}>
+                  {l}
+                </button>
+              ))}
+            </div>
 
-          <div className='flex-1 overflow-y-auto p-4 space-y-3'>
+            <div className='flex-1 overflow-y-auto p-4 space-y-3'>
 
-            {/* ── Elements tab ── */}
-            {tab === 'elements' && (
-              <>
-                <div className='grid grid-cols-3 gap-2'>
-                  <button onClick={addText}
-                    className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-red-300 hover:bg-red-50 transition text-gray-500 hover:text-red-600'>
-                    <span className='text-xl font-bold'>T</span>
-                    <span className='text-[10px] font-semibold'>Teks</span>
-                  </button>
-                  <button onClick={() => imgUploadRef.current?.click()}
-                    className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition text-gray-500 hover:text-blue-600'>
-                    <input ref={imgUploadRef} type='file' accept='image/*' className='hidden' onChange={e => addImageElement(e.target.files[0])} />
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                    <span className='text-[10px] font-semibold'>Gambar</span>
-                  </button>
-                  <button onClick={() => setTab('sign')}
-                    className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-amber-300 hover:bg-amber-50 transition text-gray-500 hover:text-amber-600'>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
-                    <span className='text-[10px] font-semibold'>TTD</span>
-                  </button>
-                </div>
+              {/* ── Desain tab ── */}
+              {panelTab === 'desain' && (
+                <>
+                  {/* Add element buttons */}
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2'>Tambah Elemen</p>
+                    <div className='grid grid-cols-3 gap-2'>
+                      <button onClick={addText} title='Tambah teks'
+                        className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-red-300 hover:bg-red-50 transition text-gray-500 hover:text-red-600'>
+                        <span className='text-xl font-bold'>T</span>
+                        <span className='text-[10px] font-semibold'>Teks</span>
+                      </button>
+                      <button onClick={() => imgUploadRef.current?.click()} title='Tambah gambar'
+                        className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition text-gray-500 hover:text-blue-600'>
+                        <input ref={imgUploadRef} type='file' accept='image/*' className='hidden' onChange={e => addImageElement(e.target.files[0])} />
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span className='text-[10px] font-semibold'>Gambar</span>
+                      </button>
+                      <button onClick={() => setPanelTab('pengaturan')} title='Tambah tanda tangan'
+                        className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-amber-300 hover:bg-amber-50 transition text-gray-500 hover:text-amber-600'>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+                        <span className='text-[10px] font-semibold'>TTD</span>
+                      </button>
+                    </div>
+                  </div>
 
-                {/* Upload background */}
-                <div>
-                  <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2'>Background</p>
-                  <div className='border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition'
-                    style={{ borderColor: form.backgroundImageUrl ? '#D7252B' : '#d1d5db' }}
-                    onClick={() => bgRef.current?.click()}>
-                    <input ref={bgRef} type='file' accept='image/*' className='hidden' onChange={e => handleBgUpload(e.target.files[0])} />
-                    {form.backgroundImageUrl ? (
-                      <div className='flex flex-col items-center gap-1'>
-                        <img src={form.backgroundImageUrl} alt='bg' className='max-h-16 object-contain rounded' />
-                        <span className='text-[10px] text-red-500'>Klik untuk ganti</span>
+                  {/* Upload background */}
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2'>Background</p>
+                    <div className='border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition'
+                      style={{ borderColor: form.backgroundImageUrl ? '#D7252B' : '#d1d5db' }}
+                      onClick={() => bgRef.current?.click()}>
+                      <input ref={bgRef} type='file' accept='image/*' className='hidden' onChange={e => handleBgUpload(e.target.files[0])} />
+                      {form.backgroundImageUrl ? (
+                        <div className='flex flex-col items-center gap-1'>
+                          <img src={form.backgroundImageUrl} alt='bg' className='max-h-16 object-contain rounded' />
+                          <span className='text-[10px] text-red-500'>Klik untuk ganti</span>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className='text-2xl mb-1'>📤</div>
+                          <p className='text-xs font-semibold text-gray-500'>Upload Background</p>
+                          <p className='text-[10px] text-gray-400'>PNG, JPG</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Layer list */}
+                  {form.elements.length > 0 && (
+                    <div>
+                      <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2'>Layer ({form.elements.length})</p>
+                      <div className='space-y-1'>
+                        {[...form.elements].reverse().map(el => (
+                          <button key={el.id} onClick={() => { setSelectedId(el.id); setPanelTab('properti') }}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition ${selectedId===el.id?'bg-red-50 border border-red-200':'hover:bg-gray-50 border border-transparent'}`}>
+                            <span className='text-base shrink-0'>{elemIcon(el)}</span>
+                            <span className='flex-1 truncate text-left text-gray-700'>{el.content || el.signatoryId}</span>
+                            <button onClick={e=>{e.stopPropagation(); deleteEl(el.id)}} title='Hapus layer' className='text-gray-300 hover:text-red-500 transition shrink-0'>✕</button>
+                          </button>
+                        ))}
                       </div>
-                    ) : (
-                      <div>
-                        <div className='text-2xl mb-1'>📤</div>
-                        <p className='text-xs font-semibold text-gray-500'>Upload Background</p>
-                        <p className='text-[10px] text-gray-400'>PNG, JPG</p>
+                    </div>
+                  )}
+
+                  {/* Collapsible Variabel Dinamis section */}
+                  <div className='border border-gray-100 rounded-xl overflow-hidden'>
+                    <button
+                      onClick={() => setVarsOpen(v => !v)}
+                      className='w-full flex items-center justify-between px-3 py-2.5 text-[10px] font-bold text-gray-600 uppercase tracking-wider bg-gray-50 hover:bg-gray-100 transition'>
+                      <span>{ } Variabel Dinamis</span>
+                      <span className='text-gray-400 text-xs'>{varsOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {varsOpen && (
+                      <div className='p-3 space-y-1'>
+                        <p className='text-[9px] text-blue-600 mb-2'>Klik elemen teks di canvas, lalu gunakan tab Properti untuk menyisipkan variabel.</p>
+                        {RTF_VARIABLES.map(v => (
+                          <div key={v.var} className='flex items-center gap-2 px-2 py-1.5 rounded-lg border border-gray-100 bg-gray-50'>
+                            <code className='text-[9px] font-mono text-red-700 bg-white border border-red-100 px-1.5 py-0.5 rounded flex-1 select-all'>{v.var}</code>
+                            <span className='text-[9px] text-gray-400 shrink-0 max-w-[80px] text-right'>{v.desc}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
-                </div>
+                </>
+              )}
 
-                {/* Layer list */}
-                {form.elements.length > 0 && (
+              {/* ── Properti tab ── */}
+              {panelTab === 'properti' && <PropertiesPanel />}
+
+              {/* ── Pengaturan tab ── */}
+              {panelTab === 'pengaturan' && (
+                <>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2'>Layer ({form.elements.length})</p>
-                    <div className='space-y-1'>
-                      {[...form.elements].reverse().map(el => (
-                        <button key={el.id} onClick={() => { setSelectedId(el.id); setTab('props') }}
-                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition ${selectedId===el.id?'bg-red-50 border border-red-200':'hover:bg-gray-50 border border-transparent'}`}>
-                          <span className='text-base shrink-0'>{elemIcon(el)}</span>
-                          <span className='flex-1 truncate text-left text-gray-700'>{el.content || el.signatoryId}</span>
-                          <button onClick={e=>{e.stopPropagation(); deleteEl(el.id)}} className='text-gray-300 hover:text-red-500 transition shrink-0'>✕</button>
+                    <label className='block text-[10px] font-bold text-gray-500 mb-1'>Nama Template *</label>
+                    <input value={form.name} onChange={e => setF('name', e.target.value)}
+                      className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'
+                      placeholder='Nama template' />
+                  </div>
+                  <div>
+                    <label className='block text-[10px] font-bold text-gray-500 mb-1'>Tipe Sertifikat</label>
+                    <select value={form.type} onChange={e => setF('type', e.target.value)}
+                      className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
+                      {CERT_TYPES.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className='block text-[10px] font-bold text-gray-500 mb-1'>Orientasi</label>
+                    <div className='flex gap-2'>
+                      {ORIENTATIONS.map(o => (
+                        <button key={o} onClick={() => setF('orientation', o)}
+                          className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition ${form.orientation===o?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-600'}`}>
+                          {o==='Landscape'?'▭':'▯'} {o}
                         </button>
                       ))}
                     </div>
                   </div>
-                )}
-              </>
-            )}
-
-            {/* ── Variables tab — read-only reference ── */}
-            {tab === 'vars' && (
-              <>
-                <div className='bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 text-[10px] text-blue-700 leading-relaxed'>
-                  Variabel di bawah ini dapat disisipkan langsung ke dalam teks. Pilih elemen teks di canvas, lalu klik <strong>✏️ Teks</strong> dan gunakan tombol sisip variabel.
-                </div>
-                <div className='space-y-1'>
-                  {RTF_VARIABLES.map(v => (
-                    <div key={v.var} className='flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100 bg-gray-50'>
-                      <code className='text-[10px] font-mono text-red-700 bg-white border border-red-100 px-1.5 py-0.5 rounded flex-1 select-all'>{v.var}</code>
-                      <span className='text-[10px] text-gray-500 shrink-0 max-w-[90px]'>{v.desc}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* ── Signature tab ── */}
-            {tab === 'sign' && (
-              <SignatoryPicker
-                signatoryIds={form.signatoryIds}
-                onChange={ids => setF('signatoryIds', ids)}
-                onInsertToCanvas={insertSignatoryToCanvas}
-                signatories={signatories}
-              />
-            )}
-
-            {/* ── Properties tab ── */}
-            {tab === 'props' && (
-              <>
-                {!selected ? (
-                  <div className='text-center py-8 text-gray-400 text-xs'>
-                    <div className='text-3xl mb-2'>👆</div>
-                    Klik elemen di canvas untuk mengedit propertinya
+                  <div>
+                    <label className='block text-[10px] font-bold text-gray-500 mb-1'>Format Nomor Sertifikat</label>
+                    <input value={form.certNumberFormat || ''} onChange={e => setF('certNumberFormat', e.target.value)}
+                      className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 font-mono'
+                      placeholder='CERT/[[YYYY]]/[[SEQ:4]]' />
+                    <p className='text-[10px] text-gray-400 mt-1'>Token: <code>[[YYYY]]</code> tahun · <code>[[MM]]</code> bulan · <code>[[SEQ:4]]</code> nomor urut 4 digit</p>
                   </div>
-                ) : (
-                  <div className='space-y-3'>
-                    <div className='flex items-center justify-between'>
-                      <span className='text-xs font-bold text-gray-600'>
-                        {selected.type === 'signature' ? '✍️ Tanda Tangan' : 'T Teks'}
-                      </span>
-                      <div className='flex gap-1'>
-                        <button onClick={() => bringFront(selected.id)} title='Bring to front' className='text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded'>↑</button>
-                        <button onClick={() => sendBack(selected.id)} title='Send to back' className='text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded'>↓</button>
-                        <button onClick={() => duplicateEl(selected.id)} className='text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded'>⧉</button>
-                        <button onClick={() => deleteEl(selected.id)} className='text-[10px] text-red-400 hover:text-red-600 bg-red-50 px-2 py-1 rounded'>🗑</button>
-                      </div>
-                    </div>
-
-                    {(selected.type === 'signature' || selected.type === 'image') && (
-                      <>
-                        <div className='bg-gray-50 rounded-xl p-3'>
-                          {selected.src
-                            ? <img src={selected.src} alt='' className='max-h-16 object-contain' />
-                            : <span className='text-gray-300 text-xs italic'>Belum ada gambar</span>}
-                        </div>
-                        {selected.type === 'image' && (
-                          <button onClick={() => imgUploadRef.current?.click()}
-                            className='w-full py-2 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition'>
-                            Ganti Gambar
-                          </button>
-                        )}
-                        <div>
-                          <label className='block text-[10px] font-bold text-gray-500 mb-1'>Lebar (%)</label>
-                          <input type='number' min='5' max='80' value={selected.widthPct || 15}
-                            onChange={e => updateEl(selected.id, 'widthPct', Number(e.target.value))}
-                            className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
-                        </div>
-                      </>
-                    )}
-
-                    {(selected.type === 'text' || selected.type === 'variable') && (
-                      <div>
-                        <label className='block text-[10px] font-bold text-gray-500 mb-1'>Isi Teks</label>
-                        <textarea ref={textareaRef} value={selected.content} rows={3}
-                          onChange={e => updateEl(selected.id, 'content', e.target.value)}
-                          className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300 resize-none font-mono' />
-
-                        {/* Variable insertion chips */}
-                        <div className='mt-2'>
-                          <p className='text-[10px] text-gray-400 mb-1.5'>Sisipkan variabel ke posisi kursor:</p>
-                          <div className='flex flex-wrap gap-1'>
-                            {RTF_VARIABLES.map(v => (
-                              <button key={v.var} onClick={() => insertVarIntoSelected(v.var)}
-                                title={v.desc}
-                                className='text-[9px] font-mono bg-red-50 text-red-700 border border-red-100 px-1.5 py-0.5 rounded hover:bg-red-100 transition'>
-                                {v.var.replace(/\[\[|\]\]/g, '')}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className='grid grid-cols-2 gap-2'>
-                      <div>
-                        <label className='block text-[10px] font-bold text-gray-500 mb-1'>X (%)</label>
-                        <input type='number' min='0' max='98' value={Math.round(selected.x)}
-                          onChange={e => updateEl(selected.id, 'x', Number(e.target.value))}
-                          className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
-                      </div>
-                      <div>
-                        <label className='block text-[10px] font-bold text-gray-500 mb-1'>Y (%)</label>
-                        <input type='number' min='0' max='98' value={Math.round(selected.y)}
-                          onChange={e => updateEl(selected.id, 'y', Number(e.target.value))}
-                          className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
-                      </div>
-                    </div>
-
-                    {selected.type !== 'signature' && (
-                      <>
-                        <div>
-                          <label className='block text-[10px] font-bold text-gray-500 mb-1'>Font</label>
-                          <select value={selected.fontFamily} onChange={e => updateEl(selected.id, 'fontFamily', e.target.value)}
-                            className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300'>
-                            {FONTS.map((f, i) => <option key={f} value={f}>{FONT_LABELS[i]}</option>)}
-                          </select>
-                        </div>
-                        <div className='grid grid-cols-2 gap-2'>
-                          <div>
-                            <label className='block text-[10px] font-bold text-gray-500 mb-1'>Ukuran</label>
-                            <input type='number' min='6' max='72' value={selected.fontSize}
-                              onChange={e => updateEl(selected.id, 'fontSize', Number(e.target.value))}
-                              className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
-                          </div>
-                          <div>
-                            <label className='block text-[10px] font-bold text-gray-500 mb-1'>Warna</label>
-                            <input type='color' value={selected.color} onChange={e => updateEl(selected.id, 'color', e.target.value)}
-                              className='w-full h-[34px] px-1 py-1 border border-gray-200 rounded-lg cursor-pointer' />
-                          </div>
-                        </div>
-                        <div className='flex gap-2'>
-                          {[['bold','B','font-bold'],['italic','I','italic']].map(([k,l,cls]) => (
-                            <button key={k} onClick={() => updateEl(selected.id, k, !selected[k])}
-                              className={`flex-1 py-2 text-xs rounded-lg border transition ${cls} ${selected[k]?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                              {l}
-                            </button>
-                          ))}
-                          {['left','center','right'].map(a => (
-                            <button key={a} onClick={() => updateEl(selected.id, 'align', a)}
-                              className={`flex-1 py-2 text-xs rounded-lg border transition ${selected.align===a?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                              {a==='left'?'←':a==='center'?'≡':'→'}
-                            </button>
-                          ))}
-                        </div>
-                        <button onClick={() => updateEl(selected.id, 'wrap', !selected.wrap)}
-                          className={`w-full py-2 text-xs rounded-lg border transition font-semibold ${selected.wrap?'border-blue-400 bg-blue-50 text-blue-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                          {selected.wrap ? '↵ Word Wrap: ON' : '→ Word Wrap: OFF'}
-                        </button>
-                      </>
-                    )}
+                  <div>
+                    <label className='block text-[10px] font-bold text-gray-500 mb-1'>Masa Berlaku (bulan, 0 = selamanya)</label>
+                    <input type='number' min='0' value={form.validityMonths} onChange={e => setF('validityMonths', Number(e.target.value))}
+                      className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
                   </div>
-                )}
-              </>
-            )}
-
-            {/* ── Settings tab ── */}
-            {tab === 'settings' && (
-              <>
-                <div>
-                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Nama Template *</label>
-                  <input value={form.name} onChange={e => setF('name', e.target.value)}
-                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'
-                    placeholder='Nama template' />
-                </div>
-                <div>
-                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Tipe Sertifikat</label>
-                  <select value={form.type} onChange={e => setF('type', e.target.value)}
-                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                    {CERT_TYPES.map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Orientasi</label>
-                  <div className='flex gap-2'>
-                    {ORIENTATIONS.map(o => (
-                      <button key={o} onClick={() => setF('orientation', o)}
-                        className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition ${form.orientation===o?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-600'}`}>
-                        {o==='Landscape'?'▭':'▯'} {o}
-                      </button>
-                    ))}
+                  <div>
+                    <label className='block text-[10px] font-bold text-gray-500 mb-1'>Catatan Internal</label>
+                    <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={3}
+                      className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' />
                   </div>
-                </div>
-                <div>
-                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Format Nomor Sertifikat</label>
-                  <input value={form.certNumberFormat || ''} onChange={e => setF('certNumberFormat', e.target.value)}
-                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 font-mono'
-                    placeholder='CERT/[[YYYY]]/[[SEQ:4]]' />
-                  <p className='text-[10px] text-gray-400 mt-1'>Token: <code>[[YYYY]]</code> tahun · <code>[[MM]]</code> bulan · <code>[[SEQ:4]]</code> nomor urut 4 digit</p>
-                </div>
-                <div>
-                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Masa Berlaku (bulan, 0 = selamanya)</label>
-                  <input type='number' min='0' value={form.validityMonths} onChange={e => setF('validityMonths', Number(e.target.value))}
-                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-                </div>
-                <div>
-                  <label className='block text-[10px] font-bold text-gray-500 mb-1'>Catatan Internal</label>
-                  <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={3}
-                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' />
-                </div>
-              </>
-            )}
+
+                  <hr className='border-gray-100' />
+
+                  {/* Signatory Picker also in Pengaturan */}
+                  <SignatoryPicker
+                    signatoryIds={form.signatoryIds}
+                    onChange={ids => setF('signatoryIds', ids)}
+                    onInsertToCanvas={insertSignatoryToCanvas}
+                    signatories={signatories}
+                  />
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Canvas area ────────────────────────────────────────────────────── */}
-        <div className='flex-1 flex items-center justify-center p-8 overflow-auto bg-gray-800'
-          onClick={() => { setSelectedId(null); setEditingId(null) }}>
+        <div
+          className={`flex-1 flex overflow-auto bg-gray-800 ${previewMode ? 'items-start justify-center pt-8' : 'items-center justify-center p-8'}`}
+          onClick={() => { setSelectedId(null); setEditingId(null); setVarPopup(null) }}>
 
           {!form.backgroundImageUrl ? (
-            <div className='flex flex-col items-center gap-4 text-gray-400 cursor-pointer'
-              onClick={e => { e.stopPropagation(); bgRef.current?.click() }}>
-              <div className='w-24 h-24 rounded-2xl border-2 border-dashed border-gray-600 flex items-center justify-center text-4xl'>📤</div>
-              <p className='text-sm font-semibold'>Upload background sertifikat</p>
-              <p className='text-xs'>PNG, JPG · atau klik "Background" di panel kiri</p>
+            // Step-by-step guidance when no background
+            <div className='flex flex-col items-center gap-6 max-w-sm text-center'>
+              <div className='w-20 h-20 rounded-2xl border-2 border-dashed border-gray-600 flex items-center justify-center text-4xl'>📜</div>
+              <h3 className='text-white font-bold text-lg'>Mulai Buat Sertifikat</h3>
+              <div className='w-full space-y-3 text-left'>
+                {/* Step 1 */}
+                <div className='flex items-start gap-3 bg-gray-700/60 rounded-xl p-4'>
+                  <div className='w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-red-600 text-white'>1</div>
+                  <div className='flex-1'>
+                    <p className='text-white text-sm font-semibold'>Upload background desain sertifikat</p>
+                    <p className='text-gray-400 text-xs mt-0.5'>PNG atau JPG, ukuran A4 landscape direkomendasikan</p>
+                    <button
+                      onClick={e => { e.stopPropagation(); bgRef.current?.click() }}
+                      className='mt-2 px-4 py-1.5 text-xs font-bold text-white rounded-lg hover:opacity-90 transition'
+                      style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                      Upload Background
+                    </button>
+                  </div>
+                </div>
+                {/* Step 2 */}
+                <div className='flex items-start gap-3 bg-gray-700/40 rounded-xl p-4 opacity-60'>
+                  <div className='w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-gray-600 text-gray-300'>2</div>
+                  <div className='flex-1'>
+                    <p className='text-gray-300 text-sm font-semibold'>Tambahkan teks, variabel, dan tanda tangan</p>
+                    <p className='text-gray-500 text-xs mt-0.5'>Gunakan panel kiri untuk menambah elemen ke canvas</p>
+                  </div>
+                </div>
+                {/* Step 3 */}
+                <div className='flex items-start gap-3 bg-gray-700/40 rounded-xl p-4 opacity-60'>
+                  <div className='w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-gray-600 text-gray-300'>3</div>
+                  <div className='flex-1'>
+                    <p className='text-gray-300 text-sm font-semibold'>Preview → Aktifkan</p>
+                    <p className='text-gray-500 text-xs mt-0.5'>Preview dengan data contoh, lalu aktifkan template</p>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div
@@ -879,17 +1086,19 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                 width: '100%',
                 cursor: dragging ? 'grabbing' : 'default',
               }}
-              onClick={e => { e.stopPropagation(); setSelectedId(null); setEditingId(null) }}>
+              onClick={e => { e.stopPropagation(); setSelectedId(null); setEditingId(null); setVarPopup(null) }}>
 
               <img src={form.backgroundImageUrl} alt='template'
                 className='w-full h-full object-cover rounded'
                 draggable={false} />
 
+              {/* Snap-to-grid overlay while dragging */}
+              {dragging && <GridOverlay />}
+
               {form.elements.map(el => {
                 const isSelected = selectedId === el.id
                 const dragCursor = dragging?.id === el.id ? 'grabbing' : 'grab'
                 const selOutline = isSelected ? '1.5px dashed #D7252B' : '1.5px dashed transparent'
-                const dragLabel  = <span style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', fontSize:9, color:'#D7252B', background:'white', padding:'1px 4px', borderRadius:3, border:'1px solid #fca5a5', whiteSpace:'nowrap', pointerEvents:'none' }}>✥ drag</span>
 
                 if (el.type === 'signature' || el.type === 'image') {
                   return (
@@ -899,7 +1108,9 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                       {el.src
                         ? <img src={el.src} alt='' className='w-full h-auto' draggable={false} />
                         : <div className='w-full h-10 border border-dashed border-gray-400 flex items-center justify-center text-xs text-gray-400'>{el.type==='signature'?'Tanda Tangan':'Gambar'}</div>}
-                      {isSelected && !previewMode && dragLabel}
+                      {isSelected && !previewMode && (
+                        <span style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', fontSize:9, color:'#D7252B', background:'white', padding:'1px 4px', borderRadius:3, border:'1px solid #fca5a5', whiteSpace:'nowrap', pointerEvents:'none' }}>✥ drag</span>
+                      )}
                     </div>
                   )
                 }
@@ -909,7 +1120,20 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                 return (
                   <div key={el.id}
                     onMouseDown={e => previewMode ? null : onElemMouseDown(e, el.id)}
-                    onDoubleClick={e => { if (previewMode) return; e.stopPropagation(); if (el.type === 'text') setEditingId(el.id) }}
+                    onDoubleClick={e => {
+                      if (previewMode) return
+                      e.stopPropagation()
+                      if (el.type === 'text') {
+                        // Show variable popup
+                        const rect = canvasRef.current?.getBoundingClientRect()
+                        if (rect) {
+                          const px = (el.x / 100) * rect.width + rect.left
+                          const py = (el.y / 100) * rect.height + rect.top
+                          setVarPopup({ elId: el.id, x: px, y: py })
+                        }
+                        setEditingId(el.id)
+                      }
+                    }}
                     style={{
                       position:  'absolute',
                       left:      `${el.x}%`,
@@ -950,11 +1174,23 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                   </div>
                 )
               })}
+
+              {/* Soft delete snackbar */}
+              {deletedEl && (
+                <div style={{ position:'absolute', bottom:12, left:'50%', transform:'translateX(-50%)', zIndex:20 }}
+                  className='flex items-center gap-3 bg-gray-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl'>
+                  <span>Elemen dihapus.</span>
+                  <button onClick={undoDeleteEl}
+                    className='font-bold text-yellow-300 hover:text-yellow-200 transition underline'>
+                    Batalkan
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* ── Right mini panel ───────────────────────────────────────────────── */}
+        {/* ── Right mini toolbar — hidden in preview mode ─────────────────────── */}
         {!previewMode && (
           <div className='w-14 bg-gray-900 flex flex-col items-center py-4 gap-3 shrink-0'>
             <button onClick={addText} title='Tambah Teks'
@@ -963,10 +1199,14 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
               className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white transition'>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             </button>
-            <button onClick={() => setTab('sign')} title='Tanda Tangan'
+            <button onClick={() => setPanelTab('pengaturan')} title='Tanda Tangan'
               className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white text-xs font-bold transition'>✍</button>
-            <button onClick={() => bgRef.current?.click()} title='Background'
+            <button onClick={() => bgRef.current?.click()} title='Upload Background'
               className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white text-xs font-bold transition'>BG</button>
+            <button onClick={undo} disabled={!canUndo} title='Batalkan (Ctrl+Z)'
+              className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition ${canUndo?'bg-gray-700 hover:bg-gray-600 text-white':'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>←</button>
+            <button onClick={redo} disabled={!canRedo} title='Ulangi (Ctrl+Y)'
+              className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition ${canRedo?'bg-gray-700 hover:bg-gray-600 text-white':'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>→</button>
             {selectedId && (
               <button onClick={() => deleteEl(selectedId)} title='Hapus elemen terpilih'
                 className='w-10 h-10 rounded-xl bg-red-900 hover:bg-red-700 flex items-center justify-center text-white text-xs transition'>✕</button>
@@ -975,6 +1215,29 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
         )}
 
       </div>
+
+      {/* Variable popup on double-click */}
+      {varPopup && (
+        <div
+          style={{ position:'fixed', left: Math.min(varPopup.x, window.innerWidth - 280), top: varPopup.y + 20, zIndex:100, maxWidth:260 }}
+          className='bg-white rounded-xl shadow-2xl border border-gray-200 p-3'
+          onClick={e => e.stopPropagation()}>
+          <div className='flex items-center justify-between mb-2'>
+            <p className='text-[10px] font-bold text-gray-600 uppercase tracking-wider'>Sisipkan Variabel</p>
+            <button onClick={() => setVarPopup(null)} className='text-gray-300 hover:text-gray-500 text-xs'>✕</button>
+          </div>
+          <div className='flex flex-wrap gap-1'>
+            {RTF_VARIABLES.map(v => (
+              <button key={v.var}
+                onClick={() => insertVarIntoEl(varPopup.elId, v.var)}
+                title={v.desc}
+                className='text-[9px] font-mono bg-red-50 text-red-700 border border-red-100 px-1.5 py-0.5 rounded hover:bg-red-100 transition'>
+                {v.var.replace(/\[\[|\]\]/g, '')}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -1023,13 +1286,18 @@ function TplCard({ tpl, signatories, onEdit, onDuplicate, onDelete }) {
         )}
 
         <div className='flex gap-1.5'>
-          <button onClick={() => onEdit(tpl)}
+          <button onClick={() => onEdit(tpl)} title='Edit template'
             className='flex-1 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition'
             style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
             ✏️ Edit
           </button>
-          <button onClick={() => onDuplicate(tpl)} className='px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition'>⧉</button>
-          <button onClick={() => onDelete(tpl.id)} className='px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition'>🗑</button>
+          <button onClick={() => onDuplicate(tpl)} title='Salin template'
+            className='px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition flex items-center gap-1'>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Salin
+          </button>
+          <button onClick={() => onDelete(tpl.id)} title='Hapus template'
+            className='px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition'>🗑</button>
         </div>
       </div>
     </div>
@@ -1078,7 +1346,6 @@ export default function MasterCertificatePage() {
       {msg && (
         <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>
       )}
-
 
       {/* Page tabs */}
       <div className='flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit'>
