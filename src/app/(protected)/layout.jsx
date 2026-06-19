@@ -65,6 +65,8 @@ export default function ProtectedLayout({ children }) {
       const skipPatterns = /tutup|close|cancel|batal|back|kembali|✕|×|pin|unpin|logout|bahasa|id|en|🔔|search|cari|edit|copy|salin|duplikat|⧉|↑|↓/i
       const raw = (btn.textContent || '').replace(/\s+/g, ' ').trim()
       if (!raw || skipPatterns.test(raw)) return
+      // Skip "+" prefix buttons — these open forms or add rows, not submit data
+      if (raw.startsWith('+')) return
 
       // Check if text contains an action keyword
       const lower = raw.toLowerCase()
