@@ -16,12 +16,14 @@ const TABS = ['Employment', 'Bio', 'Dependent', 'Profile']
 
 function Avatar({ emp, size = 'sm' }) {
   const dim = size === 'lg' ? 'w-20 h-20 rounded-xl' : 'w-9 h-9 rounded-full'
-  const txt = size === 'lg' ? 'text-3xl' : 'text-base'
+  const txt = size === 'lg' ? 'text-lg font-bold' : 'text-xs font-bold'
+  const initials = (emp?.name || '?').trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
   return (
-    <div className={`${dim} bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0`}>
+    <div className={`${dim} flex items-center justify-center overflow-hidden flex-shrink-0`}
+      style={{ background: emp?.photo ? undefined : 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
       {emp?.photo
         ? <img src={emp.photo} alt='' className='w-full h-full object-cover' />
-        : <span className={txt}>{emp?.gender === 'Female' ? '👩' : '👨'}</span>}
+        : <span className={`${txt} text-white`}>{initials}</span>}
     </div>
   )
 }
@@ -343,7 +345,7 @@ export default function EmployeeDataPage() {
                           : <span className='text-3xl'>{form.gender === 'Female' ? '👩' : '👨'}</span>)
                       : (emp?.photo
                           ? <img src={emp.photo} className='w-full h-full object-cover' alt='' />
-                          : <span className='text-3xl'>{emp?.gender === 'Female' ? '👩' : '👨'}</span>)
+                          : <span className='text-3xl'>{(emp?.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</span>)
                     }
                   </div>
                   <button onClick={() => fileRef.current.click()}

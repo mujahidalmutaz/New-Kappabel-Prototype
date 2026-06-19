@@ -65,7 +65,7 @@ function NodeCard({ emp, positions, departments, companies, grades,
           }}>
             {emp.photo
               ? <img src={emp.photo} style={{width:'100%',height:'100%',objectFit:'cover'}} />
-              : (emp.gender==='Female' ? '👩' : '👨')}
+              : ((emp.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase())}
           </div>
           <div style={{ minWidth:0 }}>
             <div style={{ fontWeight:700, fontSize:12, color:'#111827', lineHeight:1.2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
@@ -228,7 +228,7 @@ function FocusedView({ focusId, employees, positions, departments, companies, gr
           display:'flex', alignItems:'center', justifyContent:'center', fontSize:18,
           border:`1.5px solid ${nodeColor(e.gradeId).border}`,
         }}>
-          {e.photo ? <img src={e.photo} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : (e.gender==='Female'?'👩':'👨')}
+          {e.photo ? <img src={e.photo} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : ((e.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase())}
         </div>
         <div style={{ minWidth:0 }}>
           <div style={{ fontWeight:700, fontSize:12, color:'#111827', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
@@ -606,7 +606,7 @@ export default function OrgChartPage() {
                   style={{ border:`2px solid ${selColor.border}` }}>
                   {selected.photo
                     ? <img src={selected.photo} className='w-full h-full object-cover' />
-                    : (selected.gender==='Female'?'👩':'👨')}
+                    : ((selected.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase())}
                 </div>
                 <div className='text-sm font-bold text-gray-800 text-center'>{selected.name}</div>
                 <div className='text-xs text-gray-500 text-center mt-0.5'>{selected.nik}</div>
@@ -644,7 +644,7 @@ export default function OrgChartPage() {
                     <div className='font-semibold text-gray-400 uppercase tracking-wide mb-1' style={{fontSize:9}}>👤 Reports To</div>
                     <div className='flex items-center gap-2 bg-blue-50 rounded-lg px-2 py-1.5 cursor-pointer hover:bg-blue-100'
                       onClick={()=>setSelectedId(selMgr.id)}>
-                      <span className='text-base'>{selMgr.gender==='Female'?'👩':'👨'}</span>
+                      <span className='text-base'>{(selMgr.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</span>
                       <div>
                         <div className='text-xs font-semibold text-blue-800'>{selMgr.name.split(' ')[0]}</div>
                         <div className='text-xs text-blue-500'>{positions.find(p=>p.id===+selMgr.positionId)?.name?.split('/')[0].trim()}</div>
@@ -663,7 +663,7 @@ export default function OrgChartPage() {
                         <div key={dr.id}
                           className='flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1.5 cursor-pointer hover:bg-red-50'
                           onClick={()=>setSelectedId(dr.id)}>
-                          <span className='text-sm'>{dr.gender==='Female'?'👩':'👨'}</span>
+                          <span className='text-sm'>{(dr.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</span>
                           <div className='flex-1 min-w-0'>
                             <div className='text-xs font-semibold text-gray-700 truncate'>{dr.name.split(' ')[0]}</div>
                             <div className='text-xs text-gray-400 truncate'>

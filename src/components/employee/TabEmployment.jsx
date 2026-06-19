@@ -70,8 +70,9 @@ export default function TabEmployment({ emp, S, update, grade, flash, addHistory
               return mgr ? (
                 <button onClick={() => onSelectEmployee?.(mgr.id)}
                   className='mt-2 w-full flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 hover:bg-blue-100 hover:border-blue-300 transition text-left group'>
-                  <div className='w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-sm flex-shrink-0 overflow-hidden'>
-                    {mgr.photo ? <img src={mgr.photo} className='w-full h-full object-cover' /> : (mgr.gender === 'Female' ? '👩' : '👨')}
+                  <div className='w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 overflow-hidden'
+                    style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                    {mgr.photo ? <img src={mgr.photo} className='w-full h-full object-cover' /> : (mgr.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
                   </div>
                   <div className='flex-1 min-w-0'>
                     <div className='text-xs font-semibold text-blue-800 group-hover:underline'>{mgr.name}</div>
@@ -95,8 +96,9 @@ export default function TabEmployment({ emp, S, update, grade, flash, addHistory
               {subs.map(s => (
                 <button key={s.id} onClick={() => onSelectEmployee?.(s.id)}
                   className='flex items-center gap-3 px-3 py-2.5 border border-gray-100 rounded-xl hover:bg-red-50 hover:border-red-200 transition text-left group'>
-                  <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0'>
-                    {s.photo ? <img src={s.photo} className='w-full h-full object-cover' /> : <span className='text-sm'>{s.gender === 'Female' ? '👩' : '👨'}</span>}
+                  <div className='w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white overflow-hidden flex-shrink-0'
+                    style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                    {s.photo ? <img src={s.photo} className='w-full h-full object-cover' /> : (s.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
                   </div>
                   <div className='flex-1 min-w-0'>
                     <div className='text-xs font-semibold text-gray-800 truncate group-hover:text-red-700'>{s.name}</div>

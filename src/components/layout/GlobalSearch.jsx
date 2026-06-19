@@ -183,10 +183,11 @@ export default function GlobalSearch() {
               {matchedEmps.map((e, i) => (
                 <button key={e.id} onClick={() => navigate({ type:'employee', ...e })}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition ${cursor===i ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
-                  <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0 text-sm'>
+                  <div className='w-8 h-8 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 text-[10px] font-bold text-white'
+                    style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
                     {e.photo
                       ? <img src={e.photo} className='w-full h-full object-cover' />
-                      : (e.gender === 'Female' ? '👩' : '👨')
+                      : (e.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()
                     }
                   </div>
                   <div className='flex-1 min-w-0'>

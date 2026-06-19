@@ -155,12 +155,9 @@ export default function PAApprovalPage({ action }) {
                       <span className='font-mono text-xs font-semibold text-violet-700 bg-violet-50 px-2 py-0.5 rounded'>{pa.paNumber}</span>
                     </td>
                     <td className='px-4 py-3'>
-                      <div className='flex items-center gap-2'>
-                        <span>{e?.gender === 'Female' ? '👩' : '👨'}</span>
-                        <div>
-                          <p className='font-semibold text-gray-800 text-xs'>{e?.name || '—'}</p>
-                          <p className='text-xs text-gray-400'>{deptName(pa.fromDepartmentId)}</p>
-                        </div>
+                      <div>
+                        <p className='font-semibold text-gray-800 text-xs'>{e?.name || '—'}</p>
+                        <p className='text-xs text-gray-400'>{deptName(pa.fromDepartmentId)}</p>
                       </div>
                     </td>
                     <td className='px-4 py-3 text-xs text-gray-500'>{posLabel(pa.fromPositionId)}</td>
@@ -228,10 +225,7 @@ export default function PAApprovalPage({ action }) {
                       <span className='font-mono text-xs font-semibold text-violet-700 bg-violet-50 px-2 py-0.5 rounded'>{pa.paNumber}</span>
                     </td>
                     <td className='px-4 py-3'>
-                      <div className='flex items-center gap-2'>
-                        <span>{e?.gender === 'Female' ? '👩' : '👨'}</span>
-                        <p className='font-semibold text-gray-800 text-xs'>{e?.name || '—'}</p>
-                      </div>
+                      <p className='font-semibold text-gray-800 text-xs'>{e?.name || '—'}</p>
                     </td>
                     <td className='px-4 py-3 text-xs text-gray-500'>{posLabel(pa.fromPositionId)}</td>
                     <td className='px-4 py-3 text-xs text-gray-700'>{posLabel(pa.toPositionId)}</td>

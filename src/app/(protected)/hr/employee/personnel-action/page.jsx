@@ -91,10 +91,7 @@ export default function PersonnelActionIndex() {
                       </Link>
                     </td>
                     <td className='px-4 py-3'>
-                      <div className='flex items-center gap-2'>
-                        <span>{e?.gender === 'Female' ? '👩' : '👨'}</span>
-                        <span className='font-medium text-gray-800'>{e?.name || '—'}</span>
-                      </div>
+                      <span className='font-medium text-gray-800'>{e?.name || '—'}</span>
                     </td>
                     <td className='px-4 py-3'>
                       <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${PA_ACTION_COLOR[pa.action] || 'bg-gray-100 text-gray-600'}`}>

@@ -283,10 +283,11 @@ export default function UserlistsPage() {
                         <input type='checkbox' checked={checked}
                           onChange={() => toggleArr('employeeIds', e.id)}
                           className='w-4 h-4 accent-red-600 flex-shrink-0' />
-                        <div className='w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-sm flex-shrink-0 overflow-hidden'>
+                        <div className='w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 overflow-hidden'
+                          style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
                           {e.photo
                             ? <img src={e.photo} className='w-full h-full object-cover' />
-                            : (e.gender === 'Female' ? '👩' : '👨')}
+                            : (e.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
                         </div>
                         <div className='flex-1 min-w-0'>
                           <div className='text-sm font-semibold text-gray-700 truncate'>{e.name}</div>

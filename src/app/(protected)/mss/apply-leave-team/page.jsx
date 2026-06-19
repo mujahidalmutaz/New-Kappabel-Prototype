@@ -104,8 +104,9 @@ export default function ApplyLeaveTeamPage() {
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition ${
                       form.empId === String(e.id) ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:bg-gray-50'
                     }`}>
-                    <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm flex-shrink-0 overflow-hidden'>
-                      {e.photo ? <img src={e.photo} className='w-full h-full object-cover' /> : (e.gender === 'Female' ? '👩' : '👨')}
+                    <div className='w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 overflow-hidden'
+                      style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                      {e.photo ? <img src={e.photo} className='w-full h-full object-cover' /> : (e.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
                     </div>
                     <div className='flex-1 min-w-0'>
                       <div className='text-xs font-semibold text-gray-800 truncate'>{e.name}</div>
@@ -133,8 +134,9 @@ export default function ApplyLeaveTeamPage() {
 
           {selectedEmp && (
             <div className='flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-xl mb-4'>
-              <div className='w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg overflow-hidden flex-shrink-0'>
-                {selectedEmp.photo ? <img src={selectedEmp.photo} className='w-full h-full object-cover' /> : (selectedEmp.gender === 'Female' ? '👩' : '👨')}
+              <div className='w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white overflow-hidden flex-shrink-0'
+                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                {selectedEmp.photo ? <img src={selectedEmp.photo} className='w-full h-full object-cover' /> : (selectedEmp.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
               </div>
               <div>
                 <div className='text-sm font-bold text-red-800'>{selectedEmp.name}</div>

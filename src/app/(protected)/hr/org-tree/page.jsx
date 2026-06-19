@@ -629,7 +629,7 @@ export default function OrgTreePage() {
                       <div className='space-y-1 max-h-48 overflow-y-auto'>
                         {detail.emps.slice(0, 20).map(emp => (
                           <div key={emp.id} className='flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1.5'>
-                            <span className='text-sm'>{emp.gender === 'Female' ? '👩' : '👨'}</span>
+                            <span className='text-sm'>{(emp.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</span>
                             <div className='min-w-0'>
                               <div className='text-xs font-semibold text-gray-700 truncate'>{emp.name}</div>
                               <div className='text-gray-400 truncate' style={{fontSize:9}}>{emp.nik}</div>

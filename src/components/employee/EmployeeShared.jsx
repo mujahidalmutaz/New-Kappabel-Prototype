@@ -50,12 +50,14 @@ export function Section({ title, children }) {
 
 export function Avatar({ emp, size = 'md' }) {
   const dim = size === 'lg' ? 'w-20 h-20' : 'w-9 h-9'
-  const txt = size === 'lg' ? 'text-3xl' : 'text-base'
+  const txt = size === 'lg' ? 'text-lg font-bold' : 'text-xs font-bold'
+  const initials = (emp?.name || '?').trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
   return (
-    <div className={`${dim} rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0`}>
+    <div className={`${dim} rounded-full flex items-center justify-center overflow-hidden flex-shrink-0`}
+      style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
       {emp?.photo
         ? <img src={emp.photo} alt='' className='w-full h-full object-cover' />
-        : <span className={txt}>{emp?.gender === 'Female' ? '👩' : '👨'}</span>
+        : <span className={`${txt} text-white`}>{initials}</span>
       }
     </div>
   )

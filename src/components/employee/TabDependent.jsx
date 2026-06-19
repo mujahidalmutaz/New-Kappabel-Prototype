@@ -60,8 +60,9 @@ export default function TabDependent({ emp, add, upd, del, flash }) {
             <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
               {emp.dependents.map(d => (
                 <div key={d.id} className='border border-gray-100 rounded-xl p-4 flex items-center gap-3'>
-                  <div className='w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-lg flex-shrink-0'>
-                    {d.gender === 'Female' ? '👩' : '👦'}
+                  <div className='w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0'
+                    style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                    {(d.name||'?').trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
                   </div>
                   <div className='flex-1 min-w-0'>
                     <div className='text-sm font-semibold text-gray-800'>{d.name}</div>
