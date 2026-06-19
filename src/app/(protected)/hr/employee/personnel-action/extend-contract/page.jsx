@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useEmployeeStore } from '@/store/employeeStore'
 import { useStructureStore } from '@/store/structureStore'
 import { usePersonnelActionStore, PA_REASONS, PA_STATUS_COLOR, PA_TO_HIST } from '@/store/personnelActionStore'
@@ -98,6 +98,24 @@ export default function ExtendContractPage() {
       toEmploymentType: e.employmentType, toEndDate: '', toStatus: e.status,
     }))
   }
+  useEffect(() => {
+    if (!form.employeeId) return
+    const e = employees.find(x => String(x.id) === String(form.employeeId))
+    if (!e) return
+    setForm(f => ({
+      ...f,
+      fromCompanyId:      e.companyId,
+      fromDivisionId:     e.divisionId,
+      fromBusinessUnitId: e.businessUnitId,
+      fromDepartmentId:   e.departmentId,
+      fromPositionId:     e.positionId,
+      fromGradeId:        e.gradeId,
+      fromEmploymentType: e.employmentType,
+      fromEndDate:        e.endDate || '',
+      fromStatus:         e.status,
+    }))
+  }, [form.employeeId, employees])
+
 
   const applyToEmployee = useCallback((pa) => {
     updateEmployee(pa.employeeId, { endDate: pa.toEndDate })
