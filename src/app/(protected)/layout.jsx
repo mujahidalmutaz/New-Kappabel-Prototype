@@ -160,24 +160,14 @@ export default function ProtectedLayout({ children }) {
         {/* Main bar */}
         <div className='h-[57px] flex items-center justify-between pl-1 pr-5 gap-3'>
 
-          {/* Left: logo */}
-          <div className='flex items-center justify-center flex-shrink-0' style={{ width: 56 }}>
-            {topbarLogo ? (
-              <img src={topbarLogo} alt='Logo' className='h-8 w-8 object-contain' />
-            ) : (
-              <div className='w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0'
-                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                  <path d="M4 2.5h3v5.8l4.6-5.8h3.8L10 10l5.4 7.5h-3.8L7 11.7V17.5H4V2.5z" fill="white"/>
-                </svg>
-              </div>
-            )}
-          </div>
-
-          {/* App name */}
-          <div className='hidden lg:flex items-baseline gap-1.5 flex-shrink-0'>
-            <span className='font-bold text-gray-800 text-[15px] tracking-tight'>Kappabel</span>
-            <span className='text-[9px] font-semibold border border-gray-300 rounded px-1 py-0.5 text-gray-400 leading-none'>Prototype</span>
+          {/* Left: logo + wordmark */}
+          <div className='flex items-center gap-2 flex-shrink-0 pl-1'>
+            <img
+              src={topbarLogo || '/logos/logo-kappabel-ng-CgxOnXu-.png'}
+              alt='Kappabel'
+              className='h-9 w-auto object-contain'
+            />
+            <span className='text-[9px] font-semibold border border-gray-300 rounded px-1 py-0.5 text-gray-400 leading-none hidden lg:inline'>Prototype</span>
           </div>
 
           {/* Search */}
