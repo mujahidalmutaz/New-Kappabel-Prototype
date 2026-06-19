@@ -405,11 +405,6 @@ export default function DashboardPage() {
                 )}
               </button>
             ))}
-            {tasks.length > 0 && mainTab === 'todo' && (
-              <span className='ml-2 self-center text-xs font-bold text-white bg-red-500 w-5 h-5 rounded-full flex items-center justify-center'>
-                {tasks.length}
-              </span>
-            )}
           </div>
 
           {/* Things To Do content */}
