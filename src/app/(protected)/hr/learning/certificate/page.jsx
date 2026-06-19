@@ -32,17 +32,338 @@ const FONT_LABELS  = ['Georgia', 'Arial', 'Times New Roman', 'Courier New', 'Ver
 const EMPTY_TPL = {
   name: '', type: CERT_TYPES[0], orientation: 'Landscape',
   backgroundImageUrl: null, uploadFileName: null,
-  elements: [], showCertNo: false,
+  elements: [], showCertNo: false, signatoryIds: [],
   validityMonths: 0, notes: '', status: 'Draft',
+}
+
+// ─── Signatory Manager ────────────────────────────────────────────────────────
+function SignatoryManager() {
+  const { signatories, addSignatory, updateSignatory, deleteSignatory } = useCertificateStore()
+  const [form,     setForm    ] = useState(null)   // null=closed, {}=new, {id,...}=edit
+  const [msg,      setMsg     ] = useState(null)
+  const [preview,  setPreview ] = useState(null)
+  const sigRef = useRef()
+  const flash = (t, type='success') => { setMsg({t,type}); setTimeout(()=>setMsg(null),3000) }
+
+  const handleUpload = (file) => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = e => setForm(p => ({ ...p, signatureImage: e.target.result }))
+    reader.readAsDataURL(file)
+  }
+
+  const handleSave = () => {
+    if (!form.name?.trim())  { flash('Nama penandatangan wajib diisi.','error'); return }
+    if (!form.title?.trim()) { flash('Jabatan wajib diisi.','error'); return }
+    if (form.id) {
+      updateSignatory(form.id, form)
+      flash(`"${form.name}" diperbarui.`)
+    } else {
+      addSignatory({ ...form, status: 'Active' })
+      flash(`"${form.name}" ditambahkan.`)
+    }
+    setForm(null)
+  }
+
+  const initials = (name='') => name.trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()
+
+  return (
+    <div>
+      {msg && (
+        <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.t}</div>
+      )}
+
+      <div className='flex justify-between items-center mb-5'>
+        <p className='text-sm text-gray-500'>{signatories.length} penandatangan terdaftar</p>
+        <button onClick={() => setForm({ name:'', title:'', department:'', signatureImage: null, status:'Active' })}
+          className='px-5 py-2.5 text-sm font-semibold text-white rounded-xl hover:opacity-90 flex items-center gap-2 transition'
+          style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+          + Tambah Penandatangan
+        </button>
+      </div>
+
+      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5'>
+        {signatories.map(sg => (
+          <div key={sg.id} className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden hover:shadow-md transition'>
+            <div className='h-1.5' style={{ background: 'linear-gradient(90deg,#8B1A1A,#D7252B)' }} />
+            <div className='p-5'>
+              {/* Signature image */}
+              <div className='mb-4 flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0'
+                    style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                    {initials(sg.name)}
+                  </div>
+                  <div>
+                    <p className='font-bold text-gray-800 text-sm'>{sg.name}</p>
+                    <p className='text-xs text-gray-500'>{sg.department}</p>
+                  </div>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${sg.status==='Active'?'bg-green-50 text-green-700':'bg-gray-100 text-gray-500'}`}>
+                  {sg.status}
+                </span>
+              </div>
+
+              <p className='text-xs text-gray-500 mb-3'>{sg.title}</p>
+
+              {/* Signature preview box */}
+              <div className='border border-gray-100 rounded-xl bg-gray-50 p-3 mb-4 flex items-center justify-center'
+                style={{ minHeight: 80 }}>
+                {sg.signatureImage ? (
+                  <img src={sg.signatureImage} alt='tanda tangan' className='max-h-16 max-w-full object-contain cursor-zoom-in'
+                    onClick={() => setPreview(sg)} />
+                ) : (
+                  <span className='text-xs text-gray-300 italic'>Belum ada gambar tanda tangan</span>
+                )}
+              </div>
+
+              <div className='flex gap-1.5'>
+                <button onClick={() => setForm({ ...sg })}
+                  className='flex-1 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition'
+                  style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                  ✏️ Edit
+                </button>
+                <button onClick={() => setPreview(sg)}
+                  className='px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition'>
+                  🔍
+                </button>
+                <button onClick={() => { if (confirm(`Hapus "${sg.name}"?`)) deleteSignatory(sg.id) }}
+                  className='px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition'>
+                  🗑
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {signatories.length === 0 && (
+          <div className='col-span-3 bg-white rounded-2xl p-16 text-center shadow-sm'>
+            <div className='text-5xl mb-4'>✍️</div>
+            <h3 className='font-bold text-gray-700 mb-1'>Belum ada penandatangan</h3>
+            <p className='text-sm text-gray-400 mb-5'>Tambahkan penandatangan beserta gambar tanda tangannya.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Form modal */}
+      {form && (
+        <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4' onClick={() => setForm(null)}>
+          <div className='bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden' onClick={e=>e.stopPropagation()}>
+            <div className='px-6 py-4 flex items-center justify-between'
+              style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+              <h2 className='text-white font-bold text-sm'>
+                {form.id ? 'Edit Penandatangan' : 'Tambah Penandatangan'}
+              </h2>
+              <button onClick={() => setForm(null)}
+                className='w-7 h-7 flex items-center justify-center rounded-full bg-white/20 text-white text-xs hover:bg-white/30'>✕</button>
+            </div>
+
+            <div className='p-6 space-y-4'>
+              <div>
+                <label className='block text-xs font-bold text-gray-500 mb-1'>Nama Lengkap *</label>
+                <input value={form.name || ''} onChange={e=>setForm(p=>({...p,name:e.target.value}))}
+                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'
+                  placeholder='Nama penandatangan' />
+              </div>
+              <div>
+                <label className='block text-xs font-bold text-gray-500 mb-1'>Jabatan *</label>
+                <input value={form.title || ''} onChange={e=>setForm(p=>({...p,title:e.target.value}))}
+                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'
+                  placeholder='Jabatan / posisi' />
+              </div>
+              <div>
+                <label className='block text-xs font-bold text-gray-500 mb-1'>Departemen</label>
+                <input value={form.department || ''} onChange={e=>setForm(p=>({...p,department:e.target.value}))}
+                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'
+                  placeholder='Departemen' />
+              </div>
+
+              {/* Signature upload */}
+              <div>
+                <label className='block text-xs font-bold text-gray-500 mb-2'>Gambar Tanda Tangan</label>
+                <div className='border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition'
+                  style={{ borderColor: form.signatureImage ? '#D7252B' : '#d1d5db' }}
+                  onClick={() => sigRef.current?.click()}>
+                  <input ref={sigRef} type='file' accept='image/*' className='hidden'
+                    onChange={e=>handleUpload(e.target.files[0])} />
+                  {form.signatureImage ? (
+                    <div className='flex flex-col items-center gap-1'>
+                      <img src={form.signatureImage} alt='sig' className='max-h-20 object-contain' />
+                      <span className='text-[10px] text-red-500 mt-1'>Klik untuk ganti</span>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className='text-3xl mb-1'>✍️</div>
+                      <p className='text-xs font-semibold text-gray-500'>Upload gambar tanda tangan</p>
+                      <p className='text-[10px] text-gray-400'>PNG transparan direkomendasikan</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className='block text-xs font-bold text-gray-500 mb-1'>Status</label>
+                <select value={form.status || 'Active'} onChange={e=>setForm(p=>({...p,status:e.target.value}))}
+                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
+                  <option>Active</option>
+                  <option>Inactive</option>
+                </select>
+              </div>
+
+              <div className='flex gap-2 pt-2'>
+                <button onClick={handleSave}
+                  className='flex-1 py-2.5 text-sm font-bold text-white rounded-xl hover:opacity-90 transition'
+                  style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                  {form.id ? 'Simpan Perubahan' : 'Tambahkan'}
+                </button>
+                <button onClick={() => setForm(null)}
+                  className='px-5 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition'>
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview modal */}
+      {preview && (
+        <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4' onClick={() => setPreview(null)}>
+          <div className='bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center' onClick={e=>e.stopPropagation()}>
+            <div className='flex items-center gap-3 mb-4'>
+              <div className='w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white'
+                style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                {initials(preview.name)}
+              </div>
+              <div className='text-left'>
+                <p className='font-bold text-gray-800 text-sm'>{preview.name}</p>
+                <p className='text-xs text-gray-500'>{preview.title}</p>
+              </div>
+            </div>
+            <div className='border border-gray-100 rounded-xl bg-gray-50 p-6 flex items-center justify-center mb-4' style={{ minHeight: 120 }}>
+              {preview.signatureImage
+                ? <img src={preview.signatureImage} alt='tanda tangan' className='max-h-28 object-contain' />
+                : <span className='text-gray-300 text-sm italic'>Tidak ada gambar</span>}
+            </div>
+            <button onClick={() => setPreview(null)}
+              className='text-xs text-gray-400 hover:text-gray-600'>Tutup</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Signatory Picker (used inside CanvasEditor) ──────────────────────────────
+function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories }) {
+  const [open, setOpen] = useState(false)
+  const selected = signatories.filter(s => (signatoryIds||[]).includes(s.id))
+
+  const toggle = (id) => {
+    const cur = signatoryIds || []
+    if (cur.includes(id)) onChange(cur.filter(x=>x!==id))
+    else                  onChange([...cur, id])
+  }
+
+  return (
+    <div>
+      <div className='flex items-center justify-between mb-2'>
+        <label className='block text-[10px] font-bold text-gray-500 uppercase tracking-wider'>Penandatangan</label>
+        <button onClick={() => setOpen(true)}
+          className='text-[10px] text-red-600 font-semibold hover:underline'>+ Pilih</button>
+      </div>
+
+      {selected.length === 0 ? (
+        <button onClick={() => setOpen(true)}
+          className='w-full border-2 border-dashed border-gray-200 rounded-xl py-4 text-center text-xs text-gray-400 hover:border-red-300 hover:text-red-500 transition'>
+          ✍️ Pilih penandatangan dari master
+        </button>
+      ) : (
+        <div className='space-y-2'>
+          {selected.map(sg => (
+            <div key={sg.id} className='flex items-center gap-2 p-2 bg-gray-50 rounded-xl border border-gray-100'>
+              <div className='border border-gray-200 rounded-lg bg-white p-1 flex items-center justify-center' style={{ width:56, height:36 }}>
+                {sg.signatureImage
+                  ? <img src={sg.signatureImage} alt='ttd' className='max-h-7 max-w-full object-contain' />
+                  : <span className='text-gray-200 text-xs'>✍</span>}
+              </div>
+              <div className='flex-1 min-w-0'>
+                <p className='text-xs font-bold text-gray-700 truncate'>{sg.name}</p>
+                <p className='text-[10px] text-gray-400 truncate'>{sg.title}</p>
+              </div>
+              <div className='flex flex-col gap-1'>
+                <button onClick={() => onInsertToCanvas(sg)}
+                  title='Masukkan ke canvas'
+                  className='text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded font-semibold hover:bg-red-100 transition'>
+                  + Canvas
+                </button>
+                <button onClick={() => toggle(sg.id)}
+                  className='text-[10px] text-gray-300 hover:text-red-400 transition text-right'>hapus</button>
+              </div>
+            </div>
+          ))}
+          <button onClick={() => setOpen(true)}
+            className='w-full text-[10px] text-red-600 font-semibold py-1.5 hover:underline'>
+            + Tambah penandatangan lain
+          </button>
+        </div>
+      )}
+
+      {/* Picker modal */}
+      {open && (
+        <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-[60] p-4' onClick={() => setOpen(false)}>
+          <div className='bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden' onClick={e=>e.stopPropagation()}>
+            <div className='px-5 py-4 flex items-center justify-between'
+              style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+              <h2 className='text-white font-bold text-sm'>Pilih Penandatangan</h2>
+              <button onClick={() => setOpen(false)}
+                className='w-7 h-7 flex items-center justify-center rounded-full bg-white/20 text-white text-xs hover:bg-white/30'>✕</button>
+            </div>
+            <div className='p-4 max-h-96 overflow-y-auto space-y-2'>
+              {signatories.filter(s=>s.status==='Active').map(sg => {
+                const checked = (signatoryIds||[]).includes(sg.id)
+                return (
+                  <button key={sg.id} onClick={() => toggle(sg.id)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition text-left ${checked?'border-red-400 bg-red-50':'border-gray-100 hover:border-gray-200'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${checked?'border-red-500 bg-red-500':'border-gray-300'}`}>
+                      {checked && <span className='text-white text-[10px] font-bold'>✓</span>}
+                    </div>
+                    <div className='border border-gray-200 rounded-lg bg-white p-1 flex items-center justify-center' style={{ width:64, height:40 }}>
+                      {sg.signatureImage
+                        ? <img src={sg.signatureImage} alt='ttd' className='max-h-8 max-w-full object-contain' />
+                        : <span className='text-gray-200 text-sm'>✍</span>}
+                    </div>
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-sm font-bold text-gray-800 truncate'>{sg.name}</p>
+                      <p className='text-xs text-gray-500 truncate'>{sg.title}</p>
+                      {sg.department && <p className='text-[10px] text-gray-400 truncate'>{sg.department}</p>}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+            <div className='px-5 py-3 border-t border-gray-100 flex justify-end'>
+              <button onClick={() => setOpen(false)}
+                className='px-5 py-2 text-sm font-bold text-white rounded-xl hover:opacity-90 transition'
+                style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                Selesai
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ─── Canvas Editor ─────────────────────────────────────────────────────────────
 function CanvasEditor({ tpl, onSave, onCancel }) {
-  const [form,       setForm      ] = useState({ ...tpl, elements: tpl.elements ? [...tpl.elements] : [] })
+  const { signatories } = useCertificateStore()
+  const [form,       setForm      ] = useState({ ...tpl, elements: tpl.elements ? [...tpl.elements] : [], signatoryIds: tpl.signatoryIds || [] })
   const [selectedId, setSelectedId] = useState(null)
-  const [dragging,   setDragging  ] = useState(null)   // {id, offsetX, offsetY}
-  const [editingId,  setEditingId ] = useState(null)   // inline text edit
-  const [tab,        setTab       ] = useState('elements') // left panel tab
+  const [dragging,   setDragging  ] = useState(null)
+  const [editingId,  setEditingId ] = useState(null)
+  const [tab,        setTab       ] = useState('elements')
   const [msg,        setMsg       ] = useState(null)
   const canvasRef = useRef()
   const bgRef     = useRef()
@@ -66,8 +387,8 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     if (!dragging) return
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
-    const x = Math.max(0, Math.min(98, ((e.clientX - dragging.offsetX) / rect.width)  * 100))
-    const y = Math.max(0, Math.min(98, ((e.clientY - dragging.offsetY) / rect.height) * 100))
+    const x = Math.max(0, Math.min(95, ((e.clientX - dragging.offsetX) / rect.width)  * 100))
+    const y = Math.max(0, Math.min(95, ((e.clientY - dragging.offsetY) / rect.height) * 100))
     setForm(p => ({ ...p, elements: p.elements.map(el => el.id === dragging.id ? { ...el, x, y } : el) }))
   }, [dragging])
 
@@ -93,6 +414,17 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     const el = { id: Date.now(), type: 'variable', content: v, x: 20, y: 20, fontSize: 14, color: '#8B1A1A', bold: true, italic: false, align: 'center', fontFamily: FONTS[0] }
     setForm(p => ({ ...p, elements: [...p.elements, el] }))
     setSelectedId(el.id); setTab('props')
+  }
+
+  // Insert signature image + name + title as canvas elements
+  const insertSignatoryToCanvas = (sg) => {
+    const now = Date.now()
+    const imgEl  = { id: now,     type: 'signature', signatoryId: sg.id, src: sg.signatureImage, x: 62, y: 76, widthPct: 18 }
+    const nameEl = { id: now+1,   type: 'text', content: sg.name,  x: 62, y: 88, fontSize: 11, color: '#1f2937', bold: true,  italic: false, align: 'center', fontFamily: FONTS[0] }
+    const titleEl= { id: now+2,   type: 'text', content: sg.title, x: 62, y: 92, fontSize: 9,  color: '#6b7280', bold: false, italic: false, align: 'center', fontFamily: FONTS[0] }
+    setForm(p => ({ ...p, elements: [...p.elements, imgEl, nameEl, titleEl] }))
+    flash(`Tanda tangan "${sg.name}" ditambahkan ke canvas.`, 'success')
+    setTab('elements')
   }
 
   const updateEl = (id, k, v) => {
@@ -128,7 +460,6 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     })
   }
 
-  // ── Upload ─────────────────────────────────────────────────────────────────
   const handleBgUpload = (file) => {
     if (!file) return
     const reader = new FileReader()
@@ -137,12 +468,13 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
   }
 
   const handleSave = (status) => {
-    if (!form.name.trim())            { flash('Nama template wajib diisi.'); return }
-    if (!form.backgroundImageUrl)     { flash('Harap upload file desain sertifikat.'); return }
+    if (!form.name.trim())        { flash('Nama template wajib diisi.'); return }
+    if (!form.backgroundImageUrl) { flash('Harap upload file desain sertifikat.'); return }
     onSave({ ...form, status })
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const elemIcon = (el) => el.type === 'signature' ? '✍️' : el.type === 'variable' ? '{ }' : 'T'
+
   return (
     <div className='fixed inset-0 z-50 bg-gray-900 flex flex-col' style={{ fontFamily: 'system-ui, sans-serif' }}>
 
@@ -187,11 +519,10 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
         {/* ── Left panel ─────────────────────────────────────────────────────── */}
         <div className='w-72 bg-white border-r border-gray-200 flex flex-col shrink-0'>
 
-          {/* Panel tabs */}
           <div className='flex border-b border-gray-100'>
-            {[['elements','🧩 Elemen'],['vars','{ } Variabel'],['props','⚙️ Properti'],['settings','🗂️ Info']].map(([k,l]) => (
+            {[['elements','🧩 Elemen'],['vars','{ } Variabel'],['sign','✍️ TTD'],['props','⚙️ Properti'],['settings','🗂️ Info']].map(([k,l]) => (
               <button key={k} onClick={() => setTab(k)}
-                className={`flex-1 py-2.5 text-[10px] font-bold whitespace-nowrap transition border-b-2 ${tab===k?'border-red-600 text-red-700 bg-red-50':'border-transparent text-gray-400 hover:text-gray-600'}`}>
+                className={`flex-1 py-2.5 text-[9px] font-bold whitespace-nowrap transition border-b-2 ${tab===k?'border-red-600 text-red-700 bg-red-50':'border-transparent text-gray-400 hover:text-gray-600'}`}>
                 {l}
               </button>
             ))}
@@ -214,6 +545,11 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                     <span className='text-[10px] font-semibold'>Variabel</span>
                   </button>
                 </div>
+                <button onClick={() => setTab('sign')}
+                  className='w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-gray-200 rounded-xl hover:border-amber-300 hover:bg-amber-50 transition text-gray-500 hover:text-amber-600'>
+                  <span className='text-base'>✍️</span>
+                  <span className='text-[10px] font-semibold'>Tanda Tangan</span>
+                </button>
 
                 {/* Upload background */}
                 <div>
@@ -245,8 +581,8 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                       {[...form.elements].reverse().map(el => (
                         <button key={el.id} onClick={() => { setSelectedId(el.id); setTab('props') }}
                           className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition ${selectedId===el.id?'bg-red-50 border border-red-200':'hover:bg-gray-50 border border-transparent'}`}>
-                          <span className='text-base shrink-0'>{el.type==='variable'?'{ }':'T'}</span>
-                          <span className='flex-1 truncate text-left text-gray-700'>{el.content}</span>
+                          <span className='text-base shrink-0'>{elemIcon(el)}</span>
+                          <span className='flex-1 truncate text-left text-gray-700'>{el.content || el.signatoryId}</span>
                           <button onClick={e=>{e.stopPropagation(); deleteEl(el.id)}} className='text-gray-300 hover:text-red-500 transition shrink-0'>✕</button>
                         </button>
                       ))}
@@ -272,6 +608,16 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
               </>
             )}
 
+            {/* ── Signature tab ── */}
+            {tab === 'sign' && (
+              <SignatoryPicker
+                signatoryIds={form.signatoryIds}
+                onChange={ids => setF('signatoryIds', ids)}
+                onInsertToCanvas={insertSignatoryToCanvas}
+                signatories={signatories}
+              />
+            )}
+
             {/* ── Properties tab ── */}
             {tab === 'props' && (
               <>
@@ -284,7 +630,7 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                   <div className='space-y-3'>
                     <div className='flex items-center justify-between'>
                       <span className='text-xs font-bold text-gray-600'>
-                        {selected.type === 'variable' ? '{ } Variabel' : 'T Teks'}
+                        {selected.type === 'signature' ? '✍️ Tanda Tangan' : selected.type === 'variable' ? '{ } Variabel' : 'T Teks'}
                       </span>
                       <div className='flex gap-1'>
                         <button onClick={() => bringFront(selected.id)} title='Bring to front' className='text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded'>↑</button>
@@ -293,6 +639,22 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                         <button onClick={() => deleteEl(selected.id)} className='text-[10px] text-red-400 hover:text-red-600 bg-red-50 px-2 py-1 rounded'>🗑</button>
                       </div>
                     </div>
+
+                    {selected.type === 'signature' && (
+                      <>
+                        <div className='bg-gray-50 rounded-xl p-3'>
+                          {selected.src
+                            ? <img src={selected.src} alt='ttd' className='max-h-16 object-contain' />
+                            : <span className='text-gray-300 text-xs italic'>Tidak ada gambar</span>}
+                        </div>
+                        <div>
+                          <label className='block text-[10px] font-bold text-gray-500 mb-1'>Lebar (%)</label>
+                          <input type='number' min='5' max='50' value={selected.widthPct || 15}
+                            onChange={e => updateEl(selected.id, 'widthPct', Number(e.target.value))}
+                            className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
+                        </div>
+                      </>
+                    )}
 
                     {selected.type === 'text' && (
                       <div>
@@ -318,42 +680,44 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                       </div>
                     </div>
 
-                    <div>
-                      <label className='block text-[10px] font-bold text-gray-500 mb-1'>Font</label>
-                      <select value={selected.fontFamily} onChange={e => updateEl(selected.id, 'fontFamily', e.target.value)}
-                        className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300'>
-                        {FONTS.map((f, i) => <option key={f} value={f}>{FONT_LABELS[i]}</option>)}
-                      </select>
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-2'>
-                      <div>
-                        <label className='block text-[10px] font-bold text-gray-500 mb-1'>Ukuran</label>
-                        <input type='number' min='6' max='72' value={selected.fontSize}
-                          onChange={e => updateEl(selected.id, 'fontSize', Number(e.target.value))}
-                          className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
-                      </div>
-                      <div>
-                        <label className='block text-[10px] font-bold text-gray-500 mb-1'>Warna</label>
-                        <input type='color' value={selected.color} onChange={e => updateEl(selected.id, 'color', e.target.value)}
-                          className='w-full h-[34px] px-1 py-1 border border-gray-200 rounded-lg cursor-pointer' />
-                      </div>
-                    </div>
-
-                    <div className='flex gap-2'>
-                      {[['bold','B','font-bold'],['italic','I','italic']].map(([k,l,cls]) => (
-                        <button key={k} onClick={() => updateEl(selected.id, k, !selected[k])}
-                          className={`flex-1 py-2 text-xs rounded-lg border transition ${cls} ${selected[k]?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                          {l}
-                        </button>
-                      ))}
-                      {['left','center','right'].map(a => (
-                        <button key={a} onClick={() => updateEl(selected.id, 'align', a)}
-                          className={`flex-1 py-2 text-xs rounded-lg border transition ${selected.align===a?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                          {a==='left'?'⬅':a==='center'?'⬛':'➡'}
-                        </button>
-                      ))}
-                    </div>
+                    {selected.type !== 'signature' && (
+                      <>
+                        <div>
+                          <label className='block text-[10px] font-bold text-gray-500 mb-1'>Font</label>
+                          <select value={selected.fontFamily} onChange={e => updateEl(selected.id, 'fontFamily', e.target.value)}
+                            className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300'>
+                            {FONTS.map((f, i) => <option key={f} value={f}>{FONT_LABELS[i]}</option>)}
+                          </select>
+                        </div>
+                        <div className='grid grid-cols-2 gap-2'>
+                          <div>
+                            <label className='block text-[10px] font-bold text-gray-500 mb-1'>Ukuran</label>
+                            <input type='number' min='6' max='72' value={selected.fontSize}
+                              onChange={e => updateEl(selected.id, 'fontSize', Number(e.target.value))}
+                              className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300' />
+                          </div>
+                          <div>
+                            <label className='block text-[10px] font-bold text-gray-500 mb-1'>Warna</label>
+                            <input type='color' value={selected.color} onChange={e => updateEl(selected.id, 'color', e.target.value)}
+                              className='w-full h-[34px] px-1 py-1 border border-gray-200 rounded-lg cursor-pointer' />
+                          </div>
+                        </div>
+                        <div className='flex gap-2'>
+                          {[['bold','B','font-bold'],['italic','I','italic']].map(([k,l,cls]) => (
+                            <button key={k} onClick={() => updateEl(selected.id, k, !selected[k])}
+                              className={`flex-1 py-2 text-xs rounded-lg border transition ${cls} ${selected[k]?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                              {l}
+                            </button>
+                          ))}
+                          {['left','center','right'].map(a => (
+                            <button key={a} onClick={() => updateEl(selected.id, 'align', a)}
+                              className={`flex-1 py-2 text-xs rounded-lg border transition ${selected.align===a?'border-red-400 bg-red-50 text-red-700':'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                              {a==='left'?'⬅':a==='center'?'⬛':'➡'}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </>
@@ -393,7 +757,7 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                 </div>
                 <div>
                   <label className='block text-[10px] font-bold text-gray-500 mb-1'>Catatan Internal</label>
-                  <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={3} resize='none'
+                  <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={3}
                     className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' />
                 </div>
               </>
@@ -425,69 +789,92 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
               }}
               onClick={e => { e.stopPropagation(); setSelectedId(null); setEditingId(null) }}>
 
-              {/* Background image */}
               <img src={form.backgroundImageUrl} alt='template'
                 className='w-full h-full object-cover rounded'
                 draggable={false} />
 
-              {/* Elements */}
-              {form.elements.map(el => (
-                <div key={el.id}
-                  onMouseDown={e => onElemMouseDown(e, el.id)}
-                  onDoubleClick={e => { e.stopPropagation(); if (el.type === 'text') setEditingId(el.id) }}
-                  style={{
-                    position:  'absolute',
-                    left:      `${el.x}%`,
-                    top:       `${el.y}%`,
-                    fontSize:  el.fontSize,
-                    color:     el.color,
-                    fontWeight:  el.bold   ? 700 : 400,
-                    fontStyle:   el.italic ? 'italic' : 'normal',
-                    textAlign:   el.align || 'left',
-                    fontFamily:  el.fontFamily || 'Georgia, serif',
-                    cursor:      dragging?.id === el.id ? 'grabbing' : 'grab',
-                    userSelect:  'none',
-                    whiteSpace:  'nowrap',
-                    outline:     selectedId === el.id ? '1.5px dashed #D7252B' : '1.5px dashed transparent',
-                    outlineOffset: '3px',
-                    padding:     '2px 4px',
-                    borderRadius: 2,
-                    background:  selectedId === el.id ? 'rgba(215,37,43,0.06)' : 'transparent',
-                    transform:   'translate(0,0)',
-                    zIndex:      selectedId === el.id ? 10 : 1,
-                  }}>
-                  {editingId === el.id ? (
-                    <input
-                      autoFocus
-                      value={el.content}
-                      onChange={e => updateEl(el.id, 'content', e.target.value)}
-                      onBlur={() => setEditingId(null)}
-                      onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingId(null) }}
-                      onClick={e => e.stopPropagation()}
+              {form.elements.map(el => {
+                if (el.type === 'signature') {
+                  return (
+                    <div key={el.id}
+                      onMouseDown={e => onElemMouseDown(e, el.id)}
                       style={{
-                        fontSize:   el.fontSize,
-                        color:      el.color,
-                        fontWeight: el.bold   ? 700 : 400,
-                        fontStyle:  el.italic ? 'italic' : 'normal',
-                        fontFamily: el.fontFamily,
-                        background: 'rgba(255,255,255,0.9)',
-                        border:     '1px solid #D7252B',
-                        outline:    'none',
-                        borderRadius: 2,
-                        padding:    '1px 4px',
-                        minWidth:   80,
-                      }}
-                    />
-                  ) : el.content}
+                        position: 'absolute',
+                        left: `${el.x}%`,
+                        top:  `${el.y}%`,
+                        width: `${el.widthPct || 15}%`,
+                        cursor: dragging?.id === el.id ? 'grabbing' : 'grab',
+                        outline: selectedId === el.id ? '1.5px dashed #D7252B' : '1.5px dashed transparent',
+                        outlineOffset: 3,
+                        zIndex: selectedId === el.id ? 10 : 1,
+                      }}>
+                      {el.src
+                        ? <img src={el.src} alt='signature' className='w-full h-auto' draggable={false} />
+                        : <div className='w-full h-10 border border-dashed border-gray-400 flex items-center justify-center text-xs text-gray-400'>✍️</div>}
+                      {selectedId === el.id && (
+                        <span style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', fontSize:9, color:'#D7252B', background:'white', padding:'1px 4px', borderRadius:3, border:'1px solid #fca5a5', whiteSpace:'nowrap', pointerEvents:'none' }}>
+                          ✥ drag
+                        </span>
+                      )}
+                    </div>
+                  )
+                }
 
-                  {/* Drag handle hint */}
-                  {selectedId === el.id && (
-                    <span style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', fontSize:9, color:'#D7252B', background:'white', padding:'1px 4px', borderRadius:3, border:'1px solid #fca5a5', whiteSpace:'nowrap', pointerEvents:'none' }}>
-                      ✥ drag · {el.type==='text'?'dbl-click edit':''}
-                    </span>
-                  )}
-                </div>
-              ))}
+                return (
+                  <div key={el.id}
+                    onMouseDown={e => onElemMouseDown(e, el.id)}
+                    onDoubleClick={e => { e.stopPropagation(); if (el.type === 'text') setEditingId(el.id) }}
+                    style={{
+                      position:  'absolute',
+                      left:      `${el.x}%`,
+                      top:       `${el.y}%`,
+                      fontSize:  el.fontSize,
+                      color:     el.color,
+                      fontWeight:  el.bold   ? 700 : 400,
+                      fontStyle:   el.italic ? 'italic' : 'normal',
+                      textAlign:   el.align || 'left',
+                      fontFamily:  el.fontFamily || 'Georgia, serif',
+                      cursor:      dragging?.id === el.id ? 'grabbing' : 'grab',
+                      userSelect:  'none',
+                      whiteSpace:  'nowrap',
+                      outline:     selectedId === el.id ? '1.5px dashed #D7252B' : '1.5px dashed transparent',
+                      outlineOffset: '3px',
+                      padding:     '2px 4px',
+                      borderRadius: 2,
+                      background:  selectedId === el.id ? 'rgba(215,37,43,0.06)' : 'transparent',
+                      zIndex:      selectedId === el.id ? 10 : 1,
+                    }}>
+                    {editingId === el.id ? (
+                      <input
+                        autoFocus
+                        value={el.content}
+                        onChange={e => updateEl(el.id, 'content', e.target.value)}
+                        onBlur={() => setEditingId(null)}
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingId(null) }}
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          fontSize:   el.fontSize,
+                          color:      el.color,
+                          fontWeight: el.bold   ? 700 : 400,
+                          fontStyle:  el.italic ? 'italic' : 'normal',
+                          fontFamily: el.fontFamily,
+                          background: 'rgba(255,255,255,0.9)',
+                          border:     '1px solid #D7252B',
+                          outline:    'none',
+                          borderRadius: 2,
+                          padding:    '1px 4px',
+                          minWidth:   80,
+                        }}
+                      />
+                    ) : el.content}
+                    {selectedId === el.id && (
+                      <span style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', fontSize:9, color:'#D7252B', background:'white', padding:'1px 4px', borderRadius:3, border:'1px solid #fca5a5', whiteSpace:'nowrap', pointerEvents:'none' }}>
+                        ✥ drag {el.type==='text'?'· dbl-click edit':''}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
@@ -495,9 +882,10 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
         {/* ── Right mini panel ───────────────────────────────────────────────── */}
         <div className='w-14 bg-gray-900 flex flex-col items-center py-4 gap-3 shrink-0'>
           {[
-            { icon:'T', label:'Teks', action: addText },
-            { icon:'{ }', label:'Var', action: () => setTab('vars') },
-            { icon:'📤', label:'BG', action: () => bgRef.current?.click() },
+            { icon:'T',   label:'Teks', action: addText },
+            { icon:'{ }', label:'Var',  action: () => setTab('vars') },
+            { icon:'✍️',  label:'TTD',  action: () => setTab('sign') },
+            { icon:'📤',  label:'BG',   action: () => bgRef.current?.click() },
           ].map(item => (
             <button key={item.icon} onClick={item.action} title={item.label}
               className='w-10 h-10 rounded-xl bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white text-xs font-bold transition'>
@@ -517,8 +905,9 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
   )
 }
 
-// ─── Card preview ─────────────────────────────────────────────────────────────
-function TplCard({ tpl, onEdit, onDuplicate, onDelete }) {
+// ─── Template Card ─────────────────────────────────────────────────────────────
+function TplCard({ tpl, signatories, onEdit, onDuplicate, onDelete }) {
+  const assigned = signatories.filter(s => (tpl.signatoryIds||[]).includes(s.id))
   return (
     <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden hover:shadow-md transition'>
       <div className='h-1.5' style={{ background: 'linear-gradient(90deg,#8B1A1A,#D7252B)' }} />
@@ -540,12 +929,25 @@ function TplCard({ tpl, onEdit, onDuplicate, onDelete }) {
           </span>
         </div>
         <div className='flex items-center gap-2 mb-3 flex-wrap'>
-          <span className='text-xs text-gray-400'>📤 {tpl.uploadFileName || 'Uploaded'}</span>
-          <span className='text-gray-200'>·</span>
           <span className='text-xs text-gray-400'>{tpl.orientation}</span>
           <span className='text-gray-200'>·</span>
           <span className='text-xs text-gray-400'>{(tpl.elements||[]).length} elemen</span>
         </div>
+
+        {/* Signatories chips */}
+        {assigned.length > 0 && (
+          <div className='flex flex-wrap gap-1.5 mb-3'>
+            {assigned.map(sg => (
+              <div key={sg.id} className='flex items-center gap-1.5 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5'>
+                {sg.signatureImage && (
+                  <img src={sg.signatureImage} alt='ttd' className='h-4 w-auto object-contain' />
+                )}
+                <span className='text-[10px] text-amber-800 font-semibold'>{sg.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className='flex gap-1.5'>
           <button onClick={() => onEdit(tpl)}
             className='flex-1 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition'
@@ -562,10 +964,11 @@ function TplCard({ tpl, onEdit, onDuplicate, onDelete }) {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function MasterCertificatePage() {
-  const { templates, setTemplates } = useCertificateStore()
+  const { templates, signatories, setTemplates } = useCertificateStore()
+  const [pageTab,    setPageTab   ] = useState('templates')
   const [editorOpen, setEditorOpen] = useState(false)
-  const [editingTpl, setEditingTpl] = useState(null)
-  const [msg,        setMsg       ] = useState(null)
+  const [editingTpl, setEditingTpl ] = useState(null)
+  const [msg,        setMsg        ] = useState(null)
 
   const flash = (text, type='success') => { setMsg({text,type}); setTimeout(()=>setMsg(null),3000) }
 
@@ -593,21 +996,22 @@ export default function MasterCertificatePage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Certificate Template</h1>
+      <h1 className='text-2xl font-bold text-gray-800 mb-1'>Master Certificate</h1>
       <p className='text-gray-500 text-sm mb-6'>
-        Upload desain sertifikat, lalu tambahkan teks dan variabel dinamis langsung di atas gambar.
+        Kelola template sertifikat dan daftar penandatangan yang dapat dipilih saat membuat template.
       </p>
 
       {msg && (
         <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>
       )}
 
+      {/* Stats */}
       <div className='grid grid-cols-4 gap-4 mb-6'>
         {[
-          ['Total Template', templates.length,          '📄','#8B1A1A'],
-          ['Active',         activeCount,               '✅','#059669'],
-          ['Draft',          templates.length-activeCount,'📝','#d97706'],
-          ['Elemen Total',   templates.reduce((s,t)=>s+(t.elements||[]).length,0),'🔖','#7c3aed'],
+          ['Total Template',    templates.length,              '📄','#8B1A1A'],
+          ['Template Active',   activeCount,                   '✅','#059669'],
+          ['Penandatangan',     signatories.filter(s=>s.status==='Active').length, '✍️','#d97706'],
+          ['Elemen Total',      templates.reduce((s,t)=>s+(t.elements||[]).length,0),'🔖','#7c3aed'],
         ].map(([l,v,i,c])=>(
           <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
             <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
@@ -616,33 +1020,51 @@ export default function MasterCertificatePage() {
         ))}
       </div>
 
-      <div className='flex justify-between items-center mb-4'>
-        <p className='text-sm text-gray-500'>{templates.length} template</p>
-        <button onClick={handleNew}
-          className='px-5 py-2.5 text-sm font-semibold text-white rounded-xl hover:opacity-90 flex items-center gap-2 transition'
-          style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-          + Buat Template Baru
-        </button>
+      {/* Page tabs */}
+      <div className='flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit'>
+        {[['templates','📄 Template Sertifikat'],['signatories','✍️ Master Tanda Tangan']].map(([k,l]) => (
+          <button key={k} onClick={() => setPageTab(k)}
+            className={`px-5 py-2 text-sm font-semibold rounded-lg transition ${pageTab===k?'bg-white text-gray-800 shadow-sm':'text-gray-500 hover:text-gray-700'}`}>
+            {l}
+          </button>
+        ))}
       </div>
 
-      {templates.length === 0 ? (
-        <div className='bg-white rounded-2xl p-16 text-center shadow-sm'>
-          <div className='text-5xl mb-4'>📜</div>
-          <h3 className='font-bold text-gray-700 mb-1'>Belum ada template</h3>
-          <p className='text-sm text-gray-400 mb-5'>Upload desain sertifikat dan tambahkan variabel dinamis di atasnya.</p>
-          <button onClick={handleNew} className='px-6 py-2.5 text-white text-sm font-semibold rounded-xl hover:opacity-90'
-            style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
-            + Buat Template Baru
-          </button>
-        </div>
-      ) : (
-        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5'>
-          {templates.map(tpl=>(
-            <TplCard key={tpl.id} tpl={tpl}
-              onEdit={handleEdit} onDuplicate={handleDuplicate} onDelete={handleDelete} />
-          ))}
-        </div>
+      {/* Templates tab */}
+      {pageTab === 'templates' && (
+        <>
+          <div className='flex justify-between items-center mb-4'>
+            <p className='text-sm text-gray-500'>{templates.length} template</p>
+            <button onClick={handleNew}
+              className='px-5 py-2.5 text-sm font-semibold text-white rounded-xl hover:opacity-90 flex items-center gap-2 transition'
+              style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
+              + Buat Template Baru
+            </button>
+          </div>
+
+          {templates.length === 0 ? (
+            <div className='bg-white rounded-2xl p-16 text-center shadow-sm'>
+              <div className='text-5xl mb-4'>📜</div>
+              <h3 className='font-bold text-gray-700 mb-1'>Belum ada template</h3>
+              <p className='text-sm text-gray-400 mb-5'>Upload desain sertifikat dan tambahkan variabel dinamis di atasnya.</p>
+              <button onClick={handleNew} className='px-6 py-2.5 text-white text-sm font-semibold rounded-xl hover:opacity-90'
+                style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
+                + Buat Template Baru
+              </button>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5'>
+              {templates.map(tpl=>(
+                <TplCard key={tpl.id} tpl={tpl} signatories={signatories}
+                  onEdit={handleEdit} onDuplicate={handleDuplicate} onDelete={handleDelete} />
+              ))}
+            </div>
+          )}
+        </>
       )}
+
+      {/* Signatories tab */}
+      {pageTab === 'signatories' && <SignatoryManager />}
     </div>
   )
 }
