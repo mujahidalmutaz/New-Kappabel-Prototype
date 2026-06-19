@@ -30,7 +30,6 @@ const ALL_SHORTCUTS = {
     { id: 'orgchart',  label: 'Organization',          icon: '🏛️', href: '/hr/orgchart' },
   ],
   manager: [
-    { id: 'team',      label: 'My Team',               icon: '👥', href: '/mss/team' },
     { id: 'approval',  label: 'Leave Approval',         icon: '✅', href: '/mss/leave-approval' },
     { id: 'checkin',   label: 'Team Check-In',          icon: '🤝', href: '/mss/check-in' },
     { id: 'personal',  label: 'Personal Information',   icon: '👤', href: '/ess/personal-info' },
