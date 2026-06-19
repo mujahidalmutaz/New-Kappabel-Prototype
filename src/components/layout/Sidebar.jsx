@@ -11,6 +11,7 @@ const IcPerson = () => <svg width="19" height="19" viewBox="0 0 24 24" fill="non
 const IcTeam   = () => <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
 const IcHR     = () => <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
 const IcSA     = () => <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M17.66 17.66l1.41 1.41"/></svg>
+const IcLMS    = () => <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
 
 // ─── Item SVG icons ───────────────────────────────────────────────────────────
 const icons = {
@@ -154,27 +155,6 @@ const ESS_GROUPS = [
   { title: 'Performance', icon: '🎯', items: [
     { label: 'Performance Check-In', href: '/ess/check-in',       icon: ic('gauge') },
   ]},
-  { title: 'Learning', icon: '📚', items: [
-    { label: 'My Learning Dashboard', href: '/ess/learning/dashboard',          icon: ic('chart') },
-    { label: 'Course Catalog',         href: '/ess/learning/catalog',           icon: ic('book') },
-    { label: 'My Courses',             href: '/ess/learning/my-courses',        icon: ic('video') },
-    { label: 'Learning Path',          href: '/ess/learning/learning-path',     icon: ic('layers') },
-    { label: 'Assessments & Eval',     href: '/ess/learning/assessments',       icon: ic('clipboard') },
-    { label: 'My Certificates',        href: '/ess/learning/certificates',      icon: ic('award') },
-    { label: 'Learning Transcript',    href: '/ess/learning/transcript',        icon: ic('fileText') },
-    { label: 'Skill Gap',              href: '/ess/learning/skill-gap',         icon: ic('activity') },
-    { label: 'Competency Profile',     href: '/ess/learning/competency-profile',icon: ic('shield') },
-    { label: 'My IDP',                 href: '/ess/learning/idp',               icon: ic('target') },
-    { label: 'Learning Calendar',      href: '/ess/learning/calendar',          icon: ic('calendar') },
-    { label: 'Achievements & Badge',   href: '/ess/learning/achievements',      icon: ic('trophy') },
-    { label: 'Leaderboard',            href: '/ess/learning/leaderboard',       icon: ic('trending') },
-    { label: 'Community',              href: '/ess/learning/community',         icon: ic('globe') },
-    { label: 'Sharing Session',        href: '/ess/learning/sharing-session',   icon: ic('share') },
-    { label: 'Req External Training',  href: '/ess/learning/request-external',  icon: ic('plane') },
-    { label: 'Record External',        href: '/ess/learning/record-external',   icon: ic('upload') },
-    { label: 'Notifications',          href: '/ess/learning/notifications',     icon: ic('bell') },
-    { label: 'Learning Profile',       href: '/ess/learning/profile',           icon: ic('person') },
-  ]},
 ]
 
 const MSS_GROUPS = [
@@ -198,22 +178,46 @@ const MSS_GROUPS = [
     { label: 'Change Employment Type',  href: '/mss/personnel-action/change-employment-type',  icon: ic('tag') },
     { label: 'Extend Contract',         href: '/mss/personnel-action/extend-contract',         icon: ic('fileText') },
   ]},
-  { title: 'Team Learning', icon: '📖', items: [
-    { label: 'Team Learning Dashboard', href: '/mss/learning/dashboard',     icon: ic('chart') },
-    { label: 'Mandatory Monitoring',    href: '/mss/learning/mandatory',     icon: ic('check') },
-    { label: 'Training Approval',       href: '/mss/learning/approval',      icon: ic('checkCircle') },
-    { label: 'Team Assignment',         href: '/mss/learning/assignment',    icon: ic('clipboard') },
-    { label: 'Team Progress',           href: '/mss/learning/progress',      icon: ic('trending') },
+]
+
+const LMS_GROUPS = [
+  { title: 'My Learning (ESS)', icon: '👤', items: [
+    { label: 'My Learning Dashboard',  href: '/ess/learning/dashboard',          icon: ic('chart') },
+    { label: 'Course Catalog',          href: '/ess/learning/catalog',           icon: ic('book') },
+    { label: 'My Courses',              href: '/ess/learning/my-courses',        icon: ic('video') },
+    { label: 'Learning Path',           href: '/ess/learning/learning-path',     icon: ic('layers') },
+    { label: 'Assessments & Eval',      href: '/ess/learning/assessments',       icon: ic('clipboard') },
+    { label: 'My Certificates',         href: '/ess/learning/certificates',      icon: ic('award') },
+    { label: 'Learning Transcript',     href: '/ess/learning/transcript',        icon: ic('fileText') },
+    { label: 'Skill Gap',               href: '/ess/learning/skill-gap',         icon: ic('activity') },
+    { label: 'Competency Profile',      href: '/ess/learning/competency-profile',icon: ic('shield') },
+    { label: 'My IDP',                  href: '/ess/learning/idp',               icon: ic('target') },
+    { label: 'Learning Calendar',       href: '/ess/learning/calendar',          icon: ic('calendar') },
+    { label: 'Achievements & Badge',    href: '/ess/learning/achievements',      icon: ic('trophy') },
+    { label: 'Leaderboard',             href: '/ess/learning/leaderboard',       icon: ic('trending') },
+    { label: 'Community',               href: '/ess/learning/community',         icon: ic('globe') },
+    { label: 'Sharing Session',         href: '/ess/learning/sharing-session',   icon: ic('share') },
+    { label: 'Req External Training',   href: '/ess/learning/request-external',  icon: ic('plane') },
+    { label: 'Record External',         href: '/ess/learning/record-external',   icon: ic('upload') },
+    { label: 'Notifications',           href: '/ess/learning/notifications',     icon: ic('bell') },
+    { label: 'Learning Profile',        href: '/ess/learning/profile',           icon: ic('person') },
+  ]},
+  { title: 'Team Learning (MSS)', icon: '👥', items: [
+    { label: 'Team Learning Dashboard', href: '/mss/learning/dashboard',        icon: ic('chart') },
+    { label: 'Mandatory Monitoring',    href: '/mss/learning/mandatory',        icon: ic('check') },
+    { label: 'Training Approval',       href: '/mss/learning/approval',         icon: ic('checkCircle') },
+    { label: 'Team Assignment',         href: '/mss/learning/assignment',       icon: ic('clipboard') },
+    { label: 'Team Progress',           href: '/mss/learning/progress',         icon: ic('trending') },
     { label: 'Request External',        href: '/mss/learning/request-external', icon: ic('plane') },
-    { label: 'Behavior Evaluation',     href: '/mss/learning/behavior-eval', icon: ic('activity') },
-    { label: 'Team Competency',         href: '/mss/learning/competency',    icon: ic('shield') },
-    { label: 'Gap Analysis',            href: '/mss/learning/gap-analysis',  icon: ic('target') },
-    { label: 'Recommendation',          href: '/mss/learning/recommendation',icon: ic('star') },
-    { label: 'Cert Approval',           href: '/mss/learning/cert-approval', icon: ic('award') },
-    { label: 'Team Calendar',           href: '/mss/learning/calendar',      icon: ic('calendar') },
-    { label: 'Team Leaderboard',        href: '/mss/learning/leaderboard',   icon: ic('trophy') },
-    { label: 'Team Report',             href: '/mss/learning/report',        icon: ic('fileText') },
-    { label: 'Notifications',           href: '/mss/learning/notifications', icon: ic('bell') },
+    { label: 'Behavior Evaluation',     href: '/mss/learning/behavior-eval',    icon: ic('activity') },
+    { label: 'Team Competency',         href: '/mss/learning/competency',       icon: ic('shield') },
+    { label: 'Gap Analysis',            href: '/mss/learning/gap-analysis',     icon: ic('target') },
+    { label: 'Recommendation',          href: '/mss/learning/recommendation',   icon: ic('star') },
+    { label: 'Cert Approval',           href: '/mss/learning/cert-approval',    icon: ic('award') },
+    { label: 'Team Calendar',           href: '/mss/learning/calendar',         icon: ic('calendar') },
+    { label: 'Team Leaderboard',        href: '/mss/learning/leaderboard',      icon: ic('trophy') },
+    { label: 'Team Report',             href: '/mss/learning/report',           icon: ic('fileText') },
+    { label: 'Notifications',           href: '/mss/learning/notifications',    icon: ic('bell') },
   ]},
 ]
 
@@ -336,6 +340,7 @@ export default function Sidebar() {
   const [openId, setOpenId] = useState(null)
 
   useEffect(() => {
+    if (pathname.startsWith('/ess/learning') || pathname.startsWith('/mss/learning')) { setOpenId('lms');      return }
     if (pathname.startsWith('/ess'))      { setOpenId('ess');      return }
     if (pathname.startsWith('/mss'))      { setOpenId('mss');      return }
     if (pathname.startsWith('/hr'))       { setOpenId('hr');       return }
@@ -352,11 +357,12 @@ export default function Sidebar() {
   }, [openId])
 
   const sections = [
-    { id: 'dashboard', icon: IcHome,   label: 'Dashboard',        href: '/dashboard', groups: null },
-    { id: 'ess',       icon: IcPerson, label: 'Employee (ESS)',    href: null, groups: ESS_GROUPS },
-    canMgr && { id: 'mss',     icon: IcTeam,   label: 'Manager (MSS)',     href: null, groups: MSS_GROUPS },
-    canHR  && { id: 'hr',      icon: IcHR,     label: 'HR Administration', href: null, groups: HR_GROUPS },
-    canSA  && { id: 'sysadmin',icon: IcSA,     label: 'System Admin',      href: null, groups: SA_GROUPS },
+    { id: 'dashboard', icon: IcHome,   label: 'Dashboard',           href: '/dashboard', groups: null },
+    { id: 'ess',       icon: IcPerson, label: 'Employee (ESS)',       href: null, groups: ESS_GROUPS },
+    canMgr && { id: 'mss',     icon: IcTeam,   label: 'Manager (MSS)',      href: null, groups: MSS_GROUPS },
+    { id: 'lms',       icon: IcLMS,    label: 'Learning (LMS)',       href: null, groups: LMS_GROUPS },
+    canHR  && { id: 'hr',      icon: IcHR,     label: 'HR Administration',  href: null, groups: HR_GROUPS },
+    canSA  && { id: 'sysadmin',icon: IcSA,     label: 'System Admin',       href: null, groups: SA_GROUPS },
   ].filter(Boolean)
 
   const activeSec = sections.find(s => s.id === openId)
@@ -368,6 +374,9 @@ export default function Sidebar() {
 
   const isIconActive = (sec) => {
     if (sec.id === 'dashboard') return pathname === '/dashboard'
+    if (sec.id === 'lms') return pathname.startsWith('/ess/learning') || pathname.startsWith('/mss/learning')
+    if (sec.id === 'ess') return pathname.startsWith('/ess') && !pathname.startsWith('/ess/learning')
+    if (sec.id === 'mss') return pathname.startsWith('/mss') && !pathname.startsWith('/mss/learning')
     return pathname.startsWith('/' + sec.id)
   }
 
