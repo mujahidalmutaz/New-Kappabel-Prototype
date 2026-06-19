@@ -151,6 +151,7 @@ const ESS_GROUPS = [
     { label: 'Attendance',           href: '/ess/attendance',     icon: ic('clock') },
     { label: 'Payslip',              href: '/ess/payslip',        icon: ic('money') },
     { label: 'My Onboarding',        href: '/ess/onboarding',     icon: ic('checkCircle') },
+    { label: 'My Profile',           href: '/ess/profile',        icon: ic('user') },
   ]},
   { title: 'Performance', icon: '🎯', items: [
     { label: 'Performance Check-In', href: '/ess/check-in',       icon: ic('gauge') },
