@@ -127,7 +127,7 @@ export default function MSSPersonnelActionIndex() {
                         </td>
                         <td className='px-4 py-3'>
                           <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${PA_ACTION_COLOR[pa.action] || 'bg-gray-100 text-gray-600'}`}>
-                            {PA_ACTION_ICON[pa.action]} {pa.action}
+                            {pa.action}
                           </span>
                         </td>
                         <td className='px-4 py-3 text-xs text-gray-600'>{pa.effectiveDate || '—'}</td>

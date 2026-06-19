@@ -176,7 +176,7 @@ export default function PAWorkflowMonitor({ pas, title = 'Workflow Monitor', act
           <h2 className='text-sm font-bold text-gray-700'>🔀 {title}</h2>
           <p className='text-xs text-gray-400 mt-0.5'>
             {t('Status persetujuan setiap PA', 'Approval status for each PA')}
-            {action && <span className='ml-2 font-semibold text-red-600'>{PA_ACTION_ICON[action]} {action}</span>}
+            {action && <span className='ml-2 font-semibold text-red-600'>{action}</span>}
           </p>
         </div>
         <div className='flex gap-1'>
