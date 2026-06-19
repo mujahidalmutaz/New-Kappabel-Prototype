@@ -1015,15 +1015,9 @@ export default function OnboardingTrackerPage() {
         title={t('Onboarding Tracker', 'Onboarding Tracker')}
         subtitle={t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
         actions={
-          <div className='flex gap-2'>
-            <button onClick={openAutoAssign}
-              className='flex items-center gap-2 px-4 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition'>
-              ⚡ {t('Auto Assign', 'Auto Assign')}
-            </button>
-            <ActionButton icon='+' onClick={openNew}>
-              {t('Tambah Onboarding', 'New Onboarding')}
-            </ActionButton>
-          </div>
+          <ActionButton icon='+' onClick={openNew}>
+            {t('Tambah Onboarding', 'New Onboarding')}
+          </ActionButton>
         }
       />
 

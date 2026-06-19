@@ -47,6 +47,7 @@ const PAGES = [
   // HR - Onboarding
   { label: 'Onboarding Tracker (HR)',   href: '/hr/onboarding/tracker',                        icon: '📋', section: 'HR · Onboarding' },
   { label: 'Master Onboarding',         href: '/hr/onboarding/master',                         icon: '📄', section: 'HR · Onboarding' },
+  { label: 'Auto Assign Onboarding',    href: '/hr/onboarding/auto-assign',                    icon: '⚡', section: 'HR · Onboarding' },
   { label: 'Form Evaluation',           href: '/hr/evaluation',                                icon: '📊', section: 'HR · Onboarding' },
   // HR - Time & Labour
   { label: 'Shift Setting',             href: '/hr/time-labour/shift-setting',                 icon: '🕐', section: 'HR · Time & Labour' },

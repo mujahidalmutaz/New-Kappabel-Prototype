@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useMasterOnboardingStore } from '@/store/masterOnboardingStore'
 import { useEmployeeStore }         from '@/store/employeeStore'
 import { useStructureStore }        from '@/store/structureStore'
-import { EMP_TYPES }                from '@/utils/constants'
 import { useCourseBatchStore }      from '@/store/courseBatchStore'
 import { useT }                     from '@/store/languageStore'
 import { PageHeader, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
@@ -155,7 +154,7 @@ export default function MasterOnboardingPage() {
   const t = useT()
   const { templates, addTemplate, updateTemplate, deleteTemplate } = useMasterOnboardingStore()
   const { employees }  = useEmployeeStore()
-  const { positions, departments } = useStructureStore()
+  const { positions }  = useStructureStore()
   const { batches }    = useCourseBatchStore()
 
   const [view,   setView  ] = useState('list')   // 'list' | 'form'
@@ -412,80 +411,6 @@ export default function MasterOnboardingPage() {
                 </button>
               </div>
 
-              {/* ── Auto Assign ── */}
-              <div className='flex items-start gap-3 pt-2 border-t border-gray-100'>
-                <label className='text-xs font-semibold text-gray-600 w-32 pt-2 flex-shrink-0'>
-                  Auto Assign
-                </label>
-                <div className='flex-1 space-y-3'>
-                  <button onClick={() => setField('autoAssign', !form.autoAssign)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-xs font-semibold transition
-                      ${form.autoAssign ? 'bg-blue-50 border-blue-400 text-blue-700' : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300'}`}>
-                    <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] font-bold
-                      ${form.autoAssign ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-300'}`}>
-                      {form.autoAssign ? '✓' : ''}
-                    </span>
-                    {t('Aktifkan Auto Assign', 'Enable Auto Assign')}
-                  </button>
-
-                  {form.autoAssign && (
-                    <div className='bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 space-y-3'>
-                      <p className='text-xs text-blue-600 font-medium'>
-                        {t('Template ini akan otomatis di-assign ke karyawan yang sesuai kriteria. Kosongkan untuk semua karyawan.',
-                           'This template will be auto-assigned to employees matching the criteria. Leave empty to match all employees.')}
-                      </p>
-
-                      {/* Employment Type filter */}
-                      <div>
-                        <p className='text-xs font-semibold text-gray-600 mb-1.5'>{t('Tipe Kepegawaian', 'Employment Type')} <span className='font-normal text-gray-400'>({t('kosong = semua','empty = all')})</span></p>
-                        <div className='flex flex-wrap gap-2'>
-                          {(EMP_TYPES || ['Permanent','Contract','Internship','Outsourcing']).map(et => {
-                            const checked = (form.criteria?.employmentTypes ?? []).includes(et)
-                            return (
-                              <button key={et} type='button'
-                                onClick={() => {
-                                  const cur = form.criteria?.employmentTypes ?? []
-                                  setField('criteria', {
-                                    ...form.criteria,
-                                    employmentTypes: checked ? cur.filter(x => x !== et) : [...cur, et],
-                                  })
-                                }}
-                                className={`px-3 py-1 text-xs font-semibold rounded-full border transition
-                                  ${checked ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300'}`}>
-                                {et}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Department filter */}
-                      <div>
-                        <p className='text-xs font-semibold text-gray-600 mb-1.5'>Department <span className='font-normal text-gray-400'>({t('kosong = semua','empty = all')})</span></p>
-                        <div className='flex flex-wrap gap-2 max-h-32 overflow-y-auto'>
-                          {departments.map(d => {
-                            const checked = (form.criteria?.departmentIds ?? []).includes(d.id)
-                            return (
-                              <button key={d.id} type='button'
-                                onClick={() => {
-                                  const cur = form.criteria?.departmentIds ?? []
-                                  setField('criteria', {
-                                    ...form.criteria,
-                                    departmentIds: checked ? cur.filter(x => x !== d.id) : [...cur, d.id],
-                                  })
-                                }}
-                                className={`px-3 py-1 text-xs font-semibold rounded-full border transition
-                                  ${checked ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300'}`}>
-                                {d.name}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           </SectionCard>
 
