@@ -118,8 +118,9 @@ export default function OnboardingTrackerPage() {
   const [viewOnly,   setViewOnly  ] = useState(false)
   const [msg,        setMsg       ] = useState(null)
   const [delId,      setDelId     ] = useState(null)
-  const [templateId, setTemplateId] = useState('')
-  const [form,       setForm      ] = useState(null)
+  const [templateId,    setTemplateId   ] = useState('')
+  const [perTypeTplId,  setPerTypeTplId ] = useState({})
+  const [form,          setForm         ] = useState(null)
 
   const flash = (text, type = 'success') => {
     setMsg({ text, type })
@@ -201,6 +202,36 @@ export default function OnboardingTrackerPage() {
       }
     })
     setTemplateId('')  // reset after generate so user can pick next template
+  }
+
+  const handleGenerateByType = (type) => {
+    const tplId = perTypeTplId[type]
+    if (!tplId) return
+    const tpl = templates.find(t => String(t.id) === String(tplId))
+    if (!tpl) return
+    const addRuntime = (item) => ({ ...item, id: Math.random(), date: '', completed: false })
+
+    if (type === 'Periodic Review') {
+      const rawReview = (tpl.reviewItems ?? []).map(addRuntime)
+      if (rawReview.length === 0) return
+      setForm(f => {
+        if (f.reviewItems !== null) return f
+        const currentEmp = employees.find(e => e.id === Number(f.employeeId))
+        const supervisor  = currentEmp ? employees.find(e => e.id === currentEmp.managerId) : null
+        return { ...f, reviewItems: resolveDirectManager(rawReview, supervisor) }
+      })
+    } else {
+      const ms = (tpl.mainSections ?? []).find(s => s.type === type)
+      if (!ms) return
+      const newSection = {
+        ...ms,
+        id:       `ms_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+        sections: (ms.sections ?? []).map(s => ({ ...s })),
+        items:    (ms.items    ?? []).map(addRuntime),
+      }
+      setForm(f => ({ ...f, mainSections: [...(f.mainSections ?? []), newSection] }))
+    }
+    setPerTypeTplId(prev => ({ ...prev, [type]: '' }))
   }
 
   const handleEmployeeChange = (empId) => {
@@ -464,6 +495,69 @@ export default function OnboardingTrackerPage() {
 
             </div>
           </div>
+
+          {/* ── Per-type template selector ────────────────────────── */}
+          {!isReadOnly && (() => {
+            // Collect all types that exist across active templates
+            const activeTemplates = templates.filter(tpl => tpl.active)
+            const allTypes = []
+            activeTemplates.forEach(tpl => {
+              ;(tpl.mainSections ?? []).forEach(ms => {
+                if (ms.type && !allTypes.includes(ms.type)) allTypes.push(ms.type)
+              })
+              if ((tpl.reviewItems ?? []).length > 0 && !allTypes.includes('Periodic Review'))
+                allTypes.push('Periodic Review')
+            })
+            if (allTypes.length === 0) return null
+            return (
+              <div className='px-6 py-4 border-b border-gray-100 bg-gray-50'>
+                <div className='text-xs font-bold text-gray-500 uppercase tracking-wide mb-3'>
+                  {t('Pilih Template per Tipe', 'Select Template per Type')}
+                </div>
+                <div className='space-y-2'>
+                  {allTypes.map(type => {
+                    const tplsForType = activeTemplates.filter(tpl =>
+                      type === 'Periodic Review'
+                        ? (tpl.reviewItems ?? []).length > 0
+                        : (tpl.mainSections ?? []).some(ms => ms.type === type)
+                    )
+                    const alreadyAdded = type === 'Periodic Review'
+                      ? form.reviewItems !== null
+                      : (form.mainSections ?? []).some(ms => ms.type === type)
+                    return (
+                      <div key={type} className='flex items-center gap-3'>
+                        <span className='text-xs font-semibold text-gray-700 w-52 flex-shrink-0'>{type}</span>
+                        {alreadyAdded ? (
+                          <span className='text-xs text-green-600 font-semibold flex items-center gap-1'>
+                            ✓ {t('Sudah ditambahkan', 'Already added')}
+                          </span>
+                        ) : (
+                          <>
+                            <select
+                              value={perTypeTplId[type] || ''}
+                              onChange={e => setPerTypeTplId(prev => ({ ...prev, [type]: e.target.value }))}
+                              className='text-xs px-2 py-1.5 border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white flex-1 max-w-xs'>
+                              <option value=''>{t('-- Pilih Template --', '-- Select Template --')}</option>
+                              {tplsForType.map(tpl => (
+                                <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => handleGenerateByType(type)}
+                              disabled={!perTypeTplId[type]}
+                              className='px-3 py-1.5 text-xs font-semibold rounded-lg text-white transition disabled:opacity-40 disabled:cursor-not-allowed'
+                              style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                              + {t('Tambah', 'Add')}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* ── Dynamic Main Sections ─────────────────────────────── */}
           {(form.mainSections ?? []).length === 0 && form.reviewItems === null && (
