@@ -105,7 +105,7 @@ export default function OnboardingTrackerPage() {
   const t                                           = useT()
   const { currentUser }                             = useAuthStore()
   const { employees }                               = useEmployeeStore()
-  const { positions }                               = useStructureStore()
+  const { positions, departments }                  = useStructureStore()
   const { getLevelsForPage }                        = useWorkflowStore()
   const { onboardings, addOnboarding, updateOnboarding,
           deleteOnboarding, submitOnboarding }       = useOnboardingStore()
@@ -218,9 +218,9 @@ export default function OnboardingTrackerPage() {
         ...f,
         employeeId:         emp.id,
         employeeName:       emp.name,
-        department:         emp.departmentId ? `Dept ${emp.departmentId}` : '',
+        department:         departments.find(d => d.id === emp.departmentId)?.name ?? '',
         supervisorName:     supervisor?.name ?? '',
-        supervisorPosition: supervisor?.positionId ? `Position ${supervisor.positionId}` : '',
+        supervisorPosition: positions.find(p => p.id === supervisor?.positionId)?.name ?? '',
         buddyAssignment:    { ...buddy, programStartDate: startDate, programEndDate: endDate },
         reviewItems:        f.reviewItems !== null ? resolveDirectManager(f.reviewItems, supervisor) : null,
       }
