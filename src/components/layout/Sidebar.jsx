@@ -260,7 +260,7 @@ const SA_GROUPS = [
 
 // ─── Main Sidebar ──────────────────────────────────────────────────────────────
 export default function Sidebar() {
-  const { currentUser }  = useAuthStore()
+  const { currentUser, realUser } = useAuthStore()
   const { employees }    = useEmployeeStore()
   const pathname         = usePathname()
   const router           = useRouter()
@@ -318,11 +318,13 @@ export default function Sidebar() {
 
   const closeFlyout = () => { if (!pinned) setOpenId(null) }
 
+  const topOffset = 60 + (realUser ? 36 : 0)
+
   return (
     <>
       {/* ── Icon strip ──────────────────────────────────────────────────────── */}
-      <aside className='fixed top-[60px] left-0 bottom-0 w-14 z-40 flex flex-col items-center pt-2 gap-1'
-        style={{ background: '#fff', borderRight: '1px solid #e5e7eb' }}>
+      <aside className='fixed left-0 bottom-0 w-14 z-40 flex flex-col items-center pt-2 gap-1'
+        style={{ top: topOffset, background: '#fff', borderRight: '1px solid #e5e7eb' }}>
         {sections.map(sec => {
           const active = isIconActive(sec)
           const flyOpen = openId === sec.id
@@ -349,7 +351,8 @@ export default function Sidebar() {
       {/* ── Flyout panel ────────────────────────────────────────────────────── */}
       {openId && openId !== 'dashboard' && activeSec && (
         <div ref={flyoutRef}
-          className='fixed top-[60px] left-14 bottom-0 z-30 overflow-y-auto'
+          className='fixed left-14 bottom-0 z-30 overflow-y-auto'
+          style={{ top: topOffset }}
           style={{ width: 260, background: '#fff', borderRight: '1px solid #e5e7eb', boxShadow: '4px 0 16px rgba(0,0,0,0.08)' }}>
 
           {/* Panel header */}
