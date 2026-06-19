@@ -22,14 +22,14 @@ const VIP_STATUSES = ['Not Started', 'In Progress', 'Completed']
 
 /* ── Status helpers ─────────────────────────────────────────────────────── */
 const hayStatusColor = (s) =>
-  s === 'Replied' ? 'bg-green-50 text-green-700'
-  : s === 'Manager-Created' ? 'bg-blue-50 text-blue-700'
+  s === 'Completed' ? 'bg-green-50 text-green-700'
+  : s === 'Pending Employee' ? 'bg-blue-50 text-blue-700'
   : 'bg-yellow-50 text-yellow-700'
 
 const hayStatusLabel = (s, t) =>
-  s === 'Replied' ? t('Dibalas', 'Replied')
-  : s === 'Manager-Created' ? t('Dari Atasan', 'From Manager')
-  : t('Menunggu', 'Pending')
+  s === 'Completed' ? t('Selesai', 'Completed')
+  : s === 'Pending Employee' ? t('Perlu Diisi', 'Fill Required')
+  : t('Menunggu Atasan', 'Awaiting Manager')
 
 const vipStatusColor = (s) =>
   s === 'Completed' ? 'bg-green-50 text-green-700'
@@ -52,6 +52,7 @@ export default function EssCheckInPage() {
   /* HAY form state */
   const [hayForm, setHayForm] = useState(EMPTY_HAY)
   const [selectedHayId, setSelectedHayId] = useState(null)
+  const [employeeFillForm, setEmployeeFillForm] = useState(EMPTY_HAY)
 
   /* VIP form state */
   const [vipName, setVipName] = useState('')
@@ -107,6 +108,16 @@ export default function EssCheckInPage() {
     })
     flash(t('Form HAY berhasil dikirim ke atasan.', 'HAY form successfully sent to your manager.'))
     setHayForm(EMPTY_HAY)
+    setView('list')
+  }
+
+  /* ── Employee fills their T-G-R-O-W on manager-created session ──── */
+  const handleEmployeeFill = () => {
+    const missing = HAY_FIELDS.find(f => !employeeFillForm[f.key]?.trim())
+    if (missing) return flash(t('Semua field wajib diisi.', 'All fields are required.'), 'error')
+    hayStore.fillEmployeeAnswers(selectedHayId, employeeFillForm)
+    flash(t('Jawaban berhasil disimpan.', 'Answers saved successfully.'))
+    setEmployeeFillForm(EMPTY_HAY)
     setView('list')
   }
 
@@ -184,7 +195,7 @@ export default function EssCheckInPage() {
           [t('Total Sesi', 'Total Sessions'),    allItems.length,                                             '💬', '#8B1A1A'],
           [t('Sesi HAY', 'HAY Sessions'),        hayItems.length,                                             '🤝', '#7c3aed'],
           [t('Sesi VIP', 'VIP Sessions'),        vipItems.length,                                             '🎯', '#d97706'],
-          [t('Menunggu Balasan', 'Pending HAY'), hayItems.filter(h => h.status === 'Submitted').length,       '⏳', '#dc2626'],
+          [t('Menunggu Atasan', 'Pending HAY'), hayItems.filter(h => h.status === 'Pending Manager').length,       '⏳', '#dc2626'],
         ].map(([l, v, i, c]) => (
           <div key={l} className='bg-white rounded-2xl p-4 shadow-sm ring-1 ring-gray-100 flex items-center gap-3'>
             <div className='w-10 h-10 rounded-xl flex items-center justify-center text-xl' style={{ background: c + '22' }}>{i}</div>
@@ -409,8 +420,9 @@ export default function EssCheckInPage() {
       {/* ════════════════════════════════════════════════════════════════════ */}
       {/* VIEW: DETAIL HAY */}
       {view === 'detail-hay' && selectedHay && (
-        <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 mb-6'>
-          <div className='flex items-center justify-between mb-4'>
+        <div className='mb-6 space-y-5'>
+          {/* Header */}
+          <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 px-6 py-4 flex items-center justify-between'>
             <div>
               <div className='flex items-center gap-2'>
                 <span className='text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold'>HAY</span>
@@ -420,9 +432,7 @@ export default function EssCheckInPage() {
             </div>
             <div className='flex items-center gap-3'>
               <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${hayStatusColor(selectedHay.status)}`}>
-                {selectedHay.status === 'Replied' ? t('Sudah Dibalas', 'Replied')
-                  : selectedHay.status === 'Manager-Created' ? t('Dari Atasan', 'From Manager')
-                  : t('Menunggu Balasan', 'Awaiting Reply')}
+                {hayStatusLabel(selectedHay.status, t)}
               </span>
               <button onClick={() => setView('list')} className='text-sm text-gray-400 hover:text-gray-600'>
                 ← {t('Kembali', 'Back')}
@@ -430,26 +440,100 @@ export default function EssCheckInPage() {
             </div>
           </div>
 
-          <div className='space-y-4'>
-            {HAY_FIELDS.map(f => (
-              <div key={f.key} className='bg-gray-50 rounded-xl p-4'>
-                <p className='text-xs font-bold text-gray-500 mb-1'>{t(f.label, f.labelEN)}</p>
-                <p className='text-sm text-gray-700'>{selectedHay[f.key] || '—'}</p>
-              </div>
-            ))}
-          </div>
-
-          {selectedHay.managerReply && (
-            <div className='mt-5 bg-green-50 border border-green-100 rounded-xl p-4'>
-              <p className='text-xs font-bold text-green-700 mb-1'>
-                💬 {t('Balasan Atasan', 'Manager Reply')} — {selectedHay.managerName}
-              </p>
-              <p className='text-sm text-green-800'>{selectedHay.managerReply}</p>
-              {selectedHay.repliedAt && (
-                <p className='text-xs text-green-500 mt-1'>
-                  {new Date(selectedHay.repliedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
-                </p>
+          {/* Side-by-side answers (or single column if only one party filled) */}
+          {(selectedHay.employeeAnswers || selectedHay.managerAnswers) && (
+            <div className={`grid gap-5 ${selectedHay.employeeAnswers && selectedHay.managerAnswers ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+              {/* Employee answers */}
+              {selectedHay.employeeAnswers && (
+                <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5'>
+                  <div className='flex items-center gap-2 mb-4 pb-3 border-b border-gray-100'>
+                    <div className='w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold' style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                      {(selectedHay.employeeName||'?').split(' ').map(n=>n[0]).slice(0,2).join('')}
+                    </div>
+                    <div>
+                      <p className='text-xs font-bold text-gray-700'>{selectedHay.employeeName}</p>
+                      <p className='text-[10px] text-gray-400'>{t('Jawaban Karyawan', 'Employee Answers')}</p>
+                    </div>
+                  </div>
+                  <div className='space-y-3'>
+                    {HAY_FIELDS.map(f => (
+                      <div key={f.key} className='bg-gray-50 rounded-xl p-3.5'>
+                        <p className='text-xs font-bold text-gray-500 mb-1'>{t(f.label, f.labelEN)}</p>
+                        <p className='text-sm text-gray-700'>{selectedHay.employeeAnswers[f.key] || '—'}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedHay.employeeFilledAt && (
+                    <p className='text-[10px] text-gray-400 mt-3'>
+                      {new Date(selectedHay.employeeFilledAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </p>
+                  )}
+                </div>
               )}
+
+              {/* Manager answers */}
+              {selectedHay.managerAnswers && (
+                <div className='bg-white rounded-2xl shadow-sm ring-1 ring-green-100 p-5 border border-green-100'>
+                  <div className='flex items-center gap-2 mb-4 pb-3 border-b border-green-100'>
+                    <div className='w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold bg-green-600'>
+                      {(selectedHay.managerName||'?').split(' ').map(n=>n[0]).slice(0,2).join('')}
+                    </div>
+                    <div>
+                      <p className='text-xs font-bold text-green-700'>{selectedHay.managerName}</p>
+                      <p className='text-[10px] text-green-500'>{t('Jawaban Atasan', 'Manager Answers')}</p>
+                    </div>
+                  </div>
+                  <div className='space-y-3'>
+                    {HAY_FIELDS.map(f => (
+                      <div key={f.key} className='bg-green-50 rounded-xl p-3.5'>
+                        <p className='text-xs font-bold text-green-600 mb-1'>{t(f.label, f.labelEN)}</p>
+                        <p className='text-sm text-green-900'>{selectedHay.managerAnswers[f.key] || '—'}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedHay.managerFilledAt && (
+                    <p className='text-[10px] text-green-500 mt-3'>
+                      {new Date(selectedHay.managerFilledAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Employee fill form — shown when manager created the session and employee hasn't filled yet */}
+          {selectedHay.status === 'Pending Employee' && !selectedHay.employeeAnswers && (
+            <div className='bg-white rounded-2xl shadow-sm ring-1 ring-blue-200 p-6 border border-blue-100'>
+              <div className='flex items-center gap-2 mb-2'>
+                <span className='text-lg'>📝</span>
+                <h3 className='font-bold text-gray-800'>{t('Isi Jawaban T-G-R-O-W Anda', 'Fill Your T-G-R-O-W Answers')}</h3>
+              </div>
+              <p className='text-xs text-blue-600 mb-5'>
+                {t('Atasan Anda telah membuat sesi ini. Silakan isi perspektif Anda terhadap sesi coaching ini.', 'Your manager created this session. Please fill in your perspective on this coaching session.')}
+              </p>
+              <div className='space-y-4'>
+                {HAY_FIELDS.map(f => (
+                  <div key={f.key}>
+                    <label className='block text-sm font-bold text-gray-700 mb-0.5'>{t(f.label, f.labelEN)}</label>
+                    <p className='text-xs text-gray-400 mb-2'>{t(f.hint, f.hintEN)}</p>
+                    <textarea rows={3} value={employeeFillForm[f.key]}
+                      onChange={e => setEmployeeFillForm(p => ({ ...p, [f.key]: e.target.value }))}
+                      placeholder={t(f.hint, f.hintEN)}
+                      className='w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 resize-none transition' />
+                  </div>
+                ))}
+              </div>
+              <div className='flex gap-3 mt-5'>
+                <button onClick={handleEmployeeFill}
+                  className='px-6 py-2.5 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition'
+                  style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                  {t('Simpan Jawaban Saya', 'Save My Answers')}
+                </button>
+                <button onClick={() => setView('list')}
+                  className='px-6 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-200 transition'>
+                  {t('Kembali', 'Back')}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -535,8 +619,8 @@ export default function EssCheckInPage() {
                   }}
                   className='w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition text-left'>
                   <div className='w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0'
-                    style={{ background: item._type === 'vip' ? '#d9740622' : (item.status === 'Replied' ? '#05966922' : '#dc262622') }}>
-                    {item._type === 'vip' ? '🎯' : item.status === 'Replied' ? '✅' : '⏳'}
+                    style={{ background: item._type === 'vip' ? '#d9740622' : (item.status === 'Completed' ? '#05966922' : item.status === 'Pending Employee' ? '#2563eb22' : '#dc262622') }}>
+                    {item._type === 'vip' ? '🎯' : item.status === 'Completed' ? '✅' : item.status === 'Pending Employee' ? '📝' : '⏳'}
                   </div>
                   <div className='flex-1 min-w-0'>
                     <p className='text-sm font-semibold text-gray-800 line-clamp-1'>

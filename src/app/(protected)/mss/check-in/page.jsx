@@ -28,8 +28,8 @@ const EMPTY_VIP_TOPIC = () => ({ id: Date.now() + Math.random(), title: '', desc
 const VIP_STATUSES = ['Not Started', 'In Progress', 'Completed']
 
 const hayStatusColor = (s) =>
-  s === 'Replied' ? 'bg-green-50 text-green-700'
-  : s === 'Manager-Created' ? 'bg-blue-50 text-blue-700'
+  s === 'Completed' ? 'bg-green-50 text-green-700'
+  : s === 'Pending Employee' ? 'bg-blue-50 text-blue-700'
   : 'bg-yellow-50 text-yellow-700'
 
 const vipStatusColor = (s) =>
@@ -41,7 +41,7 @@ export default function MssCheckInPage() {
   const t = useT()
   const { currentUser } = useAuthStore()
   const { employees } = useEmployeeStore()
-  const { replyHay, getByManager: getHayByManager, submitHayByManager } = useHayStore()
+  const { fillManagerAnswers, getByManager: getHayByManager, submitHayByManager } = useHayStore()
   const { getByManager: getVipByManager } = useVipStore()
   const { submitPip, getByManager: getPipByManager } = usePipStore()
 
@@ -53,7 +53,7 @@ export default function MssCheckInPage() {
   /* ── HAY state ───────────────────────────────────────────────────── */
   const [hayView, setHayView] = useState('list') // 'list' | 'create'
   const [selectedHayId, setSelectedHayId] = useState(null)
-  const [hayReply, setHayReply] = useState('')
+  const [managerFillForm, setManagerFillForm] = useState(EMPTY_HAY)
   const [hayFilter, setHayFilter] = useState('All')
   const [hayForm, setHayForm] = useState(EMPTY_HAY)
   const [selectedEmployee, setSelectedEmployee] = useState('')
@@ -96,7 +96,7 @@ export default function MssCheckInPage() {
   const selectedVip = teamVip.find(v => v.id === selectedVipId)
   const selectedPip = teamPip.find(p => p.id === selectedPipId)
 
-  const pending = teamHay.filter(h => h.status === 'Submitted').length
+  const pending = teamHay.filter(h => h.status === 'Pending Manager').length
 
   /* ── PIP helpers ─────────────────────────────────────────────────── */
   const updateKpiRow = (id, key, val) => setPipForm(f => ({ ...f, kpiRows: f.kpiRows.map(r => r.id === id ? { ...r, [key]: val } : r) }))
@@ -132,12 +132,13 @@ export default function MssCheckInPage() {
 
   const pipStatusColor = (s) => s === 'Approved' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
 
-  /* ── HAY reply ───────────────────────────────────────────────────── */
-  const handleReply = () => {
-    if (!hayReply.trim()) return flash(t('Balasan tidak boleh kosong.', 'Reply cannot be empty.'), 'error')
-    replyHay(selectedHayId, hayReply)
-    flash(t('Balasan berhasil dikirim.', 'Reply sent successfully.'))
-    setHayReply('')
+  /* ── Manager fills T-G-R-O-W ────────────────────────────────────── */
+  const handleManagerFill = () => {
+    const missing = HAY_FIELDS.find(f => !managerFillForm[f.key]?.trim())
+    if (missing) return flash(t('Semua field wajib diisi.', 'All fields are required.'), 'error')
+    fillManagerAnswers(selectedHayId, managerFillForm)
+    flash(t('Jawaban berhasil disimpan.', 'Answers saved successfully.'))
+    setManagerFillForm(EMPTY_HAY)
     setSelectedHayId(null)
   }
 
@@ -203,8 +204,8 @@ export default function MssCheckInPage() {
           <div className='grid grid-cols-3 gap-4 mb-5'>
             {[
               [t('Total Sesi HAY', 'Total HAY Sessions'), teamHay.length, '💬', '#8B1A1A'],
-              [t('Perlu Dibalas', 'Needs Reply'), pending, '⏳', '#d97706'],
-              [t('Sudah Dibalas', 'Replied'), teamHay.filter(h => h.status === 'Replied').length, '✅', '#059669'],
+              [t('Perlu Diisi', 'Needs Fill'), pending, '⏳', '#d97706'],
+              [t('Selesai', 'Completed'), teamHay.filter(h => h.status === 'Completed').length, '✅', '#059669'],
             ].map(([l, v, i, c]) => (
               <div key={l} className='bg-white rounded-2xl p-4 shadow-sm ring-1 ring-gray-100 flex items-center gap-3'>
                 <div className='w-10 h-10 rounded-xl flex items-center justify-center text-xl' style={{ background: c + '22' }}>{i}</div>
@@ -273,14 +274,14 @@ export default function MssCheckInPage() {
               <div className='lg:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100'>
                 <div className='px-4 py-3 border-b border-gray-100 flex gap-2 flex-wrap items-center justify-between'>
                   <div className='flex gap-1.5 flex-wrap'>
-                    {['All', 'Submitted', 'Replied', 'Manager-Created'].map(f => (
+                    {['All', 'Pending Manager', 'Completed', 'Pending Employee'].map(f => (
                       <button key={f} onClick={() => setHayFilter(f)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition ${hayFilter === f ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                         style={hayFilter === f ? { background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' } : {}}>
                         {f === 'All' ? t('Semua', 'All')
-                          : f === 'Submitted' ? t('Pending', 'Pending')
-                          : f === 'Replied' ? t('Dibalas', 'Replied')
-                          : t('Oleh Atasan', 'By Mgr')}
+                          : f === 'Pending Manager' ? t('Perlu Diisi', 'Fill Now')
+                          : f === 'Completed' ? t('Selesai', 'Completed')
+                          : t('Dari Atasan', 'By Mgr')}
                       </button>
                     ))}
                   </div>
@@ -299,7 +300,7 @@ export default function MssCheckInPage() {
                 ) : (
                   <div className='divide-y divide-gray-100'>
                     {filteredHay.map(h => (
-                      <button key={h.id} onClick={() => { setSelectedHayId(h.id); setHayReply('') }}
+                      <button key={h.id} onClick={() => { setSelectedHayId(h.id); setManagerFillForm(EMPTY_HAY) }}
                         className={`w-full flex items-start gap-3 px-4 py-3.5 hover:bg-gray-50 transition text-left ${selectedHayId === h.id ? 'bg-red-50/40' : ''}`}>
                         <div className='w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0 mt-0.5'
                           style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
@@ -311,9 +312,9 @@ export default function MssCheckInPage() {
                           <p className='text-xs text-gray-400 mt-0.5'>{h.date}</p>
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 ${hayStatusColor(h.status)}`}>
-                          {h.status === 'Replied' ? t('Dibalas', 'Replied')
-                            : h.status === 'Manager-Created' ? t('By Mgr', 'By Mgr')
-                            : t('Pending', 'Pending')}
+                          {h.status === 'Completed' ? t('Selesai', 'Completed')
+                            : h.status === 'Pending Employee' ? t('Menunggu Emp', 'Pending Emp')
+                            : t('Perlu Diisi', 'Fill Now')}
                         </span>
                       </button>
                     ))}
@@ -339,47 +340,81 @@ export default function MssCheckInPage() {
                         )}
                       </div>
                       <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${hayStatusColor(selectedHay.status)}`}>
-                        {selectedHay.status === 'Replied' ? t('Sudah Dibalas', 'Replied')
-                          : selectedHay.status === 'Manager-Created' ? t('Dibuat Atasan', 'By Manager')
-                          : t('Menunggu Balasan', 'Awaiting Reply')}
+                        {selectedHay.status === 'Completed' ? t('Selesai', 'Completed')
+                          : selectedHay.status === 'Pending Employee' ? t('Menunggu Karyawan', 'Pending Employee')
+                          : t('Perlu Diisi', 'Fill Required')}
                       </span>
                     </div>
 
-                    <div className='space-y-3 mb-5'>
-                      {HAY_FIELDS.map(f => (
-                        <div key={f.key} className='bg-gray-50 rounded-xl p-3.5'>
-                          <p className='text-xs font-bold text-gray-400 mb-1'>{t(f.label, f.labelEN)}</p>
-                          <p className='text-sm text-gray-700'>{selectedHay[f.key] || '—'}</p>
+                    {/* Employee answers */}
+                    {selectedHay.employeeAnswers && (
+                      <div className='mb-4'>
+                        <div className='flex items-center gap-2 mb-2'>
+                          <div className='w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold' style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                            {(selectedHay.employeeName||'?').split(' ').map(n=>n[0]).slice(0,2).join('')}
+                          </div>
+                          <p className='text-xs font-bold text-gray-600'>{selectedHay.employeeName} — {t('Jawaban Karyawan', 'Employee Answers')}</p>
                         </div>
-                      ))}
-                    </div>
+                        <div className='space-y-2 mb-3'>
+                          {HAY_FIELDS.map(f => (
+                            <div key={f.key} className='bg-gray-50 rounded-xl p-3'>
+                              <p className='text-xs font-bold text-gray-400 mb-0.5'>{t(f.label, f.labelEN)}</p>
+                              <p className='text-sm text-gray-700'>{selectedHay.employeeAnswers[f.key] || '—'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                    {selectedHay.status === 'Replied' ? (
-                      <div className='bg-green-50 border border-green-100 rounded-xl p-4'>
-                        <p className='text-xs font-bold text-green-700 mb-1'>✅ {t('Balasan Anda', 'Your Reply')}</p>
-                        <p className='text-sm text-green-800'>{selectedHay.managerReply}</p>
-                        {selectedHay.repliedAt && (
-                          <p className='text-xs text-green-500 mt-1'>
-                            {new Date(selectedHay.repliedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                    {/* Manager answers */}
+                    {selectedHay.managerAnswers ? (
+                      <div>
+                        <div className='flex items-center gap-2 mb-2'>
+                          <div className='w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold bg-green-600'>
+                            {(selectedHay.managerName||'?').split(' ').map(n=>n[0]).slice(0,2).join('')}
+                          </div>
+                          <p className='text-xs font-bold text-green-700'>{selectedHay.managerName} — {t('Jawaban Atasan', 'Manager Answers')}</p>
+                        </div>
+                        <div className='space-y-2'>
+                          {HAY_FIELDS.map(f => (
+                            <div key={f.key} className='bg-green-50 rounded-xl p-3 border border-green-100'>
+                              <p className='text-xs font-bold text-green-600 mb-0.5'>{t(f.label, f.labelEN)}</p>
+                              <p className='text-sm text-green-900'>{selectedHay.managerAnswers[f.key] || '—'}</p>
+                            </div>
+                          ))}
+                        </div>
+                        {selectedHay.managerFilledAt && (
+                          <p className='text-[10px] text-green-500 mt-2'>
+                            {new Date(selectedHay.managerFilledAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
                           </p>
                         )}
                       </div>
-                    ) : selectedHay.status === 'Manager-Created' ? (
+                    ) : selectedHay.status === 'Pending Employee' ? (
                       <div className='bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700'>
-                        ℹ️ {t('Sesi ini dibuat oleh Anda. Karyawan dapat melihatnya di halaman Check-In mereka.', 'This session was created by you. The employee can view it on their Check-In page.')}
+                        ℹ️ {t('Sesi ini dibuat oleh Anda. Karyawan sedang mengisi jawaban mereka.', 'You created this session. The employee is filling their answers.')}
                       </div>
                     ) : (
-                      <div>
-                        <label className='block text-xs font-semibold text-gray-600 mb-1.5'>
-                          💬 {t('Tulis Balasan', 'Write Reply')}
-                        </label>
-                        <textarea rows={4} value={hayReply} onChange={e => setHayReply(e.target.value)}
-                          placeholder={t('Tulis balasan, feedback, atau arahan...', 'Write your reply, feedback, or guidance...')}
-                          className='w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 resize-none transition mb-3' />
-                        <button onClick={handleReply}
+                      /* Manager needs to fill T-G-R-O-W */
+                      <div className='mt-1'>
+                        <div className='flex items-center gap-2 mb-3'>
+                          <span className='text-base'>📝</span>
+                          <h4 className='text-sm font-bold text-gray-700'>{t('Isi Jawaban T-G-R-O-W Anda', 'Fill Your T-G-R-O-W Answers')}</h4>
+                        </div>
+                        <div className='space-y-3 mb-4'>
+                          {HAY_FIELDS.map(f => (
+                            <div key={f.key}>
+                              <label className='block text-xs font-bold text-gray-600 mb-0.5'>{t(f.label, f.labelEN)}</label>
+                              <p className='text-[10px] text-gray-400 mb-1'>{t(HAY_FIELD_HINTS[f.key].id, HAY_FIELD_HINTS[f.key].en)}</p>
+                              <textarea rows={2} value={managerFillForm[f.key]}
+                                onChange={e => setManagerFillForm(p => ({ ...p, [f.key]: e.target.value }))}
+                                className='w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 resize-none transition' />
+                            </div>
+                          ))}
+                        </div>
+                        <button onClick={handleManagerFill}
                           className='px-5 py-2 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition'
                           style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                          {t('Kirim Balasan', 'Send Reply')}
+                          {t('Simpan Jawaban Saya', 'Save My Answers')}
                         </button>
                       </div>
                     )}
