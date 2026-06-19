@@ -221,7 +221,14 @@ export default function OnboardingTrackerPage() {
         return { ...f, reviewItems: resolveDirectManager(rawReview, supervisor) }
       })
     } else {
-      const ms = (tpl.mainSections ?? []).find(s => s.type === type)
+      let ms = (tpl.mainSections ?? []).find(s => s.type === type)
+      // Old format fallback
+      if (!ms) {
+        if (type === 'Materi Induksi General' && (tpl.generalItems ?? []).length > 0)
+          ms = { type, sections: tpl.generalSections ?? [], items: tpl.generalItems ?? [] }
+        else if (type === 'Materi Induksi Teknis' && (tpl.technicalItems ?? []).length > 0)
+          ms = { type, sections: tpl.technicalSections ?? [], items: tpl.technicalItems ?? [] }
+      }
       if (!ms) return
       const newSection = {
         ...ms,
@@ -498,13 +505,18 @@ export default function OnboardingTrackerPage() {
 
           {/* ── Per-type template selector ────────────────────────── */}
           {!isReadOnly && (() => {
-            // Collect all types that exist across active templates
+            // Collect all types that exist across active templates (new + old format)
             const activeTemplates = templates.filter(tpl => tpl.active)
             const allTypes = []
             activeTemplates.forEach(tpl => {
               ;(tpl.mainSections ?? []).forEach(ms => {
                 if (ms.type && !allTypes.includes(ms.type)) allTypes.push(ms.type)
               })
+              // Old format fallback
+              if ((tpl.generalItems  ?? []).length > 0 && !allTypes.includes('Materi Induksi General'))
+                allTypes.push('Materi Induksi General')
+              if ((tpl.technicalItems ?? []).length > 0 && !allTypes.includes('Materi Induksi Teknis'))
+                allTypes.push('Materi Induksi Teknis')
               if ((tpl.reviewItems ?? []).length > 0 && !allTypes.includes('Periodic Review'))
                 allTypes.push('Periodic Review')
             })
@@ -516,11 +528,14 @@ export default function OnboardingTrackerPage() {
                 </div>
                 <div className='space-y-2'>
                   {allTypes.map(type => {
-                    const tplsForType = activeTemplates.filter(tpl =>
-                      type === 'Periodic Review'
-                        ? (tpl.reviewItems ?? []).length > 0
-                        : (tpl.mainSections ?? []).some(ms => ms.type === type)
-                    )
+                    const tplsForType = activeTemplates.filter(tpl => {
+                      if (type === 'Periodic Review') return (tpl.reviewItems ?? []).length > 0
+                      if (type === 'Materi Induksi General')
+                        return (tpl.mainSections ?? []).some(ms => ms.type === type) || (tpl.generalItems ?? []).length > 0
+                      if (type === 'Materi Induksi Teknis')
+                        return (tpl.mainSections ?? []).some(ms => ms.type === type) || (tpl.technicalItems ?? []).length > 0
+                      return (tpl.mainSections ?? []).some(ms => ms.type === type)
+                    })
                     const alreadyAdded = type === 'Periodic Review'
                       ? form.reviewItems !== null
                       : (form.mainSections ?? []).some(ms => ms.type === type)
