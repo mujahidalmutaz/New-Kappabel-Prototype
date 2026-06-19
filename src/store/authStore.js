@@ -24,6 +24,7 @@ export const useAuthStore = create(
   persist(
     (set, get) => ({
       currentUser: null,
+      realUser:    null,   // original user when in proxy mode
       userList: SEED_USERS,
       _hydrated: false,
 
@@ -34,11 +35,23 @@ export const useAuthStore = create(
           u => u.username === username && u.password === password
         )
         if (!user) return false
-        set({ currentUser: user })
+        set({ currentUser: user, realUser: null })
         return true
       },
 
-      logout: () => set({ currentUser: null }),
+      logout: () => set({ currentUser: null, realUser: null }),
+
+      // Proxy: start viewing as another user
+      startProxy: (targetUser) => {
+        const real = get().realUser || get().currentUser
+        set({ realUser: real, currentUser: targetUser })
+      },
+
+      // Proxy: return to original session
+      endProxy: () => {
+        const real = get().realUser
+        if (real) set({ currentUser: real, realUser: null })
+      },
 
       addUser:    (u)     => set(s => ({ userList: [...s.userList, u] })),
       updateUser: (id, d) => set(s => ({ userList: s.userList.map(u => u.id===id ? {...u,...d} : u) })),
@@ -46,7 +59,7 @@ export const useAuthStore = create(
     }),
     {
       name: 'hcm-auth',
-      partialize: (s) => ({ currentUser: s.currentUser }),
+      partialize: (s) => ({ currentUser: s.currentUser, realUser: s.realUser }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated()
       },
