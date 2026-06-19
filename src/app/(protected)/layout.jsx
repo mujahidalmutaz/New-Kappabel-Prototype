@@ -18,8 +18,7 @@ export default function ProtectedLayout({ children }) {
   const [loginAsOpen, setLoginAsOpen] = useState(false)
 
   const isProxy    = !!realUser
-  const canProxy   = !isProxy && (realUser?.role === 'hr' || realUser?.role === 'superadmin' ||
-                     currentUser?.role === 'hr' || currentUser?.role === 'superadmin')
+  const canProxy   = !isProxy && currentUser?.role === 'superadmin'
 
   useEffect(() => {
     if (_hydrated && !currentUser) router.push('/login')
