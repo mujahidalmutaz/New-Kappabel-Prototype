@@ -507,38 +507,67 @@ export default function EssCheckInPage() {
             </div>
           )}
 
-          {/* Employee fill form — shown when manager created the session and employee hasn't filled yet */}
+          {/* Employee fill form — side-by-side: manager's answers (left) + employee fill form (right) */}
           {selectedHay.status === 'Pending Employee' && !selectedHay.employeeAnswers && (
-            <div className='bg-white rounded-2xl shadow-sm ring-1 ring-blue-200 p-6 border border-blue-100'>
-              <div className='flex items-center gap-2 mb-2'>
-                <span className='text-lg'>📝</span>
-                <h3 className='font-bold text-gray-800'>{t('Isi Jawaban T-G-R-O-W Anda', 'Fill Your T-G-R-O-W Answers')}</h3>
-              </div>
-              <p className='text-xs text-blue-600 mb-5'>
-                {t('Atasan Anda telah membuat sesi ini. Silakan isi perspektif Anda terhadap sesi coaching ini.', 'Your manager created this session. Please fill in your perspective on this coaching session.')}
-              </p>
-              <div className='space-y-4'>
-                {HAY_FIELDS.map(f => (
-                  <div key={f.key}>
-                    <label className='block text-sm font-bold text-gray-700 mb-0.5'>{t(f.label, f.labelEN)}</label>
-                    <p className='text-xs text-gray-400 mb-2'>{t(f.hint, f.hintEN)}</p>
-                    <textarea rows={3} value={employeeFillForm[f.key]}
-                      onChange={e => setEmployeeFillForm(p => ({ ...p, [f.key]: e.target.value }))}
-                      placeholder={t(f.hint, f.hintEN)}
-                      className='w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 resize-none transition' />
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-5'>
+              {/* Left: manager's initial answers for reference */}
+              <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5'>
+                <div className='flex items-center gap-2 mb-4 pb-3 border-b border-gray-100'>
+                  <div className='w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold bg-green-600'>
+                    {(selectedHay.managerName||'?').split(' ').map(n=>n[0]).slice(0,2).join('')}
                   </div>
-                ))}
+                  <div>
+                    <p className='text-xs font-bold text-gray-700'>{selectedHay.managerName}</p>
+                    <p className='text-[10px] text-gray-400'>{t('Isian Atasan (Referensi)', 'Manager's Input (Reference)')}</p>
+                  </div>
+                </div>
+                <div className='space-y-3'>
+                  {HAY_FIELDS.map(f => (
+                    <div key={f.key} className='bg-gray-50 rounded-xl p-3.5'>
+                      <p className='text-xs font-bold text-gray-500 mb-1'>{t(f.label, f.labelEN)}</p>
+                      <p className='text-sm text-gray-700 whitespace-pre-wrap'>{selectedHay.managerAnswers?.[f.key] || <span className='italic text-gray-300'>—</span>}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className='flex gap-3 mt-5'>
-                <button onClick={handleEmployeeFill}
-                  className='px-6 py-2.5 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition'
-                  style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                  {t('Simpan Jawaban Saya', 'Save My Answers')}
-                </button>
-                <button onClick={() => setView('list')}
-                  className='px-6 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-200 transition'>
-                  {t('Kembali', 'Back')}
-                </button>
+
+              {/* Right: employee fill form */}
+              <div className='bg-white rounded-2xl shadow-sm ring-1 ring-blue-200 p-5 border border-blue-100'>
+                <div className='flex items-center gap-2 mb-2 pb-3 border-b border-blue-100'>
+                  <div className='w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold' style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                    {(selectedHay.employeeName||'?').split(' ').map(n=>n[0]).slice(0,2).join('')}
+                  </div>
+                  <div>
+                    <p className='text-xs font-bold text-gray-700'>{selectedHay.employeeName}</p>
+                    <p className='text-[10px] text-blue-500'>{t('Jawaban Karyawan', 'Employee Answers')}</p>
+                  </div>
+                </div>
+                <p className='text-xs text-blue-600 mb-4'>
+                  {t('Silakan isi perspektif Anda terhadap sesi coaching ini.', 'Please fill in your perspective on this coaching session.')}
+                </p>
+                <div className='space-y-4'>
+                  {HAY_FIELDS.map(f => (
+                    <div key={f.key}>
+                      <label className='block text-sm font-bold text-gray-700 mb-0.5'>{t(f.label, f.labelEN)}</label>
+                      <p className='text-xs text-gray-400 mb-1.5'>{t(f.hint, f.hintEN)}</p>
+                      <textarea rows={3} value={employeeFillForm[f.key]}
+                        onChange={e => setEmployeeFillForm(p => ({ ...p, [f.key]: e.target.value }))}
+                        placeholder={t(f.hint, f.hintEN)}
+                        className='w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 resize-none transition' />
+                    </div>
+                  ))}
+                </div>
+                <div className='flex gap-3 mt-5'>
+                  <button onClick={handleEmployeeFill}
+                    className='px-6 py-2.5 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition'
+                    style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                    {t('Simpan Jawaban Saya', 'Save My Answers')}
+                  </button>
+                  <button onClick={() => setView('list')}
+                    className='px-6 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-200 transition'>
+                    {t('Kembali', 'Back')}
+                  </button>
+                </div>
               </div>
             </div>
           )}
