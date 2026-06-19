@@ -18,6 +18,8 @@ const SEED_USERS = [
   // ── HR Team — NFC ─────────────────────────────────────────────────────────
   { id:15, username:'yuliani',   password:'pass123', name:'Yuliani Suharto',  role:'hr',         dept:'HR Operations',  position:'HR Manager',               email:'yuliani@company.com' },
   { id:16, username:'hendri',    password:'pass123', name:'Hendri Wijaksono', role:'hr',         dept:'HR Operations',  position:'HR Officer',               email:'hendri@company.com'  },
+  // ── Engineering Team ──────────────────────────────────────────────────────
+  { id:30, username:'reza',      password:'pass123', name:'Reza Firmansyah',  role:'employee',   dept:'Engineering',    position:'Software Engineer',         email:'reza@company.com'    },
 ]
 
 export const useAuthStore = create(
