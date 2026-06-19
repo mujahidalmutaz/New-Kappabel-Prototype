@@ -75,15 +75,6 @@ export default function LearningProfilePage() {
         </div>
 
         <div className='lg:col-span-2 space-y-4'>
-          <div className='grid grid-cols-3 gap-3'>
-            {STATS.map(s=>(
-              <div key={s.label} className='bg-white rounded-xl p-4 shadow-sm text-center'>
-                <div className='text-2xl mb-1'>{s.icon}</div>
-                <div className='text-xl font-bold text-gray-800'>{s.value}</div>
-                <div className='text-xs text-gray-500'>{s.label}</div>
-              </div>
-            ))}
-          </div>
 
           <div className='bg-white rounded-xl p-6 shadow-sm'>
             <h3 className='font-semibold text-gray-700 mb-4'>📋 {t('Preferensi Belajar','Learning Preferences')}</h3>
@@ -93,19 +84,6 @@ export default function LearningProfilePage() {
                   <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Learning Goal</label>
                   <textarea value={profile.learningGoal} onChange={e=>setProfile(p=>({...p,learningGoal:e.target.value}))} rows={3}
                     className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' />
-                </div>
-                <div className='grid grid-cols-2 gap-4'>
-                  {[[t('Gaya Belajar Preferensi','Learning Style Preference'),'preferredStyle',['Self-Paced','ILT / Instructor-Led','Blended','Video-First']],
-                    [t('Waktu Favorit','Preferred Time'),'preferredTime',['Pagi (07:00-09:00)','Siang (12:00-14:00)','Sore (17:00-19:00)','Malam (20:00-22:00)']],
-                    [t('Bahasa Konten','Content Language'),'preferredLang',['Indonesia','English','Bilingual']]].map(([l,k,opts])=>(
-                    <div key={k}>
-                      <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{l}</label>
-                      <select value={profile[k]} onChange={e=>setProfile(p=>({...p,[k]:e.target.value}))}
-                        className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                        {opts.map(o=><option key={o}>{o}</option>)}
-                      </select>
-                    </div>
-                  ))}
                 </div>
                 <div className='flex gap-3'>
                   <button onClick={handleSave} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>{t('Simpan','Save')}</button>

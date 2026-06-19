@@ -200,19 +200,6 @@ export default function MssCheckInPage() {
       {/* HAY TAB */}
       {activeTab === 'hay' && (
         <>
-          {/* Stats */}
-          <div className='grid grid-cols-3 gap-4 mb-5'>
-            {[
-              [t('Total Sesi HAY', 'Total HAY Sessions'), teamHay.length, '💬', '#8B1A1A'],
-              [t('Perlu Diisi', 'Needs Fill'), pending, '⏳', '#d97706'],
-              [t('Selesai', 'Completed'), teamHay.filter(h => h.status === 'Completed').length, '✅', '#059669'],
-            ].map(([l, v, i, c]) => (
-              <div key={l} className='bg-white rounded-2xl p-4 shadow-sm ring-1 ring-gray-100 flex items-center gap-3'>
-                <div className='w-10 h-10 rounded-xl flex items-center justify-center text-xl' style={{ background: c + '22' }}>{i}</div>
-                <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-              </div>
-            ))}
-          </div>
 
           {pending > 0 && hayView === 'list' && (
             <div className='bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4 text-sm text-yellow-700'>
@@ -475,18 +462,6 @@ export default function MssCheckInPage() {
       {/* VIP TAB */}
       {activeTab === 'vip' && (
         <>
-          {/* Stats */}
-          <div className='grid grid-cols-2 gap-4 mb-5'>
-            {[
-              [t('Total Sesi VIP', 'Total VIP Sessions'), teamVip.length, '🎯', '#d97706'],
-              [t('Karyawan dengan VIP', 'Employees with VIP'), new Set(teamVip.map(v => v.employeeId)).size, '👥', '#059669'],
-            ].map(([l, v, i, c]) => (
-              <div key={l} className='bg-white rounded-2xl p-4 shadow-sm ring-1 ring-gray-100 flex items-center gap-3'>
-                <div className='w-10 h-10 rounded-xl flex items-center justify-center text-xl' style={{ background: c + '22' }}>{i}</div>
-                <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-              </div>
-            ))}
-          </div>
 
           <div className='bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5 text-sm text-blue-700'>
             ℹ️ {t('Sesi VIP dibuat oleh karyawan. Anda dapat melihat isinya sebagai referensi coaching.', 'VIP sessions are created by employees. You can view them as coaching reference.')}
@@ -585,19 +560,6 @@ export default function MssCheckInPage() {
       {/* PIP TAB */}
       {activeTab === 'pip' && (
         <>
-          {/* Stats */}
-          <div className='grid grid-cols-3 gap-4 mb-5'>
-            {[
-              [t('Total PIP', 'Total PIP'), teamPip.length, '📋', '#8B1A1A'],
-              [t('Menunggu Persetujuan', 'Pending Approval'), teamPip.filter(p => p.status === 'Pending Approval').length, '⏳', '#d97706'],
-              [t('Disetujui', 'Approved'), teamPip.filter(p => p.status === 'Approved').length, '✅', '#059669'],
-            ].map(([l, v, i, c]) => (
-              <div key={l} className='bg-white rounded-2xl p-4 shadow-sm ring-1 ring-gray-100 flex items-center gap-3'>
-                <div className='w-10 h-10 rounded-xl flex items-center justify-center text-xl' style={{ background: c + '22' }}>{i}</div>
-                <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-              </div>
-            ))}
-          </div>
 
           {/* CREATE FORM */}
           {pipView === 'create' && (
@@ -823,21 +785,6 @@ export default function MssCheckInPage() {
                       </span>
                     </div>
 
-                    <div className='grid grid-cols-2 gap-x-6 gap-y-2 text-xs'>
-                      {[
-                        [t('Nama Pekerja', 'Employee'), selectedPip.employeeName],
-                        [t('Nama Atasan', 'Manager'), selectedPip.managerName],
-                        [t('Departemen', 'Dept'), selectedPip.employeeDept],
-                        [t('Posisi', 'Position'), selectedPip.employeePosition],
-                        [t('Tanggal Mulai', 'Start'), selectedPip.startDate],
-                        [t('Tanggal Akhir', 'End'), selectedPip.endDate],
-                      ].map(([l, v]) => (
-                        <div key={l} className='flex gap-2'>
-                          <span className='text-gray-400 shrink-0'>{l}:</span>
-                          <span className='font-semibold text-gray-700'>{v || '—'}</span>
-                        </div>
-                      ))}
-                    </div>
 
                     <div className='space-y-2'>
                       <div className='bg-gray-50 rounded-xl p-3'>

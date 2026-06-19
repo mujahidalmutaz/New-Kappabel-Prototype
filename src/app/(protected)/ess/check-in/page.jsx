@@ -196,19 +196,6 @@ export default function EssCheckInPage() {
       {mainTab === 'checkin' && (<>
 
       {/* STATS */}
-      <div className='grid grid-cols-4 gap-4 my-6'>
-        {[
-          [t('Total Sesi', 'Total Sessions'),    allItems.length,                                             '💬', '#8B1A1A'],
-          [t('Sesi HAY', 'HAY Sessions'),        hayItems.length,                                             '🤝', '#7c3aed'],
-          [t('Sesi VIP', 'VIP Sessions'),        vipItems.length,                                             '🎯', '#d97706'],
-          [t('Menunggu Atasan', 'Pending HAY'), hayItems.filter(h => h.status === 'Pending Manager').length,       '⏳', '#dc2626'],
-        ].map(([l, v, i, c]) => (
-          <div key={l} className='bg-white rounded-2xl p-4 shadow-sm ring-1 ring-gray-100 flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-xl flex items-center justify-center text-xl' style={{ background: c + '22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       {msg && (
         <div className={`text-sm px-4 py-3 rounded-xl mb-4 ${msg.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
@@ -688,19 +675,6 @@ export default function EssCheckInPage() {
       {/* ── PIP TAB ──────────────────────────────────────────────────────── */}
       {mainTab === 'pip' && (
         <>
-          {/* Stats */}
-          <div className='grid grid-cols-3 gap-4 mb-5'>
-            {[
-              [t('Total PIP', 'Total PIP'), myPips.length, '📋', '#8B1A1A'],
-              [t('Menunggu Persetujuan', 'Pending Approval'), pendingPips, '⏳', '#d97706'],
-              [t('Sudah Disetujui', 'Approved'), myPips.filter(p => p.status === 'Approved').length, '✅', '#059669'],
-            ].map(([l, v, i, c]) => (
-              <div key={l} className='bg-white rounded-2xl p-4 shadow-sm ring-1 ring-gray-100 flex items-center gap-3'>
-                <div className='w-10 h-10 rounded-xl flex items-center justify-center text-xl' style={{ background: c + '22' }}>{i}</div>
-                <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-              </div>
-            ))}
-          </div>
 
           {pendingPips > 0 && !selectedPip && (
             <div className='bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4 text-sm text-yellow-700'>
@@ -758,23 +732,6 @@ export default function EssCheckInPage() {
                   </div>
 
                   {/* Identity fields */}
-                  <div className='grid grid-cols-2 gap-x-6 gap-y-2 text-xs'>
-                    {[
-                      [t('Nama Pekerja', 'Employee Name'), selectedPip.employeeName],
-                      [t('Nama Atasan Langsung', 'Direct Manager'), selectedPip.managerName],
-                      [t('Departemen', 'Department'), selectedPip.employeeDept],
-                      [t('Employee ID Atasan', 'Manager ID'), selectedPip.managerIdNo],
-                      [t('Posisi', 'Position'), selectedPip.employeePosition],
-                      [t('Tanggal Mulai PIP', 'PIP Start Date'), selectedPip.startDate],
-                      [t('Employee ID', 'Employee ID'), selectedPip.employeeIdNo],
-                      [t('Tanggal Akhir PIP', 'PIP End Date'), selectedPip.endDate],
-                    ].map(([l, v]) => (
-                      <div key={l} className='flex gap-2'>
-                        <span className='text-gray-400 shrink-0'>{l}:</span>
-                        <span className='font-semibold text-gray-700'>{v || '—'}</span>
-                      </div>
-                    ))}
-                  </div>
 
                   {/* Section 1 */}
                   <div>

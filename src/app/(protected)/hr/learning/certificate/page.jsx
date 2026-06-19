@@ -1024,20 +1024,6 @@ export default function MasterCertificatePage() {
         <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>
       )}
 
-      {/* Stats */}
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[
-          ['Total Template',    templates.length,              '📄','#8B1A1A'],
-          ['Template Active',   activeCount,                   '✅','#059669'],
-          ['Penandatangan',     signatories.filter(s=>s.status==='Active').length, '✍️','#d97706'],
-          ['Elemen Total',      templates.reduce((s,t)=>s+(t.elements||[]).length,0),'🔖','#7c3aed'],
-        ].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       {/* Page tabs */}
       <div className='flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit'>

@@ -133,14 +133,6 @@ export default function TransactionManagerPage() {
         subtitle='Monitor semua approval flow. Delegasi atau override langsung jika diperlukan.'
       />
 
-      {/* ── Stats ── */}
-      <div className='grid grid-cols-2 gap-4 sm:grid-cols-5 mb-6'>
-        <StatCard label='Total'     value={stats.total}     icon='📋' tone='gray'   />
-        <StatCard label='Pending'   value={stats.pending}   icon='⏳' tone='orange' />
-        <StatCard label='Approved'  value={stats.approved}  icon='✅' tone='green'  />
-        <StatCard label='Rejected'  value={stats.rejected}  icon='❌' tone='red'    />
-        <StatCard label='Withdrawn' value={stats.withdrawn} icon='↩️' tone='gray'   />
-      </div>
 
       {/* ── Main card ── */}
       <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>

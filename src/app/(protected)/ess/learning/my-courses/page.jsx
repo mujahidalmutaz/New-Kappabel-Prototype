@@ -30,14 +30,6 @@ export default function MyCoursesPage() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Learning / My Courses</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Daftar seluruh course yang sedang atau pernah Anda ikuti.','List of all courses you are taking or have taken.')}</p>
 
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[['Total Course', INIT.length, '📚', '#8B1A1A'],['In Progress', INIT.filter(c=>c.status==='In Progress').length, '🔵', '#2563eb'],['Completed', INIT.filter(c=>c.status==='Completed').length, '✅', '#059669'],['Avg Score', Math.round(INIT.filter(c=>c.score).reduce((a,c)=>a+c.score,0)/INIT.filter(c=>c.score).length)+'%', '🎯', '#7c3aed']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='bg-white rounded-xl p-6 shadow-sm'>
         <div className='flex flex-wrap gap-3 mb-6'>

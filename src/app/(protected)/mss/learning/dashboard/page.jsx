@@ -28,14 +28,6 @@ export default function TeamLearningDashboard() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Team Learning Dashboard', 'Team Learning Dashboard')}</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Monitor progress learning seluruh anggota tim Anda secara real-time.', 'Monitor the learning progress of all your team members in real-time.')}</p>
 
-      <div className='grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6'>
-        {[[t('Total Tim','Total Team'), totalTeam, '👥', '#8B1A1A'],[t('On Track','On Track'), onTrack, '✅', '#059669'],[t('Overdue','Overdue'), overdue, '⚠️', '#dc2626'],[t('Avg Progress','Avg Progress'), avgProgress+'%', '📈', '#7c3aed'],[t('Completion Rate','Completion Rate'), completionRate+'%', '🏆', '#d97706']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-9 h-9 rounded-lg flex items-center justify-center text-lg' style={{ background:c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='lg:col-span-2 bg-white rounded-xl p-6 shadow-sm'>

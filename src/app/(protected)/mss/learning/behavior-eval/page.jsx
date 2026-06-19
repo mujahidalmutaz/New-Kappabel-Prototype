@@ -51,16 +51,6 @@ export default function BehaviorEvalPage() {
         </div>
       </div>
 
-      <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[[t('Perlu Dievaluasi', 'Needs Evaluation'), evals.filter(e=>e.status==='Pending').length,'⏳','#d97706'],
-          [t('Sudah Dievaluasi', 'Already Evaluated'), evals.filter(e=>e.status==='Submitted').length,'✅','#059669'],
-          [t('Rata-rata Skor', 'Average Score'), evals.filter(e=>e.score).length>0?(evals.filter(e=>e.score).reduce((a,e)=>a+e.score,0)/evals.filter(e=>e.score).length).toFixed(1)+'/5':'—','⭐','#7c3aed']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='space-y-4'>
         {evals.map(e=>(

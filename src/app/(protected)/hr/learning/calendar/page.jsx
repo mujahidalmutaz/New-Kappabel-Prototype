@@ -53,17 +53,6 @@ export default function HrLearningCalendarPage() {
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[['Event Bulan Ini', allMonthEvents.length, '📅', '#8B1A1A'],
-          ['Published', allMonthEvents.filter(e=>e.status==='Published').length, '✅', '#059669'],
-          ['Draft', allMonthEvents.filter(e=>e.status==='Draft').length, '📝', '#d97706'],
-          ['Total Peserta', allMonthEvents.reduce((a,e)=>a+e.enrolled,0), '👥', '#7c3aed']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='flex items-center gap-3 mb-4 flex-wrap'>
         <button onClick={()=>{if(month===0){setMonth(11);setYear(y=>y-1)}else setMonth(m=>m-1)}} className='w-8 h-8 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center'>‹</button>

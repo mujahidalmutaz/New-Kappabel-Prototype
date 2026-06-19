@@ -41,17 +41,6 @@ export default function RecommendationPage() {
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[[t('Critical','Critical'), recs.filter(r=>r.priority==='Critical'&&r.status!=='Dismissed').length,'🚨','#dc2626'],
-          [t('High Priority','High Priority'), recs.filter(r=>r.priority==='High'&&r.status!=='Dismissed').length,'⚠️','#d97706'],
-          [t('Sudah Assigned','Already Assigned'), recs.filter(r=>r.status==='Assigned').length,'✅','#059669'],
-          [t('Total Rekomendasi','Total Recommendations'), recs.filter(r=>r.status!=='Dismissed').length,'📋','#8B1A1A']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='flex gap-2 mb-6 flex-wrap'>
         {['Semua', ...employees].map(e=>(

@@ -35,19 +35,6 @@ export default function CompetencyProfilePage() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Competency Profile</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Profil kompetensi Anda berdasarkan penilaian terakhir dan gap terhadap target jabatan.','Your competency profile based on the latest assessment and gap against your target role.')}</p>
 
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[
-          [t('Total Kompetensi','Total Competencies'), COMPETENCIES.reduce((a,c)=>a+c.items.length,0), '📊', '#8B1A1A'],
-          [t('Expert / Proficient','Expert / Proficient'), COMPETENCIES.flatMap(c=>c.items).filter(i=>i.level==='Expert'||i.level==='Proficient').length, '⭐', '#059669'],
-          [t('Perlu Dikembangkan','Needs Development'), COMPETENCIES.flatMap(c=>c.items).filter(i=>i.current<i.target).length, '📈', '#d97706'],
-          ['Avg Score', (COMPETENCIES.flatMap(c=>c.items).reduce((a,i)=>a+i.current,0)/COMPETENCIES.flatMap(c=>c.items).length).toFixed(1)+'/5', '🎯', '#7c3aed'],
-        ].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='space-y-4'>
         {COMPETENCIES.map(c=>(

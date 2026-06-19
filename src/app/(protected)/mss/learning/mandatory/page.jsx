@@ -34,14 +34,6 @@ export default function MandatoryTrainingMonitoringPage() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Mandatory Training Monitoring', 'Mandatory Training Monitoring')}</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Pantau status training wajib (mandatory/compliance) seluruh anggota tim Anda.', 'Monitor mandatory/compliance training status for all your team members.')}</p>
 
-      <div className='grid grid-cols-5 gap-3 mb-6'>
-        {[[t('Total', 'Total'),stats.total,'📋','#8B1A1A'],[t('Selesai', 'Completed'),stats.completed,'✅','#059669'],[t('Sedang Berjalan', 'In Progress'),stats.inProgress,'🔵','#2563eb'],[t('Terlambat', 'Overdue'),stats.overdue,'⚠️','#dc2626'],[t('Tingkat Kepatuhan', 'Compliance Rate'),rate+'%','📈','#7c3aed']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-3 shadow-sm flex items-center gap-2'>
-            <div className='w-8 h-8 rounded-lg flex items-center justify-center text-base' style={{ background:c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-lg font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       {stats.overdue > 0 && (
         <div className='bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3'>

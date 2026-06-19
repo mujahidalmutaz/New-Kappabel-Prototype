@@ -36,17 +36,6 @@ export default function CertApprovalPage() {
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[[t('Perlu Approval','Needs Approval'), pending.length,'⏳','#d97706'],
-          [t('Approved','Approved'), data.filter(d=>d.status==='Approved').length,'✅','#059669'],
-          [t('Rejected','Rejected'), data.filter(d=>d.status==='Rejected').length,'❌','#dc2626'],
-          [t('Total Requests','Total Requests'), data.length,'📋','#8B1A1A']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       {pending.length > 0 && (
         <div className='mb-6'>

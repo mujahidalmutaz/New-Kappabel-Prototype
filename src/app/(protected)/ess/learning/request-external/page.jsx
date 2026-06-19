@@ -77,20 +77,6 @@ export default function RequestExternalTrainingPage() {
             <button onClick={()=>setStep('list')} className='text-gray-400 hover:text-gray-600'>{t('← Kembali','← Back')}</button>
             <h2 className='font-bold text-gray-700'>{t('Form Pengajuan External Training','External Training Request Form')}</h2>
           </div>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            {[[t('Nama Training/Sertifikasi','Training/Certification Name'),'training_name','text','md:col-span-2'],[t('Vendor/Penyelenggara','Vendor/Organizer'),'vendor','text',''],[t('Tanggal Pelaksanaan','Training Date'),'date','date',''],[t('Durasi (mis: 3 hari)','Duration (e.g. 3 days)'),'duration','text',''],[t('Estimasi Biaya (Rp)','Estimated Cost (Rp)'),'cost','number','']].map(([l,k,typ,cl])=>(
-              <div key={k} className={cl}>
-                <label className='block text-xs font-semibold text-gray-600 mb-1'>{l}</label>
-                <input type={typ} value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))}
-                  className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-              </div>
-            ))}
-            <div className='md:col-span-2'>
-              <label className='block text-xs font-semibold text-gray-600 mb-1'>{t('Tujuan & Justifikasi','Objective & Justification')}</label>
-              <textarea rows={4} value={form.objective} onChange={e=>setForm(f=>({...f,objective:e.target.value}))} placeholder={t('Jelaskan tujuan mengikuti training ini dan manfaatnya bagi pekerjaan...','Explain the purpose of attending this training and its benefits to your work...')}
-                className='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' />
-            </div>
-          </div>
           <div className='flex gap-3 mt-6'>
             <button onClick={handleSubmit} className='flex-1 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition'
               style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>{t('Submit Pengajuan','Submit Request')}</button>

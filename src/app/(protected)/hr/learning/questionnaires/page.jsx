@@ -58,17 +58,6 @@ export default function QuestionnairesPage() {
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[['Total Template', data.length,'📋','#8B1A1A'],
-          ['Active', data.filter(d=>d.status==='Active').length,'✅','#059669'],
-          ['Draft', data.filter(d=>d.status==='Draft').length,'📝','#d97706'],
-          ['Avg Questions', Math.round(data.reduce((a,d)=>a+d.questions,0)/data.length),'❓','#7c3aed']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='flex gap-3 mb-4 items-center flex-wrap'>
         <div className='flex gap-2'>
@@ -90,39 +79,6 @@ export default function QuestionnairesPage() {
       {showForm && (
         <div className='bg-white rounded-xl p-6 shadow-sm border border-red-200 mb-6'>
           <h3 className='font-bold text-gray-700 mb-4'>{editId ? `✏️ ${t('Edit Template Kuesioner','Edit Questionnaire Template')}` : `➕ ${t('Tambah Template Kuesioner','Add Questionnaire Template')}`}</h3>
-          <div className='grid grid-cols-2 gap-4 mb-4'>
-            <div className='col-span-2'>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Nama Template','Template Name')} <span className='text-red-500'>*</span></label>
-              <input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}
-                className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-            </div>
-            {[['Tipe','type',['Assessment','Evaluation','Survey']],
-              ['Kategori','category',['Pre-Training','Post-Training','30-Day Follow Up','Annual','IDP','360-Degree']],
-            ].map(([l,k,opts])=>(
-              <div key={k}>
-                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{l}</label>
-                <select value={form[k]} onChange={e=>setForm(p=>({...p,[k]:e.target.value}))}
-                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                  {opts.map(o=><option key={o}>{o}</option>)}
-                </select>
-              </div>
-            ))}
-            <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Jumlah Pertanyaan','Number of Questions')}</label>
-              <input type='number' value={form.questions} onChange={e=>setForm(p=>({...p,questions:Number(e.target.value)}))}
-                className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-            </div>
-            <div>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Target Pengguna','Target Users')} <span className='text-red-500'>*</span></label>
-              <input value={form.target} onChange={e=>setForm(p=>({...p,target:e.target.value}))}
-                placeholder='All Courses / ILT / dll' className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-            </div>
-            <div className='col-span-2'>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{t('Deskripsi','Description')}</label>
-              <textarea value={form.desc} onChange={e=>setForm(p=>({...p,desc:e.target.value}))} rows={2}
-                className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none' />
-            </div>
-          </div>
           <div className='flex gap-3'>
             <button onClick={handleSave} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>{editId ? t('Simpan','Save') : t('Tambah','Add')}</button>
             <button onClick={()=>setShowForm(false)} className='px-6 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200'>{t('Batal','Cancel')}</button>

@@ -47,19 +47,6 @@ export default function TeamProgressPage() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Team Learning Progress','Team Learning Progress')}</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Pantau perkembangan belajar tiap anggota tim secara detail.','Monitor each team member\'s learning progress in detail.')}</p>
 
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[
-          [t('Total Anggota','Total Members'), PROGRESS_DATA.length, '👥', '#8B1A1A'],
-          [t('Compliance 100%','100% Compliance'), PROGRESS_DATA.filter(p=>p.courses.every(c=>c.status==='Completed')).length, '✅', '#059669'],
-          [t('Ada Overdue','Has Overdue'), PROGRESS_DATA.filter(p=>p.courses.some(c=>c.status==='Overdue')).length, '⚠️', '#dc2626'],
-          [t('Avg Progress','Avg Progress'), Math.round(PROGRESS_DATA.reduce((a,p)=>a+getOverall(p.courses),0)/PROGRESS_DATA.length)+'%', '📈', '#7c3aed'],
-        ].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='mb-4'>
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('Cari nama anggota tim...','Search team member name...')}

@@ -27,14 +27,6 @@ export default function AssessmentsPage() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Assessments & Evaluation</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Quiz, pre-test, post-test, dan evaluasi training Anda.','Your quizzes, pre-tests, post-tests, and training evaluations.')}</p>
 
-      <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[[t('Harus Dikerjakan','To Do'), PENDING.length, '📝', '#dc2626'],[t('Selesai','Completed'), COMPLETED.length, '✅', '#059669'],['Avg Score', Math.round(COMPLETED.reduce((a,c)=>a+c.score,0)/COMPLETED.length), '🎯', '#7c3aed']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='flex gap-2 mb-4'>
         {[['pending',t('📝 Belum Dikerjakan','📝 Pending')],['completed',t('✅ Riwayat Assessment','✅ Assessment History')],['evaluation',t('📊 Evaluasi Training','📊 Training Evaluation')]].map(([k,l])=>(

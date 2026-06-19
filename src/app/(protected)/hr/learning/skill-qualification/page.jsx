@@ -80,36 +80,6 @@ export default function SkillQualificationPage() {
       {showForm && (
         <div className='bg-white rounded-xl p-6 shadow-sm border border-red-200 mb-6'>
           <h3 className='font-bold text-gray-700 mb-4'>{editItem ? `✏️ ${t('Edit Skill / Qualification','Edit Skill / Qualification')}` : `➕ ${t('Tambah Skill / Qualification','Add Skill / Qualification')}`}</h3>
-          <div className='grid grid-cols-2 gap-4 mb-4'>
-            <div className='col-span-2'>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Nama <span className='text-red-500'>*</span></label>
-              <input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}
-                className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-            </div>
-            {[['Kategori','category',['Certification','Technical Skill','Safety Certification','Cloud Certification','Leadership Skill','Tax Certification','Soft Skill','Domain Knowledge']],
-              ['Level','level',LEVELS],
-            ].map(([l,k,opts])=>(
-              <div key={k}>
-                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{l}</label>
-                <select value={form[k]} onChange={e=>setForm(p=>({...p,[k]:e.target.value}))}
-                  className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400'>
-                  {opts.map(o=><option key={o}>{o}</option>)}
-                </select>
-              </div>
-            ))}
-            {[['Diterbitkan Oleh','issuedBy','text','BNSP / Microsoft / Internal'],['Masa Berlaku','validity','text','2 tahun / Permanent']].map(([l,k,t,ph])=>(
-              <div key={k}>
-                <label className='block text-xs font-semibold text-gray-600 mb-1.5'>{l}</label>
-                <input type={t} value={form[k]} onChange={e=>setForm(p=>({...p,[k]:e.target.value}))}
-                  placeholder={ph} className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-              </div>
-            ))}
-            <div className='col-span-2'>
-              <label className='block text-xs font-semibold text-gray-600 mb-1.5'>Deskripsi</label>
-              <input value={form.desc} onChange={e=>setForm(p=>({...p,desc:e.target.value}))}
-                className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
-            </div>
-          </div>
           <div className='flex gap-3'>
             <button onClick={handleSave} className='px-6 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90' style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>{editItem ? t('Simpan','Save') : t('Tambah','Add')}</button>
             <button onClick={()=>setShowForm(false)} className='px-6 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200'>{t('Batal','Cancel')}</button>

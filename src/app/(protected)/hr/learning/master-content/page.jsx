@@ -215,15 +215,6 @@ export default function MasterContentPage() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Master Content','Master Content')}</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Repository materi pembelajaran — Video, PDF, SCORM, eBook, H5P, Page.','Learning content repository — Video, PDF, SCORM, eBook, H5P, Page.')}</p>
 
-      {/* Stats */}
-      <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[['Total Content', stats.total, '📦', '#8B1A1A'],['Active', stats.active, '✅', '#059669'],['Draft', stats.draft, '📝', '#d97706']].map(([l,v,i,c]) => (
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background: c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         {/* ── Form ── */}

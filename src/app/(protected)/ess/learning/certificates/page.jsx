@@ -488,18 +488,6 @@ export default function CertificatesPage() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Certificates</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Sertifikat yang telah Anda raih dan progress menuju sertifikat berikutnya.','Certificates you have earned and progress towards your next certificate.')}</p>
 
-      <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[
-          [t('Sertifikat Diraih','Certificates Earned'), CERTS.length,                              '🏆', '#d97706'],
-          ['Valid',             CERTS.filter(c=>c.status==='Valid').length, '✅', '#059669'],
-          ['CPD Points',        CERTS.reduce((a,c)=>a+c.cpd_points, 0),   '⭐', '#7c3aed'],
-        ].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='flex gap-2 mb-4'>
         {[[`earned`,t('🏆 Sertifikat Diraih','🏆 Earned Certificates')],[`progress`,t('⏳ Dalam Proses','⏳ In Progress')]].map(([k,l])=>(

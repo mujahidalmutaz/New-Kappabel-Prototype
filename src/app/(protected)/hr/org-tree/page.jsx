@@ -543,19 +543,6 @@ export default function OrgTreePage() {
                       <div className='text-gray-700 font-medium'>{v}</div>
                     </div>
                   ) : null)}
-                  <div className='grid grid-cols-2 gap-2 pt-1'>
-                    {[
-                      [detail.divCount, 'Division'],
-                      [detail.coCount,  'Company'],
-                      [detail.buCount,  'Business Unit'],
-                      [detail.deptCount,'Department'],
-                    ].map(([n, lbl]) => (
-                      <div key={lbl} className='bg-gray-50 rounded-xl p-2 text-center'>
-                        <div className='text-base font-bold text-gray-700'>{n}</div>
-                        <div className='text-gray-400' style={{fontSize:9}}>{lbl}</div>
-                      </div>
-                    ))}
-                  </div>
                 </>}
 
                 {detail.type === 'division' && <>
@@ -577,18 +564,6 @@ export default function OrgTreePage() {
                       <div className='text-gray-700 font-medium'>{v}</div>
                     </div>
                   ) : null)}
-                  <div className='grid grid-cols-3 gap-2 pt-1'>
-                    {[
-                      [detail.coCount,   'Company'],
-                      [detail.buCount,   'BU'],
-                      [detail.deptCount, 'Dept'],
-                    ].map(([n, lbl]) => (
-                      <div key={lbl} className='bg-gray-50 rounded-xl p-2 text-center'>
-                        <div className='text-base font-bold text-gray-700'>{n}</div>
-                        <div className='text-gray-400' style={{fontSize:9}}>{lbl}</div>
-                      </div>
-                    ))}
-                  </div>
                 </>}
 
                 {detail.type === 'company' && <>
@@ -609,17 +584,6 @@ export default function OrgTreePage() {
                       <div className='text-gray-700 font-medium'>{v}</div>
                     </div>
                   ) : null)}
-                  <div className='grid grid-cols-2 gap-2 pt-1'>
-                    {[
-                      [detail.buCount,   'Business Unit'],
-                      [detail.deptCount, 'Department'],
-                    ].map(([n, lbl]) => (
-                      <div key={lbl} className='bg-gray-50 rounded-xl p-2 text-center'>
-                        <div className='text-base font-bold text-gray-700'>{n}</div>
-                        <div className='text-gray-400' style={{fontSize:9}}>{lbl}</div>
-                      </div>
-                    ))}
-                  </div>
                 </>}
 
                 {detail.type === 'businessUnit' && <>

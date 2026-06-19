@@ -26,14 +26,6 @@ export default function MyLearningDashboard() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>My Learning Dashboard</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Selamat datang! Pantau progress belajar, kursus yang ditugaskan, dan pencapaian Anda.','Welcome! Monitor your learning progress, assigned courses, and achievements.')}</p>
 
-      <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
-        {[[t('Course Aktif','Active Courses'), MY_COURSES.filter(c=>c.status==='In Progress').length, '📖', '#8B1A1A'],[t('Selesai','Completed'), completedCourses, '✅', '#059669'],['CPD Points', totalPoints, '⭐', '#d97706'],['Overdue', MY_COURSES.filter(c=>c.status==='Overdue').length, '⚠️', '#dc2626']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-2xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='lg:col-span-2 space-y-4'>
@@ -69,16 +61,6 @@ export default function MyLearningDashboard() {
 
           <div className='bg-white rounded-xl p-6 shadow-sm'>
             <h2 className='font-bold text-gray-700 mb-4'>🏆 {t('Pencapaian Terbaru','Recent Achievements')}</h2>
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
-              {[['🎓 Course Champion',t('Selesaikan 1 Course','Complete 1 Course'),t('Diraih','Earned')],['⭐ Top Scorer',t('Nilai >= 90%','Score >= 90%'),t('Diraih','Earned')],['🔥 7-Day Streak',t('Belajar 7 hari','Study 7 days'),t('Diraih','Earned')],['🌟 100 CPD Points','100 CPD Points',t('Belum','Not Yet')]].map(([b,d,s])=>(
-                <div key={b} className={`text-center p-3 rounded-xl border ${s===t('Diraih','Earned')?'border-yellow-200 bg-yellow-50':'border-gray-200 bg-gray-50'}`}>
-                  <div className='text-2xl mb-1'>{b.split(' ')[0]}</div>
-                  <div className={`text-xs font-semibold mb-0.5 ${s===t('Diraih','Earned')?'text-yellow-700':'text-gray-400'}`}>{b.substring(b.indexOf(' ')+1)}</div>
-                  <div className='text-xs text-gray-400'>{d}</div>
-                  {s===t('Diraih','Earned')&&<div className='text-xs text-green-600 font-semibold mt-1'>✅ {t('Diraih','Earned')}</div>}
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 

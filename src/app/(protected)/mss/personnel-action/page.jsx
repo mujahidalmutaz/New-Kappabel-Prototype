@@ -47,19 +47,6 @@ export default function MSSPersonnelActionIndex() {
         <p className='text-violet-200 text-sm mt-0.5'>
           {t('Tinjau dan setujui Personnel Action tim Anda','Review and approve your team\'s Personnel Actions')}
         </p>
-        <div className='grid grid-cols-4 gap-4 mt-5'>
-          {[
-            [t('Perlu Disetujui','Needs Approval'), totalPending,  'bg-yellow-400/30'],
-            [t('Disetujui',      'Approved'),       totalApproved, 'bg-blue-400/30'],
-            [t('Ditolak',        'Rejected'),       totalRejected, 'bg-red-400/30'],
-            [t('Diterapkan',     'Applied'),        totalApplied,  'bg-green-400/30'],
-          ].map(([l, v, c]) => (
-            <div key={l} className={`${c} rounded-xl px-4 py-3`}>
-              <p className='text-xs text-violet-100'>{l}</p>
-              <p className='text-2xl font-bold'>{v}</p>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Action Cards */}

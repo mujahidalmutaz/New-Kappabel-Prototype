@@ -36,16 +36,6 @@ export default function MssRequestExternalPage() {
 
       {msg && <div className='text-xs px-4 py-3 rounded-lg mb-4 bg-green-50 text-green-600'>{msg}</div>}
 
-      <div className='grid grid-cols-3 gap-4 mb-6'>
-        {[['Menunggu HR', data.filter(d=>d.status==='Pending HR').length,'⏳','#d97706'],
-          ['Disetujui', data.filter(d=>d.status==='Approved').length,'✅','#059669'],
-          ['Total Request', data.length,'📋','#8B1A1A']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{background:c+'22'}}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='flex justify-between items-center mb-4'>
         <h2 className='font-bold text-gray-700'>📋 Daftar Request</h2>

@@ -22,14 +22,6 @@ export default function LearningTranscriptPage() {
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>Learning Transcript</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Riwayat lengkap seluruh learning yang telah diselesaikan.','Complete history of all learning you have completed.')}</p>
 
-      <div className='grid grid-cols-4 gap-4 mb-6'>
-        {[[t('Total Course Selesai','Total Completed Courses'), TRANSCRIPT.length, '🎓', '#8B1A1A'],[t('Total Jam Belajar','Total Learning Hours'), totalHours+' jam', '⏱️', '#059669'],[t('Total CPD Points','Total CPD Points'), totalCPD+' pts', '⭐', '#d97706'],[t('Sertifikat Diraih','Certificates Earned'), TRANSCRIPT.filter(rec=>rec.certificate).length, '🏆', '#7c3aed']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-10 h-10 rounded-lg flex items-center justify-center text-xl' style={{ background:c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='bg-white rounded-xl p-6 shadow-sm'>
         <div className='flex items-center justify-between mb-4'>

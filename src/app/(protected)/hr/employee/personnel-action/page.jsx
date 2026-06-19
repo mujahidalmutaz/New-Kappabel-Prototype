@@ -31,14 +31,6 @@ export default function PersonnelActionIndex() {
       <div className='bg-gradient-to-r from-violet-700 to-red-600 text-white px-8 py-6'>
         <h1 className='text-2xl font-bold'>Personnel Action</h1>
         <p className='text-violet-200 text-sm mt-0.5'>Employee Movement — {t('pilih jenis aksi yang ingin diproses', 'select the action type to process')}</p>
-        <div className='grid grid-cols-4 gap-4 mt-5'>
-          {[['Total PA', total, 'bg-white/20'], ['Draft', draft, 'bg-gray-400/30'], ['Pending', pending, 'bg-yellow-400/30'], ['Applied', applied, 'bg-green-400/30']].map(([l,v,c]) => (
-            <div key={l} className={`${c} rounded-xl px-4 py-3`}>
-              <p className='text-xs text-violet-100'>{l}</p>
-              <p className='text-2xl font-bold'>{v}</p>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Action cards */}

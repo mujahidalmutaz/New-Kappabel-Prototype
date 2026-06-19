@@ -161,11 +161,6 @@ export default function TransferPage() {
             + New PA
           </button>
         </div>
-        <div className='grid grid-cols-3 gap-4 mt-4'>
-          {[['Total', stats.total, 'bg-white/20'], ['Draft', stats.draft, 'bg-gray-400/30'], ['Applied', stats.applied, 'bg-green-400/30']].map(([l, v, c]) => (
-            <div key={l} className={`${c} rounded-xl px-4 py-3`}><p className='text-xs text-blue-100'>{l}</p><p className='text-2xl font-bold'>{v}</p></div>
-          ))}
-        </div>
       </div>
 
       <div className='px-8 py-4 bg-white border-b flex gap-3 items-center'>

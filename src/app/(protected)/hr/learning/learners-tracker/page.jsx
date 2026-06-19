@@ -57,14 +57,6 @@ export default function LearnersTrackerPage() {
 
       {msg && <div className={`text-xs px-4 py-3 rounded-lg mb-4 ${msg.type==='error'?'bg-red-50 text-red-600':'bg-green-50 text-green-600'}`}>{msg.text}</div>}
 
-      <div className='grid grid-cols-5 gap-3 mb-6'>
-        {[['Total Assigned', stats.total, '📋', '#8B1A1A'],['Completed', stats.completed, '✅', '#059669'],['In Progress', stats.inprogress, '🔵', '#2563eb'],['Overdue', stats.overdue, '⚠️', '#dc2626'],['Completion Rate', completionRate+'%', '📈', '#7c3aed']].map(([l,v,i,c])=>(
-          <div key={l} className='bg-white rounded-xl p-4 shadow-sm flex items-center gap-3'>
-            <div className='w-9 h-9 rounded-lg flex items-center justify-center text-lg' style={{ background:c+'22' }}>{i}</div>
-            <div><p className='text-xs text-gray-500'>{l}</p><p className='text-xl font-bold text-gray-800'>{v}</p></div>
-          </div>
-        ))}
-      </div>
 
       <div className='bg-white rounded-xl p-6 shadow-sm'>
         <div className='flex flex-wrap gap-3 mb-4 items-center'>
