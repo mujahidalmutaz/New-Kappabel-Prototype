@@ -166,6 +166,7 @@ const MSS_GROUPS = [
     { label: 'Team Performance Check-In', href: '/mss/check-in',           icon: ic('gauge') },
     { label: 'Form Feedback',              href: '/mss/feedback',           icon: ic('edit') },
     { label: 'Congratulation Message',     href: '/mss/congratulation',     icon: ic('smile') },
+    { label: 'Onboarding Tim Saya',        href: '/mss/onboarding',         icon: ic('clipboard') },
     { label: 'Onboarding Tracker',         href: '/mss/approve-onboarding', icon: ic('userCheck') },
   ]},
   { title: 'Personnel Action', icon: '🔄', items: [

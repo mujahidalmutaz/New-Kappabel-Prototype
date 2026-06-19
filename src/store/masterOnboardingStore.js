@@ -98,6 +98,7 @@ function migrateTemplate(t) {
   }
   if (!copy.criteria) copy.criteria = { employmentTypes: [], departmentIds: [] }
   if (copy.autoAssign === undefined) copy.autoAssign = false
+  if (copy.readyToSubmit === undefined) copy.readyToSubmit = false
   return copy
 }
 

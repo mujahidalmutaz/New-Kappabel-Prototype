@@ -18,6 +18,7 @@ const PAGES = [
   // MSS
   { label: 'Apply Leave (My Team)',      href: '/mss/apply-leave-team',                         icon: '📝', section: 'Manager Self-Service' },
   { label: 'Approve Leave',             href: '/mss/approve-leave',                            icon: '✅', section: 'Manager Self-Service' },
+  { label: 'Onboarding Tim Saya',       href: '/mss/onboarding',                               icon: '📋', section: 'Manager Self-Service' },
   { label: 'Onboarding Tracker',        href: '/mss/approve-onboarding',                       icon: '🎯', section: 'Manager Self-Service' },
   { label: 'Team Attendance',           href: '/mss/team-attendance',                          icon: '📋', section: 'Manager Self-Service' },
   // HR - Employee
