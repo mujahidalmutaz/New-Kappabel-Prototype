@@ -365,8 +365,9 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
   const [editingId,  setEditingId ] = useState(null)
   const [tab,        setTab       ] = useState('elements')
   const [msg,        setMsg       ] = useState(null)
-  const canvasRef = useRef()
-  const bgRef     = useRef()
+  const canvasRef   = useRef()
+  const bgRef       = useRef()
+  const textareaRef = useRef()
 
   const setF = (k, v) => setForm(p => ({ ...p, [k]: v }))
   const flash = (t, type='error') => { setMsg({t, type}); setTimeout(() => setMsg(null), 3000) }
@@ -410,10 +411,19 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     setSelectedId(el.id); setTab('props')
   }
 
-  const addVar = (v) => {
-    const el = { id: Date.now(), type: 'variable', content: v, x: 20, y: 20, fontSize: 14, color: '#8B1A1A', bold: true, italic: false, align: 'center', fontFamily: FONTS[0] }
-    setForm(p => ({ ...p, elements: [...p.elements, el] }))
-    setSelectedId(el.id); setTab('props')
+  // Insert variable string at textarea cursor position
+  const insertVarIntoSelected = (varStr) => {
+    const currentContent = selected?.content || ''
+    const ta = textareaRef.current
+    if (ta) {
+      const start = ta.selectionStart ?? currentContent.length
+      const end   = ta.selectionEnd   ?? currentContent.length
+      const newContent = currentContent.slice(0, start) + varStr + currentContent.slice(end)
+      updateEl(selected.id, 'content', newContent)
+      setTimeout(() => { ta.focus(); ta.setSelectionRange(start + varStr.length, start + varStr.length) }, 0)
+    } else {
+      updateEl(selected.id, 'content', currentContent + varStr)
+    }
   }
 
   // Insert signature image + name + title as canvas elements
@@ -473,7 +483,7 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     onSave({ ...form, status })
   }
 
-  const elemIcon = (el) => el.type === 'signature' ? '✍️' : el.type === 'variable' ? '{ }' : 'T'
+  const elemIcon = (el) => el.type === 'signature' ? '✍️' : 'T'
 
   return (
     <div className='fixed inset-0 z-50 bg-gray-900 flex flex-col' style={{ fontFamily: 'system-ui, sans-serif' }}>
@@ -537,19 +547,14 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                   <button onClick={addText}
                     className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-red-300 hover:bg-red-50 transition text-gray-500 hover:text-red-600'>
                     <span className='text-xl'>T</span>
-                    <span className='text-[10px] font-semibold'>Teks Bebas</span>
+                    <span className='text-[10px] font-semibold'>Tambah Teks</span>
                   </button>
-                  <button onClick={() => setTab('vars')}
-                    className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition text-gray-500 hover:text-purple-600'>
-                    <span className='text-xl'>{'{ }'}</span>
-                    <span className='text-[10px] font-semibold'>Variabel</span>
+                  <button onClick={() => setTab('sign')}
+                    className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-amber-300 hover:bg-amber-50 transition text-gray-500 hover:text-amber-600'>
+                    <span className='text-xl'>✍️</span>
+                    <span className='text-[10px] font-semibold'>Tanda Tangan</span>
                   </button>
                 </div>
-                <button onClick={() => setTab('sign')}
-                  className='w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-gray-200 rounded-xl hover:border-amber-300 hover:bg-amber-50 transition text-gray-500 hover:text-amber-600'>
-                  <span className='text-base'>✍️</span>
-                  <span className='text-[10px] font-semibold'>Tanda Tangan</span>
-                </button>
 
                 {/* Upload background */}
                 <div>
@@ -592,17 +597,18 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
               </>
             )}
 
-            {/* ── Variables tab ── */}
+            {/* ── Variables tab — read-only reference ── */}
             {tab === 'vars' && (
               <>
-                <p className='text-xs text-gray-500'>Klik variabel untuk menambahkannya ke canvas.</p>
+                <div className='bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 text-[10px] text-blue-700 leading-relaxed'>
+                  Variabel di bawah ini dapat disisipkan langsung ke dalam teks. Pilih elemen teks di canvas, lalu klik <strong>✏️ Teks</strong> dan gunakan tombol sisip variabel.
+                </div>
                 <div className='space-y-1'>
                   {RTF_VARIABLES.map(v => (
-                    <button key={v.var} onClick={() => addVar(v.var)}
-                      className='w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100 hover:border-red-200 hover:bg-red-50 transition text-left'>
-                      <code className='text-[10px] font-mono text-red-700 bg-red-50 px-1.5 py-0.5 rounded flex-1'>{v.var}</code>
-                      <span className='text-[10px] text-gray-400 shrink-0 max-w-[80px] truncate'>{v.desc}</span>
-                    </button>
+                    <div key={v.var} className='flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100 bg-gray-50'>
+                      <code className='text-[10px] font-mono text-red-700 bg-white border border-red-100 px-1.5 py-0.5 rounded flex-1 select-all'>{v.var}</code>
+                      <span className='text-[10px] text-gray-500 shrink-0 max-w-[90px]'>{v.desc}</span>
+                    </div>
                   ))}
                 </div>
               </>
@@ -630,7 +636,7 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                   <div className='space-y-3'>
                     <div className='flex items-center justify-between'>
                       <span className='text-xs font-bold text-gray-600'>
-                        {selected.type === 'signature' ? '✍️ Tanda Tangan' : selected.type === 'variable' ? '{ } Variabel' : 'T Teks'}
+                        {selected.type === 'signature' ? '✍️ Tanda Tangan' : 'T Teks'}
                       </span>
                       <div className='flex gap-1'>
                         <button onClick={() => bringFront(selected.id)} title='Bring to front' className='text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded'>↑</button>
@@ -656,12 +662,26 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                       </>
                     )}
 
-                    {selected.type === 'text' && (
+                    {(selected.type === 'text' || selected.type === 'variable') && (
                       <div>
                         <label className='block text-[10px] font-bold text-gray-500 mb-1'>Isi Teks</label>
-                        <textarea value={selected.content} rows={3}
+                        <textarea ref={textareaRef} value={selected.content} rows={3}
                           onChange={e => updateEl(selected.id, 'content', e.target.value)}
-                          className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300 resize-none' />
+                          className='w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-red-300 resize-none font-mono' />
+
+                        {/* Variable insertion chips */}
+                        <div className='mt-2'>
+                          <p className='text-[10px] text-gray-400 mb-1.5'>Sisipkan variabel ke posisi kursor:</p>
+                          <div className='flex flex-wrap gap-1'>
+                            {RTF_VARIABLES.map(v => (
+                              <button key={v.var} onClick={() => insertVarIntoSelected(v.var)}
+                                title={v.desc}
+                                className='text-[9px] font-mono bg-red-50 text-red-700 border border-red-100 px-1.5 py-0.5 rounded hover:bg-red-100 transition'>
+                                {v.var.replace(/\[\[|\]\]/g, '')}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -883,7 +903,6 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
         <div className='w-14 bg-gray-900 flex flex-col items-center py-4 gap-3 shrink-0'>
           {[
             { icon:'T',   label:'Teks', action: addText },
-            { icon:'{ }', label:'Var',  action: () => setTab('vars') },
             { icon:'✍️',  label:'TTD',  action: () => setTab('sign') },
             { icon:'📤',  label:'BG',   action: () => bgRef.current?.click() },
           ].map(item => (
