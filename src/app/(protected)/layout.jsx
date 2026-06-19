@@ -6,8 +6,45 @@ import Sidebar              from '@/components/layout/Sidebar'
 import GlobalSearch         from '@/components/layout/GlobalSearch'
 import NotificationBell     from '@/components/layout/NotificationBell'
 import LoginAsModal         from '@/components/layout/LoginAsModal'
+import Toast                from '@/components/layout/Toast'
 import { useBrandingStore } from '@/store/brandingStore'
 import { useLanguageStore } from '@/store/languageStore'
+import { useToastStore }    from '@/store/toastStore'
+
+// ─── Keywords that trigger a success toast ────────────────────────────────────
+const ACTION_KEYWORDS = [
+  // Indonesian
+  'simpan','submit','setujui','approved','approve','kirim','konfirmasi',
+  'aktifkan','selesai','proses','generate','terbitkan','publish','update',
+  'perbarui','tambah','buat','hapus','batalkan','tolak','reject',
+  // English
+  'save','confirm','complete','activate','send','create','delete',
+]
+
+const DELETE_KEYWORDS = ['hapus','delete','batalkan','tolak','reject','terminate','demote']
+
+const TOAST_MESSAGES = {
+  delete:  { msg: 'Data berhasil dihapus.', type: 'warning' },
+  reject:  { msg: 'Data berhasil ditolak.', type: 'warning' },
+  default: { msg: 'Data berhasil disimpan.', type: 'success' },
+  approve: { msg: 'Data berhasil disetujui.', type: 'success' },
+  send:    { msg: 'Data berhasil dikirim.', type: 'success' },
+  create:  { msg: 'Data berhasil dibuat.', type: 'success' },
+  activate:{ msg: 'Template berhasil diaktifkan.', type: 'success' },
+  generate:{ msg: 'Data berhasil digenerate.', type: 'success' },
+}
+
+function getToastConfig(text) {
+  const t = text.toLowerCase().trim()
+  if (/hapus|delete/.test(t))                          return TOAST_MESSAGES.delete
+  if (/tolak|reject|batalkan/.test(t))                 return TOAST_MESSAGES.reject
+  if (/setujui|approve|approved/.test(t))              return TOAST_MESSAGES.approve
+  if (/kirim|send/.test(t))                            return TOAST_MESSAGES.send
+  if (/buat|create|tambah/.test(t))                    return TOAST_MESSAGES.create
+  if (/aktifkan|activate|publish|terbitkan/.test(t))   return TOAST_MESSAGES.activate
+  if (/generate/.test(t))                              return TOAST_MESSAGES.generate
+  return TOAST_MESSAGES.default
+}
 
 export default function ProtectedLayout({ children }) {
   const { currentUser, realUser, logout, endProxy, _hydrated } = useAuthStore()
@@ -16,6 +53,34 @@ export default function ProtectedLayout({ children }) {
   const router = useRouter()
 
   const [loginAsOpen, setLoginAsOpen] = useState(false)
+  const { show: showToast } = useToastStore()
+
+  // ── Global action button interceptor ────────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      const btn = e.target.closest('button, [type="submit"], [role="button"]')
+      if (!btn) return
+
+      // Skip navigation, toggle, close, cancel, search buttons
+      const skipPatterns = /tutup|close|cancel|batal|back|kembali|✕|×|pin|unpin|logout|bahasa|id|en|🔔|search|cari|edit|copy|salin|duplikat|⧉|↑|↓/i
+      const raw = (btn.textContent || '').replace(/\s+/g, ' ').trim()
+      if (!raw || skipPatterns.test(raw)) return
+
+      // Check if text contains an action keyword
+      const lower = raw.toLowerCase()
+      const isAction = ACTION_KEYWORDS.some(kw => lower.includes(kw))
+      if (!isAction) return
+
+      // Small delay so the page's own handler fires first
+      setTimeout(() => {
+        const cfg = getToastConfig(raw)
+        showToast(cfg.msg, cfg.type)
+      }, 300)
+    }
+
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [showToast])
 
   const isProxy    = !!realUser
   const canProxy   = !isProxy && currentUser?.role === 'superadmin'
@@ -204,6 +269,9 @@ export default function ProtectedLayout({ children }) {
 
       {/* Login As Modal */}
       {loginAsOpen && <LoginAsModal onClose={() => setLoginAsOpen(false)} />}
+
+      {/* Global Toast */}
+      <Toast />
     </div>
   )
 }
