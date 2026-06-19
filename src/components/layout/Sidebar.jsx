@@ -350,11 +350,13 @@ export default function Sidebar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [openId])
 
+  const lmsGroups = canMgr ? LMS_GROUPS : LMS_GROUPS.filter(g => g.title !== 'Team Learning (MSS)')
+
   const sections = [
     { id: 'dashboard', icon: IcHome,   label: 'Dashboard',           href: '/dashboard', groups: null },
     { id: 'ess',       icon: IcPerson, label: 'Employee (ESS)',       href: null, groups: ESS_GROUPS },
     canMgr && { id: 'mss',     icon: IcTeam,   label: 'Manager (MSS)',      href: null, groups: MSS_GROUPS },
-    { id: 'lms',       icon: IcLMS,    label: 'Learning (LMS)',       href: null, groups: LMS_GROUPS },
+    { id: 'lms',       icon: IcLMS,    label: 'Learning (LMS)',       href: null, groups: lmsGroups },
     canHR  && { id: 'hr',      icon: IcHR,     label: 'HR Administration',  href: null, groups: HR_GROUPS },
     canSA  && { id: 'sysadmin',icon: IcSA,     label: 'System Admin',       href: null, groups: SA_GROUPS },
   ].filter(Boolean)
