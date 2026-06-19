@@ -169,15 +169,11 @@ const MSS_GROUPS = [
     { label: 'Onboarding Tracker',         href: '/mss/approve-onboarding', icon: ic('userCheck') },
   ]},
   { title: 'Personnel Action', icon: '🔄', items: [
-    { label: 'Overview',                href: '/mss/personnel-action',                         icon: ic('list') },
-    { label: 'Promote',                 href: '/mss/personnel-action/promote',                 icon: ic('trending') },
-    { label: 'Transfer',                href: '/mss/personnel-action/transfer',                icon: ic('shuffle') },
-    { label: 'Demote',                  href: '/mss/personnel-action/demote',                  icon: ic('activity') },
-    { label: 'Transfer Across Company', href: '/mss/personnel-action/transfer-across-company', icon: ic('plane') },
-    { label: 'Terminate',               href: '/mss/personnel-action/terminate',               icon: ic('zap') },
-    { label: 'Rehire',                  href: '/mss/personnel-action/rehire',                  icon: ic('repeat') },
-    { label: 'Change Employment Type',  href: '/mss/personnel-action/change-employment-type',  icon: ic('tag') },
-    { label: 'Extend Contract',         href: '/mss/personnel-action/extend-contract',         icon: ic('fileText') },
+    { label: 'Personnel Action', href: '/mss/personnel-action', icon: ic('list') },
+  ]},
+  { title: 'Evaluation', icon: '📋', items: [
+    { label: 'Form Evaluation',            href: '/mss/evaluation',          icon: ic('fileText') },
+    { label: 'Form Evaluation (Contract)', href: '/mss/evaluation-contract', icon: ic('edit') },
   ]},
 ]
 
@@ -246,15 +242,7 @@ const HR_GROUPS = [
     { label: 'Apply Leave (HR)', href: '/hr/apply-leave',    icon: ic('calendar') },
   ]},
   { title: 'Personnel Action', icon: '🔄', items: [
-    { label: 'Overview',                href: '/hr/employee/personnel-action',                         icon: ic('list') },
-    { label: 'Promote',                 href: '/hr/employee/personnel-action/promote',                 icon: ic('trending') },
-    { label: 'Transfer',                href: '/hr/employee/personnel-action/transfer',                icon: ic('shuffle') },
-    { label: 'Demote',                  href: '/hr/employee/personnel-action/demote',                  icon: ic('activity') },
-    { label: 'Transfer Across Company', href: '/hr/employee/personnel-action/transfer-across-company', icon: ic('plane') },
-    { label: 'Terminate',               href: '/hr/employee/personnel-action/terminate',               icon: ic('zap') },
-    { label: 'Rehire',                  href: '/hr/employee/personnel-action/rehire',                  icon: ic('repeat') },
-    { label: 'Change Employment Type',  href: '/hr/employee/personnel-action/change-employment-type',  icon: ic('tag') },
-    { label: 'Extend Contract',         href: '/hr/employee/personnel-action/extend-contract',         icon: ic('fileText') },
+    { label: 'Personnel Action', href: '/hr/employee/personnel-action', icon: ic('list') },
   ]},
   { title: 'Time & Labour', icon: '🕐', items: [
     { label: 'Shift Setting',       href: '/hr/time-labour/shift-setting',       icon: ic('settings') },
@@ -293,6 +281,7 @@ const HR_GROUPS = [
     { title: 'Assignment', items: [
       { label: 'Master Cohort',    href: '/hr/learning/cohort',           icon: ic('grid') },
       { label: 'Learners Tracker', href: '/hr/learning/learners-tracker', icon: ic('trending') },
+      { label: 'CPD',              href: '/hr/learning/cpd',              icon: ic('star') },
     ]},
     { title: 'Competency', items: [
       { label: 'Competency Matrix',     href: '/hr/learning/competency-matrix',    icon: ic('shield') },
@@ -311,8 +300,9 @@ const HR_GROUPS = [
 
 const SA_GROUPS = [
   { title: 'Settings', icon: '⚙️', items: [
-    { label: 'User Management', href: '/sysadmin/users',          icon: ic('users') },
-    { label: 'Leave Workflow',  href: '/sysadmin/leave-workflow', icon: ic('workflow') },
+    { label: 'User Management',   href: '/sysadmin/users',                     icon: ic('users') },
+    { label: 'Leave Workflow',    href: '/sysadmin/leave-workflow',             icon: ic('workflow') },
+    { label: 'Role & Permission', href: '/sysadmin/learning/role-permission',   icon: ic('shield') },
   ]},
   { title: 'Workflow', icon: '🔀', items: [
     { label: 'Workflow Settings',   href: '/sysadmin/workflow/settings',            icon: ic('settings') },
