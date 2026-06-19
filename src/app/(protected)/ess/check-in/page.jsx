@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useT } from '@/store/languageStore'
 import { useAuthStore } from '@/store/authStore'
+import { useEmployeeStore } from '@/store/employeeStore'
 import { useHayStore } from '@/store/hayStore'
 import { useVipStore } from '@/store/vipStore'
 import { usePipStore, PERNYATAAN } from '@/store/pipStore'
@@ -40,6 +41,7 @@ const vipStatusColor = (s) =>
 export default function EssCheckInPage() {
   const t = useT()
   const { currentUser } = useAuthStore()
+  const { employees } = useEmployeeStore()
   const hayStore = useHayStore()
   const vipStore = useVipStore()
 
@@ -70,6 +72,10 @@ export default function EssCheckInPage() {
   const flash = (text, type = 'success') => { setMsg({ text, type }); setTimeout(() => setMsg(null), 3500) }
 
   const uid = currentUser?.id || 1
+  const myEmp    = employees.find(e => e.id === uid)
+  const myMgr    = myEmp?.managerId ? employees.find(e => e.id === myEmp.managerId) : null
+  const managerId   = myMgr?.id   ?? 2
+  const managerName = myMgr?.name ?? 'Manager'
 
   /* merged history */
   const hayItems = hayStore.getByEmployee(uid).map(h => ({ ...h, _type: 'hay' }))
@@ -100,9 +106,9 @@ export default function EssCheckInPage() {
     if (missing) return flash(t('Semua field wajib diisi.', 'All fields are required.'), 'error')
     hayStore.submitHay({
       employeeId: uid,
-      employeeName: currentUser?.name || 'Budi Santoso',
-      managerId: currentUser?.managerId || 2,
-      managerName: currentUser?.managerName || 'Ahmad Fauzi',
+      employeeName: currentUser?.name || '',
+      managerId,
+      managerName,
       date: new Date().toISOString().slice(0, 10),
       ...hayForm,
     })
@@ -127,9 +133,9 @@ export default function EssCheckInPage() {
     if (vipTopics.some(tp => !tp.title.trim())) return flash(t('Judul setiap topik wajib diisi.', 'Each topic title is required.'), 'error')
     vipStore.submitVip({
       employeeId: uid,
-      employeeName: currentUser?.name || 'Budi Santoso',
-      managerId: currentUser?.managerId || 2,
-      managerName: currentUser?.managerName || 'Ahmad Fauzi',
+      employeeName: currentUser?.name || '',
+      managerId,
+      managerName,
       name: vipName,
       date: new Date().toISOString().slice(0, 10),
       topics: vipTopics.map((tp, i) => ({ ...tp, id: i + 1 })),
