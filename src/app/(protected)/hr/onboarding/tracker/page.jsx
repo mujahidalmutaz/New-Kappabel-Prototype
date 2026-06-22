@@ -36,10 +36,12 @@ const TYPE_LOV        = ['Manual Task','Video','Document (Attachment)','Report',
 const REVIEW_TYPE_LOV = ['Form Evaluation', 'Form Feedback']
 
 const STATUS_BADGE = {
-  Draft:    'bg-gray-100 text-gray-600',
-  Pending:  'bg-yellow-100 text-yellow-700',
-  Approved: 'bg-green-100 text-green-700',
-  Rejected: 'bg-red-100 text-red-700',
+  Draft:       'bg-gray-100 text-gray-600',
+  Preparation: 'bg-indigo-100 text-indigo-700',
+  Active:      'bg-blue-100 text-blue-700',
+  Pending:     'bg-yellow-100 text-yellow-700',
+  Approved:    'bg-green-100 text-green-700',
+  Rejected:    'bg-red-100 text-red-700',
 }
 
 function toDateInput(val) {
@@ -109,7 +111,8 @@ export default function OnboardingTrackerPage() {
   const { positions, departments, companies }        = useStructureStore()
   const { getLevelsForPage }                        = useWorkflowStore()
   const { onboardings, addOnboarding, updateOnboarding,
-          deleteOnboarding, submitOnboarding }       = useOnboardingStore()
+          deleteOnboarding, submitOnboarding,
+          activateOnboarding }                       = useOnboardingStore()
 
   const { templates }  = useMasterOnboardingStore()
   const { batches }    = useCourseBatchStore()
@@ -948,10 +951,26 @@ export default function OnboardingTrackerPage() {
             </div>
           ) : (
             <div className='px-6 pb-6'>
+              {savedStatus === 'Preparation' && (
+                <div className='mb-3 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-2.5 text-xs text-indigo-700 flex items-center justify-between gap-3'>
+                  <span>🔧 {t('Fase Persiapan — karyawan belum bisa melihat task. Aktifkan saat join date tiba atau klik tombol di bawah.',
+                    'Preparation phase — employee cannot see tasks yet. Activate on join date or click below.')}</span>
+                  <button onClick={() => { activateOnboarding(editId, currentUser?.id, currentUser?.name); flash(t('Onboarding diaktifkan.','Onboarding activated.')) }}
+                    className='flex-shrink-0 px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition'>
+                    🚀 {t('Aktifkan Sekarang','Activate Now')}
+                  </button>
+                </div>
+              )}
               {savedStatus === 'Pending' && (
                 <div className='mb-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 text-xs text-amber-700'>
                   {t('Form ini sedang dalam proses approval. Perubahan yang Anda simpan akan ikut terlihat oleh approver.',
                      'This form is pending approval. Any changes you save will be visible to the approver.')}
+                </div>
+              )}
+              {savedStatus === 'Active' && (
+                <div className='mb-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 text-xs text-blue-700'>
+                  🚀 {t('Onboarding sedang berjalan. Karyawan sudah dapat melihat dan mengerjakan task.',
+                    'Onboarding is active. Employee can now see and complete their tasks.')}
                 </div>
               )}
               <div className='flex gap-3'>
@@ -976,11 +995,22 @@ export default function OnboardingTrackerPage() {
   }
 
   // ── LIST VIEW ──────────────────────────────────────────────────────────────
+
+  // Auto-activate: if joinDate <= today and status is Preparation, activate automatically
+  const today = new Date().toISOString().slice(0, 10)
+  onboardings.forEach(ob => {
+    if (ob.workflowStatus !== 'Preparation') return
+    const emp = employees.find(e => e.id === Number(ob.employeeId))
+    if (emp?.joinDate && String(emp.joinDate).slice(0, 10) <= today) {
+      activateOnboarding(ob.id, null, 'System (Auto)')
+    }
+  })
+
   const kpis = {
-    total:    onboardings.length,
-    draft:    onboardings.filter(o => o.workflowStatus === 'Draft').length,
-    pending:  onboardings.filter(o => o.workflowStatus === 'Pending').length,
-    approved: onboardings.filter(o => o.workflowStatus === 'Approved').length,
+    total:       onboardings.length,
+    preparation: onboardings.filter(o => o.workflowStatus === 'Preparation').length,
+    active:      onboardings.filter(o => o.workflowStatus === 'Active').length,
+    draft:       onboardings.filter(o => o.workflowStatus === 'Draft').length,
   }
 
   return (
@@ -998,9 +1028,9 @@ export default function OnboardingTrackerPage() {
 
       <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
         <StatCard label={t('Total', 'Total')} value={kpis.total} icon='📋' tone='brand' />
+        <StatCard label={t('Persiapan', 'Preparation')} value={kpis.preparation} icon='🔧' tone='gray' />
+        <StatCard label={t('Aktif', 'Active')} value={kpis.active} icon='🚀' tone='orange' />
         <StatCard label={t('Draft', 'Draft')} value={kpis.draft} icon='📝' tone='gray' />
-        <StatCard label={t('Pending', 'Pending')} value={kpis.pending} icon='⏳' tone='orange' />
-        <StatCard label={t('Approved', 'Approved')} value={kpis.approved} icon='✅' tone='green' />
       </div>
 
       {msg && (
@@ -1047,24 +1077,29 @@ export default function OnboardingTrackerPage() {
                 {ob.createdAt ? new Date(ob.createdAt).toLocaleDateString('id-ID') : '—'}
               </Td>
               <Td align='right'>
-                <div className='flex gap-2 justify-end'>
-                  <button onClick={() => ob.workflowStatus === 'Approved' ? openView(ob) : openEdit(ob)}
+                <div className='flex gap-2 justify-end flex-wrap'>
+                  <button onClick={() => openEdit(ob)}
                     className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
-                    {ob.workflowStatus === 'Approved' ? t('👁 Lihat','👁 View') : t('✏️ Edit','✏️ Edit')}
+                    ✏️ {t('Edit','Edit')}
                   </button>
-                  {ob.workflowStatus === 'Approved' && (
-                    <button onClick={() => openEdit(ob)}
-                      className='px-3 py-1.5 text-xs font-semibold bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition'>
-                      ✏️ {t('Edit','Edit')}
-                    </button>
-                  )}
+                  {ob.workflowStatus === 'Preparation' && (() => {
+                    const emp = employees.find(e => e.id === Number(ob.employeeId))
+                    const joinDate = emp?.joinDate ? String(emp.joinDate).slice(0, 10) : null
+                    return (
+                      <button onClick={() => activateOnboarding(ob.id, currentUser?.id, currentUser?.name)}
+                        className='px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition'>
+                        🚀 {t('Aktifkan','Activate')}
+                        {joinDate && <span className='ml-1 text-indigo-400'>({joinDate})</span>}
+                      </button>
+                    )
+                  })()}
                   {ob.workflowStatus === 'Draft' && (
                     <button onClick={() => handleSubmitExisting(ob)}
                       className='px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition'>
                       📤 {t('Submit','Submit')}
                     </button>
                   )}
-                  {ob.workflowStatus === 'Draft' && (
+                  {(ob.workflowStatus === 'Draft' || ob.workflowStatus === 'Preparation') && (
                     <button onClick={() => setDelId(ob.id)}
                       className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition'>
                       🗑

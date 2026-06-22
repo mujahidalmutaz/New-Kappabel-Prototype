@@ -198,6 +198,20 @@ export const useOnboardingStore = create(
       deleteOnboarding: (id) =>
         set(s => ({ onboardings: s.onboardings.filter(o => o.id !== id) })),
 
+      // ── Activate: move from Preparation → Active (tasks visible to employee) ──
+      activateOnboarding: (id, activatedById, activatedByName) =>
+        set(s => ({
+          onboardings: s.onboardings.map(o =>
+            o.id !== id ? o : {
+              ...o,
+              workflowStatus: 'Active',
+              activatedAt: new Date().toISOString(),
+              activatedById,
+              activatedByName,
+            }
+          ),
+        })),
+
       submitOnboarding: (id, submitter, pageLevels) =>
         set(s => ({
           onboardings: s.onboardings.map(o => {

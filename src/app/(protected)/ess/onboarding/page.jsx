@@ -115,10 +115,12 @@ export default function EssOnboardingPage() {
   const { currentUser } = useAuthStore()
   const { onboardings, updateOnboarding } = useOnboardingStore()
 
-  const raw          = onboardings.find(o => o.employeeId === currentUser?.id) ?? null
-  const myOnboarding = migrateOnboarding(raw)
-  const isRejected   = myOnboarding?.workflowStatus === 'Rejected'
-  const isActive     = myOnboarding && !isRejected
+  const raw             = onboardings.find(o => o.employeeId === currentUser?.id) ?? null
+  const myOnboarding    = migrateOnboarding(raw)
+  const status          = myOnboarding?.workflowStatus
+  const isPreparation   = status === 'Preparation'
+  const isRejected      = status === 'Rejected'
+  const isActive        = myOnboarding && !isRejected && !isPreparation
 
   const [form,  setForm ] = useState(null)
   const [saved, setSaved] = useState(false)
@@ -161,6 +163,41 @@ export default function EssOnboardingPage() {
 
   if (!form) return null
 
+  // ── Preparation: employee sees a "coming soon" screen ───────────────────────
+  if (isPreparation) {
+    const emp = { joinDate: myOnboarding.buddyAssignment?.programStartDate || null }
+    return (
+      <div>
+        <div className='flex items-center justify-between mb-1'>
+          <h1 className='text-2xl font-bold text-gray-800'>{t('Onboarding Saya','My Onboarding')}</h1>
+          <span className='text-xs font-bold px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700'>
+            {t('Persiapan','Preparation')}
+          </span>
+        </div>
+        <p className='text-gray-500 text-sm mb-5'>
+          {t('Formulir induksi / onboarding karyawan.','Employee induction / onboarding form.')}
+        </p>
+        <div className='bg-white rounded-xl shadow-sm px-8 py-16 text-center'>
+          <div className='text-5xl mb-4'>🗓️</div>
+          <h2 className='text-lg font-bold text-gray-800 mb-2'>
+            {t('Onboarding Anda sedang disiapkan','Your onboarding is being prepared')}
+          </h2>
+          <p className='text-gray-500 text-sm max-w-md mx-auto'>
+            {t(
+              'HR dan atasan Anda sedang menyiapkan task onboarding. Semua task akan siap pada hari pertama kerja Anda.',
+              'HR and your manager are preparing your onboarding tasks. Everything will be ready on your first day.'
+            )}
+          </p>
+          {myOnboarding.buddyAssignment?.programStartDate && (
+            <div className='mt-4 inline-block px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-semibold'>
+              📅 {t('Mulai','Starts')}: {new Date(myOnboarding.buddyAssignment.programStartDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   const mainSections = form.mainSections ?? []
 
   return (
@@ -176,7 +213,7 @@ export default function EssOnboardingPage() {
       </p>
 
       {/* Status banner */}
-      {myOnboarding.workflowStatus === 'Approved' ? (
+      {status === 'Approved' ? (
         <div className='mb-5 rounded-xl px-5 py-3.5 text-sm font-medium border bg-green-50 border-green-200 text-green-700'>
           ✅ {t('Onboarding telah selesai diverifikasi. Teruskan progress Anda di bawah.','Onboarding fully verified. Keep updating your progress below.')}
         </div>
