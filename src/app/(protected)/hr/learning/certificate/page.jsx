@@ -629,6 +629,16 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
     setSelectedId(el.id); setPanelTab('properti')
   }
 
+  const addCertNumber = () => {
+    const el = { id: Date.now(), type: 'text', content: 'No: [[certificate_number]]', x: 5, y: 5, fontSize: 11, color: '#374151', bold: false, italic: false, align: 'left', fontFamily: FONTS[0], wrap: false }
+    setForm(p => {
+      const nf = { ...p, elements: [...p.elements, el] }
+      pushHistory(nf)
+      return nf
+    })
+    setSelectedId(el.id); setPanelTab('properti')
+  }
+
   const addImageElement = (file) => {
     if (!file) return
     const reader = new FileReader()
@@ -1012,11 +1022,16 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
                   {/* Add element buttons */}
                   <div>
                     <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2'>Tambah Elemen</p>
-                    <div className='grid grid-cols-3 gap-2'>
+                    <div className='grid grid-cols-2 gap-2'>
                       <button onClick={addText} title='Tambah teks'
                         className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-red-300 hover:bg-red-50 transition text-gray-500 hover:text-red-600'>
                         <span className='text-xl font-bold'>T</span>
                         <span className='text-[10px] font-semibold'>Teks</span>
+                      </button>
+                      <button onClick={addCertNumber} title='Tambah nomor sertifikat'
+                        className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-green-300 hover:bg-green-50 transition text-gray-500 hover:text-green-700'>
+                        <span className='text-base font-bold'>#</span>
+                        <span className='text-[10px] font-semibold text-center leading-tight'>No. Surat</span>
                       </button>
                       <button onClick={() => imgUploadRef.current?.click()} title='Tambah gambar'
                         className='flex flex-col items-center justify-center gap-1.5 py-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition text-gray-500 hover:text-blue-600'>
