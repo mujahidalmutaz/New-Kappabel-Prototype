@@ -841,6 +841,13 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
             →
           </button>
 
+          {!previewMode && selectedId && (
+            <button onClick={() => deleteEl(selectedId)} title='Hapus elemen terpilih'
+              className='w-8 h-8 flex items-center justify-center rounded-lg text-sm bg-red-50 text-red-600 hover:bg-red-100 transition'>
+              ✕
+            </button>
+          )}
+
           <button onClick={() => setPreviewMode(p => !p)}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${previewMode ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
             {previewMode ? '✕ Tutup Preview' : '👁 Preview'}
@@ -1189,20 +1196,6 @@ function CanvasEditor({ tpl, onSave, onCancel }) {
             </div>
           )}
         </div>
-
-        {/* ── Right mini toolbar — hidden in preview mode ─────────────────────── */}
-        {!previewMode && (
-          <div className='w-14 bg-gray-900 flex flex-col items-center py-4 gap-3 shrink-0'>
-            <button onClick={undo} disabled={!canUndo} title='Batalkan (Ctrl+Z)'
-              className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition ${canUndo?'bg-gray-700 hover:bg-gray-600 text-white':'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>←</button>
-            <button onClick={redo} disabled={!canRedo} title='Ulangi (Ctrl+Y)'
-              className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition ${canRedo?'bg-gray-700 hover:bg-gray-600 text-white':'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>→</button>
-            {selectedId && (
-              <button onClick={() => deleteEl(selectedId)} title='Hapus elemen terpilih'
-                className='w-10 h-10 rounded-xl bg-red-900 hover:bg-red-700 flex items-center justify-center text-white text-xs transition'>✕</button>
-            )}
-          </div>
-        )}
 
       </div>
 
