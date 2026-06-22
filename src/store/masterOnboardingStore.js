@@ -2,11 +2,11 @@ import { create }  from 'zustand'
 import { persist } from 'zustand/middleware'
 
 // ── Row factories (no date/completed — those are runtime fields) ──────────────
-const mkG = (no, module, tujuan, mentorName = '', mentorPosition = '') => ({
-  id: Math.random(), no, module, tujuan, mentorName, mentorPosition,
+const mkG = (no, module, tujuan, mentorName = '', mentorPosition = '', assignedTo = 'hr') => ({
+  id: Math.random(), no, module, tujuan, mentorName, mentorPosition, assignedTo,
 })
-const mkT = (no, module, tujuan, category = 'all_level', mentorName = '', mentorPosition = '') => ({
-  id: Math.random(), no, module, tujuan, category, mentorName, mentorPosition,
+const mkT = (no, module, tujuan, category = 'all_level', mentorName = '', mentorPosition = '', assignedTo = 'hr') => ({
+  id: Math.random(), no, module, tujuan, category, mentorName, mentorPosition, assignedTo,
 })
 
 // ── Seed templates ────────────────────────────────────────────────────────────

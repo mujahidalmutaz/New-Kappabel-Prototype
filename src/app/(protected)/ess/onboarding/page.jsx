@@ -118,6 +118,8 @@ export default function EssOnboardingPage() {
   const raw          = onboardings.find(o => o.employeeId === currentUser?.id) ?? null
   const myOnboarding = migrateOnboarding(raw)
   const isApproved   = myOnboarding?.workflowStatus === 'Approved'
+  const hasEmployeeTasks = (myOnboarding?.mainSections ?? []).some(ms => (ms.items ?? []).some(i => i.assignedTo === 'employee'))
+  const canEdit      = isApproved || hasEmployeeTasks
 
   const [form,  setForm ] = useState(null)
   const [saved, setSaved] = useState(false)
@@ -175,7 +177,15 @@ export default function EssOnboardingPage() {
       </p>
 
       {/* Status banner */}
-      {!isApproved && (
+      {isApproved ? (
+        <div className='mb-5 rounded-xl px-5 py-3.5 text-sm font-medium border bg-green-50 border-green-200 text-green-700'>
+          ✅ {t('Onboarding telah disetujui. Anda dapat memperbarui progress di bawah ini.','Onboarding approved. Update your progress below.')}
+        </div>
+      ) : hasEmployeeTasks ? (
+        <div className='mb-5 rounded-xl px-5 py-3.5 text-sm font-medium border bg-blue-50 border-blue-200 text-blue-700'>
+          📝 {t('Beberapa tugas ditugaskan kepada Anda. Selesaikan tugas Anda di bawah ini.','Some tasks are assigned to you. Complete your tasks below.')}
+        </div>
+      ) : (
         <div className={`mb-5 rounded-xl px-5 py-3.5 text-sm font-medium border
           ${myOnboarding.workflowStatus === 'Pending'
             ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
@@ -183,15 +193,10 @@ export default function EssOnboardingPage() {
               ? 'bg-red-50 border-red-200 text-red-700'
               : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
           {myOnboarding.workflowStatus === 'Pending'
-            ? t('⏳ Form sedang dalam proses approval.','⏳ Form is pending approval. You can view but not edit.')
+            ? t('⏳ Form sedang dalam proses approval.','⏳ Form is pending approval.')
             : myOnboarding.workflowStatus === 'Rejected'
               ? t('❌ Pengajuan onboarding ditolak. Hubungi HR.','❌ Onboarding was rejected. Contact HR.')
               : t('📋 Form masih dalam status Draft.','📋 Form is still in Draft status.')}
-        </div>
-      )}
-      {isApproved && (
-        <div className='mb-5 rounded-xl px-5 py-3.5 text-sm font-medium border bg-green-50 border-green-200 text-green-700'>
-          ✅ {t('Onboarding telah disetujui. Anda dapat memperbarui progress di bawah ini.','Onboarding approved. Update your progress below.')}
         </div>
       )}
       {saved && (
@@ -249,7 +254,7 @@ export default function EssOnboardingPage() {
                         <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
                           <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
                           <td className='px-2 py-1.5 w-28'>
-                            {isApproved
+                            {(isApproved || item.assignedTo === 'employee')
                               ? <input type='date' value={toDateInput(item.date || '')}
                                   onChange={e => updItem(ms.id, item.id, 'date', e.target.value)}
                                   className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
@@ -263,7 +268,7 @@ export default function EssOnboardingPage() {
                           <td className='px-3 py-1.5 text-center w-16'>
                             <input type='checkbox' checked={!!item.completed}
                               onChange={e => updItem(ms.id, item.id, 'completed', e.target.checked)}
-                              disabled={!isApproved}
+                              disabled={!(isApproved || item.assignedTo === 'employee')}
                               className='w-4 h-4 accent-red-600 disabled:cursor-not-allowed disabled:opacity-40' />
                           </td>
                         </tr>
@@ -281,7 +286,7 @@ export default function EssOnboardingPage() {
                         <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                           <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8 text-xs'>{idx + 1}</td>
                           <td className='px-2 py-1.5 w-28'>
-                            {isApproved
+                            {(isApproved || item.assignedTo === 'employee')
                               ? <input type='date' value={toDateInput(item.date || '')}
                                   onChange={e => updItem(ms.id, item.id, 'date', e.target.value)}
                                   className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
@@ -300,7 +305,7 @@ export default function EssOnboardingPage() {
                           <td className='px-3 py-1.5 text-center w-16'>
                             <input type='checkbox' checked={!!item.completed}
                               onChange={e => updItem(ms.id, item.id, 'completed', e.target.checked)}
-                              disabled={!isApproved}
+                              disabled={!(isApproved || item.assignedTo === 'employee')}
                               className='w-4 h-4 accent-red-600 disabled:cursor-not-allowed disabled:opacity-40' />
                           </td>
                         </tr>
@@ -363,7 +368,7 @@ export default function EssOnboardingPage() {
         })}
 
         {/* ── Save button ── */}
-        {isApproved && (
+        {canEdit && (
           <div className='px-6 py-5 flex gap-3'>
             <button onClick={handleSave}
               className='px-6 py-2.5 text-sm font-bold text-white rounded-xl transition'
