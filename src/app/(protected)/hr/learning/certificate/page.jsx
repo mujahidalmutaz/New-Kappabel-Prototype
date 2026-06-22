@@ -62,14 +62,66 @@ const EMPTY_TPL = {
   validityMonths: 0, notes: '', status: 'Draft',
 }
 
+// ─── Password Gate Modal ──────────────────────────────────────────────────────
+function PasswordGateModal({ signatoryName, expectedPassword, onConfirm, onCancel }) {
+  const [pw,  setPw ] = useState('')
+  const [err, setErr] = useState(false)
+  const inputRef = useRef()
+  useEffect(() => { inputRef.current?.focus() }, [])
+  const submit = () => {
+    if (pw === expectedPassword) { onConfirm() }
+    else { setErr(true); setPw('') }
+  }
+  return (
+    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4' onClick={onCancel}>
+      <div className='bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden' onClick={e => e.stopPropagation()}>
+        <div className='px-6 py-4 flex items-center justify-between' style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+          <div>
+            <h2 className='text-white font-bold text-sm'>🔒 Verifikasi Password</h2>
+            <p className='text-red-200 text-xs mt-0.5'>{signatoryName}</p>
+          </div>
+          <button onClick={onCancel} className='w-7 h-7 flex items-center justify-center rounded-full bg-white/20 text-white text-xs hover:bg-white/30'>✕</button>
+        </div>
+        <div className='p-6 space-y-4'>
+          <p className='text-sm text-gray-600'>Masukkan password tanda tangan untuk melanjutkan.</p>
+          <div>
+            <input ref={inputRef} type='password' value={pw} onChange={e => { setPw(e.target.value); setErr(false) }}
+              onKeyDown={e => e.key === 'Enter' && submit()}
+              placeholder='Password…'
+              className={`w-full px-3 py-2.5 border rounded-lg text-sm outline-none transition ${err ? 'border-red-400 bg-red-50' : 'border-gray-200 focus:border-red-400'}`} />
+            {err && <p className='text-xs text-red-500 mt-1'>Password salah. Coba lagi.</p>}
+          </div>
+          <div className='flex gap-2'>
+            <button onClick={submit}
+              className='flex-1 py-2.5 text-sm font-bold text-white rounded-xl hover:opacity-90 transition'
+              style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+              Konfirmasi
+            </button>
+            <button onClick={onCancel} className='px-5 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition'>
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Signatory Manager ────────────────────────────────────────────────────────
 function SignatoryManager() {
   const { signatories, addSignatory, updateSignatory, deleteSignatory } = useCertificateStore()
-  const [form,     setForm    ] = useState(null)
-  const [msg,      setMsg     ] = useState(null)
-  const [preview,  setPreview ] = useState(null)
+  const [form,         setForm        ] = useState(null)
+  const [msg,          setMsg         ] = useState(null)
+  const [preview,      setPreview     ] = useState(null)
+  const [passwordGate, setPasswordGate] = useState(null) // { sg, pending }
   const sigRef = useRef()
   const flash = (t, type='success') => { setMsg({t,type}); setTimeout(()=>setMsg(null),3000) }
+
+  // Open action only if password passes (or no password set)
+  const withPassword = (sg, fn) => {
+    if (sg.password) { setPasswordGate({ sg, pending: fn }) }
+    else fn()
+  }
 
   const handleUpload = (file) => {
     if (!file) return
@@ -81,12 +133,17 @@ function SignatoryManager() {
   const handleSave = () => {
     if (!form.name?.trim())  { flash('Nama penandatangan wajib diisi.','error'); return }
     if (!form.title?.trim()) { flash('Jabatan wajib diisi.','error'); return }
-    if (form.id) {
-      updateSignatory(form.id, form)
-      flash(`"${form.name}" diperbarui.`)
+    if (form._newPw && form._newPw !== form._confirmPw) { flash('Konfirmasi password tidak cocok.','error'); return }
+    const payload = { ...form }
+    if (form._newPw) payload.password = form._newPw
+    delete payload._newPw
+    delete payload._confirmPw
+    if (payload.id) {
+      updateSignatory(payload.id, payload)
+      flash(`"${payload.name}" diperbarui.`)
     } else {
-      addSignatory({ ...form, status: 'Active' })
-      flash(`"${form.name}" ditambahkan.`)
+      addSignatory({ ...payload, status: 'Active' })
+      flash(`"${payload.name}" ditambahkan.`)
     }
     setForm(null)
   }
@@ -124,9 +181,12 @@ function SignatoryManager() {
                     <p className='text-xs text-gray-500'>{sg.department}</p>
                   </div>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${sg.status==='Active'?'bg-green-50 text-green-700':'bg-gray-100 text-gray-500'}`}>
-                  {sg.status}
-                </span>
+                <div className='flex items-center gap-1.5'>
+                  {sg.password && <span className='text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full font-semibold'>🔒</span>}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${sg.status==='Active'?'bg-green-50 text-green-700':'bg-gray-100 text-gray-500'}`}>
+                    {sg.status}
+                  </span>
+                </div>
               </div>
 
               <p className='text-xs text-gray-500 mb-3'>{sg.title}</p>
@@ -142,16 +202,16 @@ function SignatoryManager() {
               </div>
 
               <div className='flex gap-1.5'>
-                <button onClick={() => setForm({ ...sg })}
+                <button onClick={() => withPassword(sg, () => setForm({ ...sg }))}
                   className='flex-1 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition'
                   style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                  ✏️ Edit
+                  {sg.password ? '🔒 Edit' : '✏️ Edit'}
                 </button>
-                <button onClick={() => setPreview(sg)} title='Pratinjau tanda tangan'
+                <button onClick={() => withPassword(sg, () => setPreview(sg))} title='Pratinjau tanda tangan'
                   className='px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition'>
                   🔍
                 </button>
-                <button onClick={() => { if (confirm(`Hapus "${sg.name}"?`)) deleteSignatory(sg.id) }} title='Hapus penandatangan'
+                <button onClick={() => withPassword(sg, () => { if (confirm(`Hapus "${sg.name}"?`)) deleteSignatory(sg.id) })} title='Hapus penandatangan'
                   className='px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition'>
                   🗑
                 </button>
@@ -233,6 +293,27 @@ function SignatoryManager() {
                 </select>
               </div>
 
+              <div className='border-t border-gray-100 pt-4 space-y-3'>
+                <p className='text-xs font-bold text-gray-500 flex items-center gap-1.5'>🔒 Password Tanda Tangan
+                  {form.id && form.password && <span className='text-[10px] font-normal text-green-600 bg-green-50 px-2 py-0.5 rounded-full'>Sudah diatur</span>}
+                </p>
+                <p className='text-[11px] text-gray-400 -mt-1'>Password diperlukan setiap kali tanda tangan ini dibuka atau digunakan di template.</p>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-500 mb-1'>{form.id && form.password ? 'Ganti Password' : 'Password Baru'}</label>
+                  <input type='password' value={form._newPw || ''} onChange={e=>setForm(p=>({...p,_newPw:e.target.value}))}
+                    placeholder={form.id && form.password ? 'Kosongkan jika tidak ingin mengubah' : 'Buat password…'}
+                    className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
+                </div>
+                {form._newPw && (
+                  <div>
+                    <label className='block text-xs font-semibold text-gray-500 mb-1'>Konfirmasi Password</label>
+                    <input type='password' value={form._confirmPw || ''} onChange={e=>setForm(p=>({...p,_confirmPw:e.target.value}))}
+                      placeholder='Ulangi password…'
+                      className='w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
+                  </div>
+                )}
+              </div>
+
               <div className='flex gap-2 pt-2'>
                 <button onClick={handleSave}
                   className='flex-1 py-2.5 text-sm font-bold text-white rounded-xl hover:opacity-90 transition'
@@ -273,19 +354,38 @@ function SignatoryManager() {
           </div>
         </div>
       )}
+
+      {/* Password gate modal */}
+      {passwordGate && (
+        <PasswordGateModal
+          signatoryName={passwordGate.sg.name}
+          expectedPassword={passwordGate.sg.password}
+          onConfirm={() => { passwordGate.pending(); setPasswordGate(null) }}
+          onCancel={() => setPasswordGate(null)}
+        />
+      )}
     </div>
   )
 }
 
 // ─── Signatory Picker (used inside CanvasEditor) ──────────────────────────────
 function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories }) {
-  const [open, setOpen] = useState(false)
+  const [open,         setOpen        ] = useState(false)
+  const [passwordGate, setPasswordGate] = useState(null) // { sg, pending }
   const selected = signatories.filter(s => (signatoryIds||[]).includes(s.id))
 
-  const toggle = (id) => {
+  const withPassword = (sg, fn) => {
+    if (sg.password) setPasswordGate({ sg, pending: fn })
+    else fn()
+  }
+
+  const toggle = (sg) => {
     const cur = signatoryIds || []
-    if (cur.includes(id)) onChange(cur.filter(x=>x!==id))
-    else                  onChange([...cur, id])
+    if (cur.includes(sg.id)) {
+      onChange(cur.filter(x => x !== sg.id))
+    } else {
+      withPassword(sg, () => onChange([...cur, sg.id]))
+    }
   }
 
   return (
@@ -315,12 +415,12 @@ function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories
                 <p className='text-[10px] text-gray-400 truncate'>{sg.title}</p>
               </div>
               <div className='flex flex-col gap-1'>
-                <button onClick={() => onInsertToCanvas(sg)}
+                <button onClick={() => withPassword(sg, () => onInsertToCanvas(sg))}
                   title='Masukkan ke canvas'
                   className='text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded font-semibold hover:bg-red-100 transition'>
-                  + Canvas
+                  {sg.password ? '🔒 Canvas' : '+ Canvas'}
                 </button>
-                <button onClick={() => toggle(sg.id)}
+                <button onClick={() => toggle(sg)}
                   className='text-[10px] text-gray-300 hover:text-red-400 transition text-right'>hapus</button>
               </div>
             </div>
@@ -346,7 +446,7 @@ function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories
               {signatories.filter(s=>s.status==='Active').map(sg => {
                 const checked = (signatoryIds||[]).includes(sg.id)
                 return (
-                  <button key={sg.id} onClick={() => toggle(sg.id)}
+                  <button key={sg.id} onClick={() => toggle(sg)}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition text-left ${checked?'border-red-400 bg-red-50':'border-gray-100 hover:border-gray-200'}`}>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${checked?'border-red-500 bg-red-500':'border-gray-300'}`}>
                       {checked && <span className='text-white text-[10px] font-bold'>✓</span>}
@@ -361,6 +461,7 @@ function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories
                       <p className='text-xs text-gray-500 truncate'>{sg.title}</p>
                       {sg.department && <p className='text-[10px] text-gray-400 truncate'>{sg.department}</p>}
                     </div>
+                    {sg.password && <span className='text-[10px] text-gray-400 flex-shrink-0'>🔒</span>}
                   </button>
                 )
               })}
@@ -374,6 +475,15 @@ function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories
             </div>
           </div>
         </div>
+      )}
+
+      {passwordGate && (
+        <PasswordGateModal
+          signatoryName={passwordGate.sg.name}
+          expectedPassword={passwordGate.sg.password}
+          onConfirm={() => { passwordGate.pending(); setPasswordGate(null) }}
+          onCancel={() => setPasswordGate(null)}
+        />
       )}
     </div>
   )

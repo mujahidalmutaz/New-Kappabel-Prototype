@@ -23,6 +23,7 @@ const INIT_SIGNATORIES = [
     title: 'Human Resources Manager',
     department: 'Human Resources',
     status: 'Active',
+    password: '',
     signatureImage: sig(`
       <path d="M12,55 C14,30 14,18 20,15 C28,11 33,19 30,32 C28,42 20,44 20,44 C31,42 38,47 37,57 C36,66 24,67 16,65" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M52,15 L51,62 M51,38 L76,38 M76,15 L75,62" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
@@ -35,6 +36,7 @@ const INIT_SIGNATORIES = [
     title: 'Head of Learning & Development',
     department: 'Learning & Development',
     status: 'Active',
+    password: '',
     signatureImage: sig(`
       <path d="M12,38 C20,10 40,8 44,22 C48,36 32,50 22,52 C12,54 8,46 14,40 C20,30 36,28 46,33 C52,36 52,42 48,50" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
       <path d="M68,18 C64,38 66,58 72,62 C78,66 88,60 90,48 C92,34 84,18 76,17 C68,15 63,28 66,42" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
@@ -47,6 +49,7 @@ const INIT_SIGNATORIES = [
     title: 'Director of Human Capital',
     department: 'Human Capital',
     status: 'Active',
+    password: '',
     signatureImage: sig(`
       <path d="M22,58 L42,10 L62,58 M30,36 L54,36" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M78,15 C75,35 76,56 81,60 M81,15 C94,14 100,20 98,32 C96,43 81,43 81,43 L99,60" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
@@ -59,6 +62,7 @@ const INIT_SIGNATORIES = [
     title: 'GCG & Compliance Manager',
     department: 'Compliance',
     status: 'Active',
+    password: '',
     signatureImage: sig(`
       <path d="M14,38 C16,16 26,10 34,14 C42,18 44,30 40,42 C36,54 24,60 16,56 C8,52 10,40 18,36 C28,30 42,34 46,46" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
       <path d="M62,15 L60,60 M60,37 L82,37 M88,15 C84,35 85,55 90,60" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
@@ -71,6 +75,7 @@ const INIT_SIGNATORIES = [
     title: 'HR Learning Administrator',
     department: 'Learning & Development',
     status: 'Active',
+    password: '',
     signatureImage: sig(`
       <path d="M14,18 L14,58 M14,18 C28,16 36,20 34,30 C32,40 14,40 14,40" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M14,40 C28,38 36,44 34,56" stroke="#1a1a3e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
