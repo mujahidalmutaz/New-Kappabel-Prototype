@@ -18,7 +18,7 @@ export default function LoginAsModal({ onClose }) {
   const q = query.trim().toLowerCase()
 
   // Exclude currently active user
-  const filtered = userList
+  const matched = userList
     .filter(u => u.id !== currentUser?.id)
     .filter(u =>
       !q ||
@@ -28,6 +28,11 @@ export default function LoginAsModal({ onClose }) {
       (u.position || '').toLowerCase().includes(q) ||
       (u.dept || '').toLowerCase().includes(q)
     )
+  // Cap rendered rows so a large userList (thousands) stays responsive;
+  // type to search to narrow down beyond the cap.
+  const CAP = 50
+  const filtered = matched.slice(0, CAP)
+  const moreCount = matched.length - filtered.length
 
   const handleSelect = (user) => {
     startProxy(user)
@@ -101,6 +106,11 @@ export default function LoginAsModal({ onClose }) {
                 </button>
               )
             })
+          )}
+          {moreCount > 0 && (
+            <div className='py-3 text-center text-xs text-gray-400'>
+              +{moreCount} pengguna lagi — ketik untuk mencari
+            </div>
           )}
         </div>
 

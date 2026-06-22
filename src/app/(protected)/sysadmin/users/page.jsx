@@ -120,6 +120,20 @@ export default function UserManagementPage() {
   const [editing, setEditing] = useState(null)
   const [msg,     setMsg    ] = useState(null)
   const [lovOpen, setLovOpen] = useState(false)
+  const [userQ,   setUserQ  ] = useState('')
+
+  const USER_CAP = 100
+  const visibleUsers = useMemo(() => {
+    const q = userQ.trim().toLowerCase()
+    const base = q
+      ? userList.filter(u =>
+          (u.username || '').toLowerCase().includes(q) ||
+          (u.name     || '').toLowerCase().includes(q) ||
+          (u.dept     || '').toLowerCase().includes(q) ||
+          (u.role     || '').toLowerCase().includes(q))
+      : userList
+    return base.slice(0, USER_CAP)
+  }, [userList, userQ])
 
   const flash = (text, type = 'success') => { setMsg({ text, type }); setTimeout(() => setMsg(null), 3000) }
 
@@ -276,6 +290,14 @@ export default function UserManagementPage() {
 
         {/* ── Table ── */}
         <div className='lg:col-span-2'>
+          <div className='mb-3 flex items-center gap-3'>
+            <input value={userQ} onChange={e => setUserQ(e.target.value)}
+              placeholder={t('Cari username / nama / dept / role…', 'Search username / name / dept / role…')}
+              className='flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-400' />
+            <span className='text-xs text-gray-400 whitespace-nowrap'>
+              {t('Menampilkan', 'Showing')} {visibleUsers.length} / {userList.length}
+            </span>
+          </div>
           {userList.length === 0 ? (
             <EmptyState title='Belum ada user' description='Tambahkan user baru melalui form di sebelah kiri.' />
           ) : (
@@ -287,7 +309,7 @@ export default function UserManagementPage() {
               { label: 'Departemen' },
               { label: 'Aksi', align: 'right' },
             ]}>
-              {userList.map(u => {
+              {visibleUsers.map(u => {
                 const emp = u.employeeId ? employees.find(e => e.id === Number(u.employeeId)) : null
                 return (
                   <Tr key={u.id}>
