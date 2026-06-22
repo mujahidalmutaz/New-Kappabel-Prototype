@@ -173,7 +173,8 @@ export const useOnboardingStore = create(
     (set) => ({
       onboardings: SEED,
 
-      addOnboarding: (data) =>
+      addOnboarding: (data) => {
+        const id = _nextId++
         set(s => ({
           onboardings: [...s.onboardings, {
             generalItems: DEFAULT_GENERAL_ITEMS(),
@@ -186,9 +187,11 @@ export const useOnboardingStore = create(
             submittedByName: null,
             createdAt: new Date().toISOString(),
             ...data,
-            id: _nextId++,
+            id,
           }],
-        })),
+        }))
+        return id
+      },
 
       updateOnboarding: (id, patch) =>
         set(s => ({

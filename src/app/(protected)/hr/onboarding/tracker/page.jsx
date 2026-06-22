@@ -145,13 +145,6 @@ export default function OnboardingTrackerPage() {
     setView('form')
   }
 
-  const openView = (ob) => {
-    setEditId(ob.id)
-    setForm(migrateOnboarding(ob))
-    setViewOnly(true)
-    setView('form')
-  }
-
   const resolveDirectManager = (reviewItems, supervisor) =>
     (reviewItems ?? []).map(item =>
       item.isDirectManager
@@ -317,16 +310,19 @@ export default function OnboardingTrackerPage() {
     if (editId) {
       updateOnboarding(editId, { ...form })
       submitOnboarding(editId, currentUser, levels)
+      flash(t('Berhasil disubmit untuk approval', 'Submitted for approval'))
+      setView('list')
     } else {
-      const tempId = Date.now()
-      addOnboarding({ ...form, _tempRef: tempId })
-      setTimeout(() => {
-        const added = onboardings.find(o => o._tempRef === tempId)
-        if (added) submitOnboarding(added.id, currentUser, levels)
-      }, 0)
+      // Add then immediately submit using the id returned by the store action
+      const newId = addOnboarding({ ...form })
+      if (newId) {
+        submitOnboarding(newId, currentUser, levels)
+        flash(t('Berhasil disubmit untuk approval', 'Submitted for approval'))
+      } else {
+        flash(t('Gagal membuat onboarding', 'Failed to create onboarding'), 'error')
+      }
+      setView('list')
     }
-    flash(t('Berhasil disubmit untuk approval', 'Submitted for approval'))
-    setView('list')
   }
 
   const handleSubmitExisting = (ob) => {
@@ -469,8 +465,8 @@ export default function OnboardingTrackerPage() {
             </div>
           </div>
 
-          {/* ── Per-type template selector ────────────────────────── */}
-          {!isReadOnly && (() => {
+          {/* ── Per-type template selector (only for new/draft records) ── */}
+          {!isReadOnly && (!editId || savedStatus === 'Draft') && (() => {
             // Collect all types that exist across active templates (new + old format)
             const activeTemplates = templates.filter(tpl => tpl.active)
             const allTypes = []
@@ -541,7 +537,7 @@ export default function OnboardingTrackerPage() {
           })()}
 
           {/* ── Dynamic Main Sections ─────────────────────────────── */}
-          {(form.mainSections ?? []).length === 0 && form.reviewItems === null && (
+          {form.employeeId && (form.mainSections ?? []).length === 0 && form.reviewItems === null && (
             <div className='px-6 py-8 text-center text-gray-400 text-sm'>
               {t('Belum ada agenda. Pilih template per tipe di atas untuk menambahkan section.', 'No agenda yet. Select a template per type above to add sections.')}
             </div>
@@ -938,9 +934,15 @@ export default function OnboardingTrackerPage() {
         title={t('Onboarding Tracker', 'Onboarding Tracker')}
         subtitle={t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
         actions={
-          <ActionButton icon='+' onClick={openNew}>
-            {t('+ Onboarding Manual', '+ Manual Onboarding')}
-          </ActionButton>
+          <div className='flex gap-2'>
+            <button onClick={openAutoAssign}
+              className='px-4 py-2 text-sm font-semibold rounded-xl border border-violet-300 text-violet-700 hover:bg-violet-50 transition'>
+              ⚡ {t('Auto Assign', 'Auto Assign')}
+            </button>
+            <ActionButton icon='+' onClick={openNew}>
+              {t('+ Onboarding Manual', '+ Manual Onboarding')}
+            </ActionButton>
+          </div>
         }
       />
 
