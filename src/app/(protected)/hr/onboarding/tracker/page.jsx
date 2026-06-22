@@ -408,8 +408,9 @@ export default function OnboardingTrackerPage() {
             <h2 className='text-sm font-bold text-white mb-3'>
               {t('FORMULIR ONBOARDING / INDUKSI KARYAWAN', 'EMPLOYEE ONBOARDING / INDUCTION FORM')}
             </h2>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-3'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3'>
 
+              {/* Row 1: Nama | Department */}
               <div className='flex items-center gap-2'>
                 <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Nama', 'Name')} :</span>
                 <select value={form.employeeId}
@@ -430,18 +431,7 @@ export default function OnboardingTrackerPage() {
                   className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white placeholder-red-300 outline-none focus:border-white disabled:opacity-60' />
               </div>
 
-              <div className='flex items-center gap-2'>
-                <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Nama / Posisi Atasan', 'Supervisor')} :</span>
-                <div className='flex flex-col flex-1 gap-1'>
-                  <input value={form.supervisorName} onChange={e => setField('supervisorName', e.target.value)}
-                    placeholder={t('Nama Atasan', 'Supervisor Name')} disabled={isReadOnly}
-                    className='text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white placeholder-red-300 outline-none focus:border-white disabled:opacity-60' />
-                  <input value={form.supervisorPosition} onChange={e => setField('supervisorPosition', e.target.value)}
-                    placeholder={t('Posisi Atasan', 'Supervisor Position')} disabled={isReadOnly}
-                    className='text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white placeholder-red-300 outline-none focus:border-white disabled:opacity-60' />
-                </div>
-              </div>
-
+              {/* Row 2: Status | Masa Probation */}
               <div className='flex items-center gap-2'>
                 <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Status Karyawan', 'Employee Status')} :</span>
                 <select value={form.employmentStatus} onChange={e => setField('employmentStatus', e.target.value)}
@@ -460,6 +450,19 @@ export default function OnboardingTrackerPage() {
                     <option key={p} value={p} className='text-gray-800'>{p} {t('Bulan', 'Month(s)')}</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Row 3: Atasan (full width) */}
+              <div className='flex items-center gap-2 md:col-span-2'>
+                <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Nama / Posisi Atasan', 'Supervisor')} :</span>
+                <div className='flex flex-1 gap-3'>
+                  <input value={form.supervisorName} onChange={e => setField('supervisorName', e.target.value)}
+                    placeholder={t('Nama Atasan', 'Supervisor Name')} disabled={isReadOnly}
+                    className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white placeholder-red-300 outline-none focus:border-white disabled:opacity-60' />
+                  <input value={form.supervisorPosition} onChange={e => setField('supervisorPosition', e.target.value)}
+                    placeholder={t('Posisi Atasan', 'Supervisor Position')} disabled={isReadOnly}
+                    className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white placeholder-red-300 outline-none focus:border-white disabled:opacity-60' />
+                </div>
               </div>
 
             </div>
