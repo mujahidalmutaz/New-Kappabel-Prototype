@@ -857,46 +857,84 @@ export default function ApproveOnboardingPage() {
         const managerTasks = localMainSections.flatMap(ms =>
           (ms.items ?? []).filter(i => i.assignedTo === 'manager').map(i => ({ ...i, _msId: ms.id, _msType: ms.type }))
         )
-        if (managerTasks.length === 0) return null
+        // Find first mainSection to attach new manager tasks to
+        const firstMsId = localMainSections[0]?.id ?? null
+        const addManagerTask = () => {
+          if (!firstMsId) return
+          setLocalMainSections(p => p.map(ms => ms.id !== firstMsId ? ms : {
+            ...ms,
+            items: [...ms.items, { id: Math.random(), module: '', type: '', link: '', date: '', completed: false, assignedTo: 'manager', category: ms.sections[0]?.id ?? 'default' }],
+          }))
+        }
+        const delManagerTask = (msId, itemId) =>
+          setLocalMainSections(p => p.map(ms => ms.id !== msId ? ms : { ...ms, items: ms.items.filter(i => i.id !== itemId) }))
+        const patchManagerTask = (msId, itemId, patch) =>
+          setLocalMainSections(p => p.map(ms => ms.id !== msId ? ms : { ...ms, items: ms.items.map(i => i.id === itemId ? { ...i, ...patch } : i) }))
+
         return (
           <div className='bg-white rounded-xl shadow-sm overflow-hidden mb-5'>
             <div className='px-6 py-4 border-b border-gray-100 flex items-center gap-2'>
               <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
               <h3 className='text-sm font-bold text-gray-800'>👔 {t('Tugas Saya (Manager)','My Tasks (Manager)')}</h3>
-              <span className='text-xs bg-purple-100 text-purple-700 font-semibold px-2 py-0.5 rounded-full ml-auto'>
+              <span className='text-xs bg-purple-100 text-purple-700 font-semibold px-2 py-0.5 rounded-full'>
                 {managerTasks.filter(i => i.completed).length}/{managerTasks.length} {t('selesai','done')}
               </span>
+              {firstMsId && (
+                <button onClick={addManagerTask}
+                  className='ml-auto px-3 py-1.5 text-xs font-semibold rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition'>
+                  + {t('Tambah Tugas','Add Task')}
+                </button>
+              )}
             </div>
-            <div className='overflow-x-auto'>
-              <table className='w-full text-xs'>
-                <thead>
-                  <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                    {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', t('Section','Section'), t('Completed','Completed')].map((h, i) => (
-                      <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                        style={{ minWidth: i===2?180 : i===5?80 : i===0?40 : 100 }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {managerTasks.map((item, idx) => (
-                    <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
-                      <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
-                      <td className='px-2 py-1.5 w-28'>
-                        <DateCell value={item.date || ''} onChange={v => updMsItem(item._msId, item.id, 'date', v)} />
-                      </td>
-                      <td className='px-2 py-1.5 text-gray-800 font-medium'>{item.module || '—'}</td>
-                      <td className='px-2 py-1.5 text-gray-600 w-36'>{item.type || '—'}</td>
-                      <td className='px-2 py-1.5 text-gray-500 w-36'>{item._msType}</td>
-                      <td className='px-2 py-1.5 text-center w-16'>
-                        <input type='checkbox' checked={!!item.completed}
-                          onChange={e => updMsItem(item._msId, item.id, 'completed', e.target.checked)}
-                          className='w-4 h-4 accent-red-600' />
-                      </td>
+            {managerTasks.length === 0 ? (
+              <div className='px-6 py-8 text-center text-gray-400 text-sm'>
+                {t('Belum ada tugas. Klik "+ Tambah Tugas" untuk menambahkan.','No tasks yet. Click "+ Add Task" to add one.')}
+              </div>
+            ) : (
+              <div className='overflow-x-auto'>
+                <table className='w-full text-xs'>
+                  <thead>
+                    <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                      {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', t('Section','Section'), t('Completed','Completed'), ''].map((h, i) => (
+                        <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
+                          style={{ minWidth: i===2?180 : i===5?80 : i===6?36 : i===0?40 : 100 }}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {managerTasks.map((item, idx) => (
+                      <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                        <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
+                        <td className='px-2 py-1.5 w-28'>
+                          <DateCell value={item.date || ''} onChange={v => updMsItem(item._msId, item.id, 'date', v)} />
+                        </td>
+                        <td className='px-2 py-1.5'>
+                          <IC value={item.module || ''} onChange={v => updMsItem(item._msId, item.id, 'module', v)}
+                            placeholder={t('Nama tugas…','Task name…')} />
+                        </td>
+                        <td className='px-2 py-1.5 w-40'>
+                          <select value={item.type || ''} onChange={e => patchManagerTask(item._msId, item.id, { type: e.target.value })}
+                            className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
+                            <option value=''>— Pilih —</option>
+                            {TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        </td>
+                        <td className='px-2 py-1.5 text-gray-500 w-36'>{item._msType}</td>
+                        <td className='px-2 py-1.5 text-center w-16'>
+                          <input type='checkbox' checked={!!item.completed}
+                            onChange={e => updMsItem(item._msId, item.id, 'completed', e.target.checked)}
+                            className='w-4 h-4 accent-red-600' />
+                        </td>
+                        <td className='px-2 py-1.5 w-9 text-center'>
+                          <button onClick={() => delManagerTask(item._msId, item.id)}
+                            className='text-red-400 hover:text-red-600 text-sm font-bold transition'>✕</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )
       })()}
