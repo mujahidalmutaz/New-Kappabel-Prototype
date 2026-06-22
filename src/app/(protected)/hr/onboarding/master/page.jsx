@@ -5,6 +5,7 @@ import { useEmployeeStore }         from '@/store/employeeStore'
 import { useStructureStore }        from '@/store/structureStore'
 import { useCourseBatchStore }      from '@/store/courseBatchStore'
 import { useT }                     from '@/store/languageStore'
+import { EMP_TYPES }                from '@/utils/constants'
 import { PageHeader, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
 
 // ── Row factory helpers ───────────────────────────────────────────────────────
@@ -50,7 +51,18 @@ const EMPTY_FORM = {
   reviewSections: [],
   autoAssign: false,
   readyToSubmit: false,
-  criteria: { employmentTypes: [], departmentIds: [] },
+  criteria: { employmentTypes: [], departmentIds: [], companyIds: [], positionIds: [] },
+}
+
+// ── Criteria pill (Auto-Assign rule selector) ─────────────────────────────────
+function CriteriaPill({ label, active, onClick }) {
+  return (
+    <button type='button' onClick={onClick}
+      className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition
+        ${active ? 'bg-red-500 border-red-500 text-white' : 'bg-white border-gray-200 text-gray-500 hover:border-red-300'}`}>
+      {label}
+    </button>
+  )
 }
 
 // ── Inline editable cell ──────────────────────────────────────────────────────
@@ -155,7 +167,7 @@ export default function MasterOnboardingPage() {
   const t = useT()
   const { templates, addTemplate, updateTemplate, deleteTemplate } = useMasterOnboardingStore()
   const { employees }  = useEmployeeStore()
-  const { positions }  = useStructureStore()
+  const { positions, departments, companies } = useStructureStore()
   const { batches }    = useCourseBatchStore()
 
   const [view,   setView  ] = useState('list')   // 'list' | 'form'
@@ -195,12 +207,20 @@ export default function MasterOnboardingPage() {
     if (copy.reviewItems === undefined) copy.reviewItems = null
     if (!copy.reviewSections) copy.reviewSections = []
     if (copy.autoAssign === undefined) copy.autoAssign = false
-    if (!copy.criteria) copy.criteria = { employmentTypes: [], departmentIds: [] }
+    copy.criteria = { employmentTypes: [], departmentIds: [], companyIds: [], positionIds: [], ...(copy.criteria ?? {}) }
     setForm(copy)
     setView('form')
   }
 
   const setField = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  // ── Auto-Assign criteria toggles ──────────────────────────────────────────
+  const toggleCriteria = (key, val) =>
+    setForm(f => {
+      const cur = f.criteria?.[key] ?? []
+      const next = cur.includes(val) ? cur.filter(x => x !== val) : [...cur, val]
+      return { ...f, criteria: { ...f.criteria, [key]: next } }
+    })
 
   // ── Main Section management ───────────────────────────────────────────────
   const addMainSection = (type) =>
@@ -421,6 +441,57 @@ export default function MasterOnboardingPage() {
                 <span className='text-xs text-gray-400'>Jika aktif, onboarding yang di-assign otomatis langsung masuk Pending (skip Draft)</span>
               </div>
 
+            </div>
+          </SectionCard>
+
+          {/* ── Auto-Assign Rule ── */}
+          <SectionCard title={t('Auto-Assign Rule','Auto-Assign Rule')} icon='⚡'>
+            <div className='space-y-4'>
+              <div className='flex items-center gap-3'>
+                <button type='button' onClick={() => setField('autoAssign', !form.autoAssign)}
+                  className={`w-11 h-6 rounded-full relative flex-shrink-0 transition-colors ${form.autoAssign ? 'bg-red-500' : 'bg-gray-200'}`}>
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${form.autoAssign ? 'left-6' : 'left-1'}`} />
+                </button>
+                <div>
+                  <span className='text-xs font-semibold text-gray-700'>
+                    {form.autoAssign
+                      ? t('✓ Auto-Assign aktif','✓ Auto-Assign enabled')
+                      : t('✗ Auto-Assign nonaktif','✗ Auto-Assign disabled')}
+                  </span>
+                  <p className='text-xs text-gray-400 mt-0.5'>
+                    {t('Karyawan baru yang cocok dengan kriteria di bawah otomatis dibuatkan onboarding (status Draft).',
+                       'New hires matching the criteria below are automatically given an onboarding record (Draft status).')}
+                  </p>
+                </div>
+              </div>
+
+              {form.autoAssign && (
+                <div className='space-y-4 pt-2 border-t border-gray-100'>
+                  <p className='text-xs text-gray-400 italic'>
+                    {t('Kosongkan sebuah kriteria untuk mencocokkan semua nilai. Template diproses berurutan — template paling atas yang cocok dipakai.',
+                       'Leave a criterion empty to match all values. Templates are evaluated top-down — the first matching template is used.')}
+                  </p>
+                  {[
+                    { key: 'employmentTypes', label: t('Tipe Kepegawaian','Employment Type'), items: EMP_TYPES.map(e => ({ id: e, name: e })) },
+                    { key: 'companyIds',      label: 'Company',     items: companies.map(c => ({ id: c.id, name: c.name || c.companyCode })) },
+                    { key: 'departmentIds',   label: 'Department',  items: departments },
+                    { key: 'positionIds',     label: t('Posisi','Position'), items: positions },
+                  ].map(({ key, label, items }) => (
+                    <div key={key}>
+                      <p className='text-xs font-bold text-gray-500 uppercase tracking-wide mb-2'>
+                        {label} <span className='normal-case font-normal text-gray-400'>({t('kosong = semua','empty = all')})</span>
+                      </p>
+                      <div className='flex flex-wrap gap-2 max-h-28 overflow-y-auto'>
+                        {items.map(item => (
+                          <CriteriaPill key={item.id} label={item.name}
+                            active={(form.criteria?.[key] ?? []).includes(item.id)}
+                            onClick={() => toggleCriteria(key, item.id)} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </SectionCard>
 

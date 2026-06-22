@@ -5,6 +5,7 @@ import { useEmployeeStore }      from '@/store/employeeStore'
 import { useWorkflowStore }      from '@/store/workflowStore'
 import { useOnboardingStore }    from '@/store/onboardingStore'
 import { useMasterOnboardingStore } from '@/store/masterOnboardingStore'
+import { templateMatchesEmployee, buildOnboardingFromTemplate } from '@/store/onboardingAutoAssign'
 import { useStructureStore }     from '@/store/structureStore'
 import { useCourseBatchStore }   from '@/store/courseBatchStore'
 import { useT }                  from '@/store/languageStore'
@@ -255,12 +256,7 @@ export default function OnboardingTrackerPage() {
     )
     const rows = candidates.map(emp => {
       const dept = departments.find(d => d.id === emp.departmentId)
-      const matched = autoTemplates.find(tpl => {
-        const c = tpl.criteria ?? {}
-        const etOk = !c.employmentTypes?.length || c.employmentTypes.includes(emp.employmentType)
-        const deptOk = !c.departmentIds?.length || c.departmentIds.includes(emp.departmentId)
-        return etOk && deptOk
-      })
+      const matched = autoTemplates.find(tpl => templateMatchesEmployee(tpl, emp))
       return { emp, dept, template: matched || null }
     }).filter(r => r.template !== null)
     setAutoAssignRows(rows)
@@ -268,49 +264,9 @@ export default function OnboardingTrackerPage() {
   }
 
   const runAutoAssign = () => {
-    const addRuntime = (item) => ({ ...item, id: Math.random(), date: '', completed: false })
     let count = 0
     autoAssignRows.forEach(({ emp, template }) => {
-      const supervisor = employees.find(e => e.id === emp.managerId)
-      const dept = departments.find(d => d.id === emp.departmentId)
-
-      let mainSections = (template.mainSections ?? []).filter(ms => ms.type).map(ms => ({
-        ...ms,
-        id: `ms_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
-        sections: (ms.sections ?? []).map(s => ({ ...s })),
-        items: (ms.items ?? []).map(addRuntime),
-      }))
-      if (mainSections.length === 0) {
-        const genSec  = (template.generalSections  ?? []).map(s => ({ ...s }))
-        const genItem = (template.generalItems     ?? []).map(addRuntime)
-        const techSec = (template.technicalSections ?? []).map(s => ({ ...s }))
-        const techItem= (template.technicalItems   ?? []).map(addRuntime)
-        if (genItem.length > 0 || genSec.length > 0)
-          mainSections.push({ id: `ms_gen_${Date.now()}_${count}`, type: 'Materi Induksi General', sections: genSec, items: genItem })
-        if (techItem.length > 0 || techSec.length > 0)
-          mainSections.push({ id: `ms_tech_${Date.now()}_${count}`, type: 'Materi Induksi Teknis', sections: techSec, items: techItem })
-      }
-
-      const rawReview = (template.reviewItems ?? []).map(addRuntime)
-      const reviewItems = rawReview.length > 0
-        ? rawReview.map(item => item.isDirectManager
-            ? { ...item, reviewerEmpId: String(supervisor?.id ?? ''), reviewerName: supervisor?.name ?? 'Direct Manager', reviewerPosition: '' }
-            : item)
-        : null
-
-      addOnboarding({
-        employeeId:         emp.id,
-        employeeName:       emp.name,
-        department:         dept?.name ?? '',
-        supervisorName:     supervisor?.name ?? '',
-        supervisorPosition: positions.find(p => p.id === supervisor?.positionId)?.name ?? '',
-        employmentStatus:   'New Hire',
-        probationPeriod:    '3',
-        mainSections,
-        reviewItems,
-        hasilInductionChecked: false,
-        buddyAssignment: { ...BLANK_BUDDY },
-      })
+      addOnboarding(buildOnboardingFromTemplate(template, emp, employees))
       count++
     })
     setAutoAssignOpen(false)
@@ -432,11 +388,12 @@ export default function OnboardingTrackerPage() {
   // ── FORM VIEW ─────────────────────────────────────────────────────────────
   if (view === 'form' && form) {
     const savedStatus   = editId ? (onboardings.find(o => o.id === editId)?.workflowStatus ?? 'Draft') : 'Draft'
-    const isSubmitted   = savedStatus === 'Pending'
-    const isReadOnly    = isSubmitted || viewOnly
+    // HRBP may edit the onboarding agenda in ANY status (Draft / Pending / Approved).
+    // The form is only locked when explicitly opened in view-only mode.
+    const isReadOnly    = viewOnly
     const showCompleted = viewOnly && savedStatus === 'Approved'
-    const colSpanMain   = isSubmitted ? 7 : 8
-    const colSpanRev    = isSubmitted ? 6 : 7
+    const colSpanMain   = 8
+    const colSpanRev    = 7
 
     const SEC_COLORS = [
       'bg-blue-50 text-blue-700 border-blue-400',
@@ -966,13 +923,7 @@ export default function OnboardingTrackerPage() {
           </div>
 
           {/* ── Actions ─────────────────────────────────────────────── */}
-          {isSubmitted ? (
-            <div className='px-6 pb-6'>
-              <div className='bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-xs text-amber-700'>
-                {t('Form ini sudah disubmit dan sedang dalam proses approval. Tidak dapat diedit.','This form has been submitted and is pending approval. Editing is disabled.')}
-              </div>
-            </div>
-          ) : viewOnly ? (
+          {viewOnly ? (
             <div className='px-6 pb-6 flex gap-3'>
               <button onClick={() => { setViewOnly(false); setView('list') }}
                 className='px-5 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition'>
@@ -980,19 +931,27 @@ export default function OnboardingTrackerPage() {
               </button>
             </div>
           ) : (
-            <div className='px-6 pb-6 flex gap-3'>
-              <ActionButton variant='secondary' icon='💾' onClick={handleSaveDraft}>
-                {savedStatus === 'Approved' ? t('Simpan', 'Save') : t('Simpan Draft', 'Save Draft')}
-              </ActionButton>
-              {savedStatus !== 'Approved' && (
-                <ActionButton icon='📤' onClick={handleSubmit}>
-                  {t('Submit untuk Approval', 'Submit for Approval')}
-                </ActionButton>
+            <div className='px-6 pb-6'>
+              {savedStatus === 'Pending' && (
+                <div className='mb-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 text-xs text-amber-700'>
+                  {t('Form ini sedang dalam proses approval. Perubahan yang Anda simpan akan ikut terlihat oleh approver.',
+                     'This form is pending approval. Any changes you save will be visible to the approver.')}
+                </div>
               )}
-              <button onClick={() => setView('list')}
-                className='px-5 py-2.5 text-sm font-semibold rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition ml-auto'>
-                {t('Batal', 'Cancel')}
-              </button>
+              <div className='flex gap-3'>
+                <ActionButton variant='secondary' icon='💾' onClick={handleSaveDraft}>
+                  {savedStatus === 'Draft' ? t('Simpan Draft', 'Save Draft') : t('Simpan', 'Save')}
+                </ActionButton>
+                {savedStatus === 'Draft' && (
+                  <ActionButton icon='📤' onClick={handleSubmit}>
+                    {t('Submit untuk Approval', 'Submit for Approval')}
+                  </ActionButton>
+                )}
+                <button onClick={() => setView('list')}
+                  className='px-5 py-2.5 text-sm font-semibold rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition ml-auto'>
+                  {t('Batal', 'Cancel')}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -1075,7 +1034,7 @@ export default function OnboardingTrackerPage() {
                 <div className='flex gap-2 justify-end'>
                   <button onClick={() => ob.workflowStatus === 'Approved' ? openView(ob) : openEdit(ob)}
                     className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
-                    {ob.workflowStatus === 'Draft' ? t('✏️ Edit','✏️ Edit') : t('👁 Lihat','👁 View')}
+                    {ob.workflowStatus === 'Approved' ? t('👁 Lihat','👁 View') : t('✏️ Edit','✏️ Edit')}
                   </button>
                   {ob.workflowStatus === 'Approved' && (
                     <button onClick={() => openEdit(ob)}
