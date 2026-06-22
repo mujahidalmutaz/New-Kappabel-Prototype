@@ -954,7 +954,7 @@ export default function OnboardingTrackerPage() {
               ⚡ {t('Auto Assign', 'Auto Assign')}
             </button>
             <ActionButton icon='+' onClick={openNew}>
-              {t('+ Onboarding Manual', '+ Manual Onboarding')}
+              {t('Onboarding Manual', 'Manual Onboarding')}
             </ActionButton>
           </div>
         }
@@ -980,7 +980,7 @@ export default function OnboardingTrackerPage() {
           icon='🚀'
           title={t('Belum ada data onboarding.', 'No onboarding records yet.')}
           description={t('Buat onboarding pertama untuk memulai.', 'Create your first onboarding to get started.')}
-          action={<ActionButton size='sm' icon='+' onClick={openNew}>{t('+ Onboarding Manual', '+ Manual Onboarding')}</ActionButton>}
+          action={<ActionButton size='sm' icon='+' onClick={openNew}>{t('Onboarding Manual', 'Manual Onboarding')}</ActionButton>}
         />
       ) : (
         <DataTable
