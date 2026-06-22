@@ -50,7 +50,7 @@ const EMPTY_FORM = {
   reviewItems: null,
   reviewSections: [],
   autoAssign: false,
-  readyToSubmit: false,
+  readyToSubmit: true,
   criteria: { employmentTypes: [], departmentIds: [], companyIds: [], positionIds: [] },
 }
 
