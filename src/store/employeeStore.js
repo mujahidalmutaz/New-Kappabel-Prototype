@@ -1,4 +1,5 @@
 ﻿import { create } from 'zustand'
+import IMPORTED_EMPLOYEES from '@/data/importedEmployees.json'
 
 // ─── Action & Reason LOV ──────────────────────────────────────────────────────
 export const HISTORY_ACTIONS = [
@@ -1333,13 +1334,18 @@ let _skillId   = 10
 let _histId    = 20
 
 export const useEmployeeStore = create((set, get) => ({
-  employees: SEED_EMPLOYEES.map(e => ({ ...e,
-    dependents:     (e.dependents     || []).map(x=>({...x})),
-    education:      (e.education      || []).map(x=>({...x})),
-    certifications: (e.certifications || []).map(x=>({...x})),
-    skills:         (e.skills         || []).map(x=>({...x})),
-    history:        (e.history        || []).map(x=>({...x})),
-  })),
+  // Demo seed employees (ids 1–50, used by login/demo flows) + imported employees
+  // from the Excel upload (ids 200001+), with supervisor links resolved to ids.
+  employees: [
+    ...SEED_EMPLOYEES.map(e => ({ ...e,
+      dependents:     (e.dependents     || []).map(x=>({...x})),
+      education:      (e.education      || []).map(x=>({...x})),
+      certifications: (e.certifications || []).map(x=>({...x})),
+      skills:         (e.skills         || []).map(x=>({...x})),
+      history:        (e.history        || []).map(x=>({...x})),
+    })),
+    ...IMPORTED_EMPLOYEES,
+  ],
   lastAddedEmpId: null,
 
   // ── Employee CRUD ──────────────────────────────────────────────
