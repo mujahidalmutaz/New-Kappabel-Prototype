@@ -1060,6 +1060,7 @@ export default function OnboardingTrackerPage() {
             { label: t('Masa Probasi','Probation') },
             { label: t('Atasan','Supervisor') },
             { label: t('Status Workflow','Workflow Status') },
+            { label: t('Sumber','Source') },
             { label: t('Tanggal Dibuat','Created') },
             { label: t('Aksi','Action'), align: 'right' },
           ]}
@@ -1075,6 +1076,12 @@ export default function OnboardingTrackerPage() {
               <Td>{ob.supervisorName || '—'}</Td>
               <Td>
                 <StatusBadge status={ob.workflowStatus} />
+              </Td>
+              <Td>
+                {ob.createdVia === 'auto-assign'
+                  ? <span className='text-xs bg-violet-50 text-violet-700 font-semibold px-2 py-0.5 rounded-full'>⚡ Auto</span>
+                  : <span className='text-xs bg-gray-100 text-gray-500 font-semibold px-2 py-0.5 rounded-full'>✏️ Manual</span>
+                }
               </Td>
               <Td className='text-gray-500 text-xs'>
                 {ob.createdAt ? new Date(ob.createdAt).toLocaleDateString('id-ID') : '—'}

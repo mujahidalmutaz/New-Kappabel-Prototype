@@ -237,6 +237,15 @@ export default function ApproveOnboardingPage() {
 
   const submitted = onboardings.filter(o => o.workflowStatus !== 'Draft')
 
+  // My team's Active/Preparation onboardings (new flow — no approval needed but manager can view/edit)
+  const myEmpIds = employees
+    .filter(e => e.managerId === currentUser?.id)
+    .map(e => e.id)
+  const myTeamActive = onboardings.filter(o =>
+    (o.workflowStatus === 'Active' || o.workflowStatus === 'Preparation') &&
+    myEmpIds.includes(Number(o.employeeId))
+  )
+
   const actionable = submitted.filter(o => {
     const pending = (o.steps || []).find(s => s.status === 'Pending')
     return pending && canActOnStep(pending, o, currentUser, employees)
@@ -246,7 +255,8 @@ export default function ApproveOnboardingPage() {
     !actionable.find(a => a.id === o.id)
   )
 
-  const selected    = submitted.find(o => o.id === selectedId) ?? null
+  const allVisible = [...submitted, ...myTeamActive.filter(o => !submitted.find(s => s.id === o.id))]
+  const selected    = allVisible.find(o => o.id === selectedId) ?? null
   const pendingStep = selected ? (selected.steps || []).find(s => s.status === 'Pending') : null
   const myTurn      = selected && pendingStep && canActOnStep(pendingStep, selected, currentUser, employees)
 
@@ -441,6 +451,62 @@ export default function ApproveOnboardingPage() {
             </table>
           </div>
         </div>
+
+        {/* Team Active/Preparation */}
+        {myTeamActive.length > 0 && (
+          <div className='bg-white rounded-xl shadow-sm mt-6'>
+            <div className='px-6 py-4 border-b border-gray-100'>
+              <h2 className='text-sm font-bold text-gray-700'>
+                🚀 {t('Tim Saya (Onboarding Aktif)', 'My Team (Active Onboarding)')}
+                <span className='ml-2 text-xs font-normal text-gray-400'>({myTeamActive.length})</span>
+              </h2>
+            </div>
+            <div className='overflow-x-auto'>
+              <table className='w-full text-sm'>
+                <thead>
+                  <tr className='bg-gray-50'>
+                    {[t('Karyawan','Employee'), 'Department', t('Status','Status'), t('Progress','Progress'), t('Join Date','Join Date')].map((h, i) => (
+                      <th key={i} className='text-left px-4 py-3 text-xs font-semibold text-gray-500'>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className='divide-y divide-gray-100'>
+                  {myTeamActive.map(ob => {
+                    const allItems = (ob.mainSections ?? []).flatMap(ms => ms.items ?? [])
+                    const empItems = allItems.filter(i => (i.assignedTo || 'hr') === 'employee')
+                    const done = empItems.filter(i => i.completed).length
+                    const pct = empItems.length === 0 ? 0 : Math.round(done / empItems.length * 100)
+                    const emp = employees.find(e => e.id === Number(ob.employeeId))
+                    const statusCls = ob.workflowStatus === 'Active' ? 'bg-blue-50 text-blue-700' : 'bg-indigo-50 text-indigo-700'
+                    return (
+                      <tr key={ob.id} onClick={() => openDetail(ob.id)}
+                        className='hover:bg-gray-50 cursor-pointer transition'>
+                        <td className='px-4 py-3 font-semibold text-gray-800'>{ob.employeeName}</td>
+                        <td className='px-4 py-3 text-gray-600'>{ob.department || '—'}</td>
+                        <td className='px-4 py-3'>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusCls}`}>
+                            {ob.workflowStatus}
+                          </span>
+                        </td>
+                        <td className='px-4 py-3'>
+                          <div className='flex items-center gap-2'>
+                            <div className='w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden'>
+                              <div className='h-full bg-green-500 rounded-full' style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className='text-xs text-gray-500'>{done}/{empItems.length} ({pct}%)</span>
+                          </div>
+                        </td>
+                        <td className='px-4 py-3 text-gray-500 text-xs'>
+                          {emp?.joinDate ? String(emp.joinDate).slice(0, 10) : '—'}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -494,7 +560,121 @@ export default function ApproveOnboardingPage() {
           </div>
         </div>
 
-        {/* ── SECTION 1: Materi Induksi General ── */}
+        {/* ── Progress Summary ── */}
+        {localMainSections.length > 0 && (() => {
+          const allItems = localMainSections.flatMap(ms => ms.items ?? [])
+          const byRole = (role) => allItems.filter(i => (i.assignedTo || 'hr') === role)
+          const pct = (items) => items.length === 0 ? 0 : Math.round(items.filter(i => i.completed).length / items.length * 100)
+          const hrItems  = byRole('hr')
+          const mgrItems = byRole('manager')
+          const empItems = byRole('employee')
+          return (
+            <div className='px-6 pt-5 pb-2'>
+              <div className='flex items-center gap-2 mb-3'>
+                <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
+                <h3 className='text-sm font-bold text-gray-800'>📊 {t('Ringkasan Progress','Progress Summary')}</h3>
+              </div>
+              <div className='grid grid-cols-3 gap-3'>
+                {[
+                  { label: 'HR', items: hrItems, color: 'blue' },
+                  { label: 'Manager', items: mgrItems, color: 'purple' },
+                  { label: 'Employee', items: empItems, color: 'green' },
+                ].map(({ label, items, color }) => (
+                  <div key={label} className={`rounded-lg border border-${color}-100 bg-${color}-50 px-4 py-3`}>
+                    <div className='flex justify-between items-center mb-1.5'>
+                      <span className={`text-xs font-bold text-${color}-700`}>{label}</span>
+                      <span className={`text-xs font-semibold text-${color}-600`}>{items.filter(i => i.completed).length}/{items.length}</span>
+                    </div>
+                    <div className='h-1.5 bg-white rounded-full overflow-hidden'>
+                      <div className={`h-full bg-${color}-500 rounded-full transition-all`} style={{ width: `${pct(items)}%` }} />
+                    </div>
+                    <span className={`text-[10px] text-${color}-400 mt-1 block`}>{pct(items)}% {t('selesai','done')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* ── Main Sections (new format) ── */}
+        {localMainSections.length > 0 && localMainSections.map(ms => {
+          const allMsItems = ms.items ?? []
+          if (allMsItems.length === 0 && (ms.sections ?? []).length === 0) return null
+          return (
+            <div key={ms.id} className='px-6 pt-5 pb-2'>
+              <div className='flex items-center gap-2 mb-3'>
+                <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
+                <h3 className='text-sm font-bold text-gray-800'>{ms.type}</h3>
+              </div>
+              <div className='overflow-x-auto rounded-lg border border-gray-200'>
+                {(ms.sections ?? []).length === 0 ? (
+                  <div className='px-6 py-6 text-center text-gray-400 text-sm'>{t('Tidak ada section.','No sections.')}</div>
+                ) : (ms.sections ?? []).map(sec => {
+                  const cls  = SEC_COLORS[sec.colorIdx % SEC_COLORS.length]
+                  const rows = allMsItems.filter(i => i.category === sec.id)
+                  const colSpan = 8
+                  return (
+                    <table key={sec.id} className='w-full text-xs border-b border-gray-100 last:border-b-0'>
+                      <thead>
+                        <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                          {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', t('Nama Mentor','Mentor'),
+                            t('Assignee','Assignee'), t('Completed','Completed'), ''].map((h, i) => (
+                            <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
+                              style={{ minWidth: i===2?180 : i===0?40 : i===6?80 : i===7?36 : 90 }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className={cls.split(' ').filter(c => c.startsWith('bg-')).join(' ')}>
+                          <td colSpan={colSpan} className='px-3 py-2'>
+                            <span className={`text-xs font-semibold ${cls.split(' ').filter(c => c.startsWith('text-')).join(' ')}`}>
+                              {sec.label || '—'}
+                            </span>
+                          </td>
+                        </tr>
+                        {rows.length === 0 && (
+                          <tr><td colSpan={colSpan} className='px-4 py-3 text-center text-gray-300 text-xs italic'>{t('Tidak ada baris.','No rows.')}</td></tr>
+                        )}
+                        {rows.map((item, idx) => {
+                          const role = item.assignedTo || 'hr'
+                          const roleCls = role === 'manager' ? 'bg-purple-50 text-purple-700 border-purple-200'
+                            : role === 'employee' ? 'bg-green-50 text-green-700 border-green-200'
+                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                          const roleLabel = role === 'hr' ? 'HR' : role === 'manager' ? 'Manager' : 'Employee'
+                          return (
+                            <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                              <td className='px-2 py-1.5 w-10 text-center text-gray-500 font-medium'>{idx + 1}</td>
+                              <td className='px-2 py-1.5 w-28'>
+                                <DateCell value={item.date || ''} onChange={v => updMsItem(ms.id, item.id, 'date', v)} />
+                              </td>
+                              <td className='px-2 py-1.5'>
+                                <IC value={item.module || ''} onChange={v => updMsItem(ms.id, item.id, 'module', v)} placeholder={t('Nama modul…','Module name…')} />
+                              </td>
+                              <td className='px-2 py-1.5 w-40 text-gray-600 text-xs'>{item.type || '—'}</td>
+                              <td className='px-2 py-1.5 w-28 text-gray-600 text-xs'>{item.mentorName || '—'}</td>
+                              <td className='px-2 py-1.5 w-24'>
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${roleCls}`}>{roleLabel}</span>
+                              </td>
+                              <td className='px-2 py-1.5 w-16 text-center'>
+                                <input type='checkbox' checked={!!item.completed}
+                                  onChange={e => updMsItem(ms.id, item.id, 'completed', e.target.checked)}
+                                  className='w-4 h-4 accent-red-600' />
+                              </td>
+                              <td className='px-2 py-1.5 w-9' />
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+
+        {/* ── SECTION 1: Materi Induksi General (legacy format) ── */}
+        {localMainSections.length === 0 && <>
         <div className='px-6 pt-5 pb-2'>
           <div className='flex items-center gap-2 mb-3'>
             <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
@@ -569,7 +749,7 @@ export default function ApproveOnboardingPage() {
           </div>
         </div>
 
-        {/* ── SECTION 2: Materi Induksi Teknis ── */}
+        {/* ── SECTION 2: Materi Induksi Teknis (legacy format) ── */}
         <div className='px-6 pt-5 pb-2'>
           <div className='flex items-center gap-2 mb-3'>
             <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
@@ -643,6 +823,7 @@ export default function ApproveOnboardingPage() {
             })}
           </div>
         </div>
+        </>}
 
         {/* ── SECTION 3: Periodic Review ── */}
         <div className='px-6 pt-5 pb-2'>
