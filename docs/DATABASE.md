@@ -47,6 +47,10 @@ npm run db:seed
   plain indexed integer columns rather than enforced foreign keys, so the bulk seed
   is order-independent and tolerant of the few unresolved supervisor links in the
   source export.
-- Write-back of UI edits to the DB is not wired yet (reads are DB-backed; mutations
-  still update the in-memory store). That is the next phase if full persistence of
-  edits is required.
+- Write-back of UI edits: **Employees** and **Users** are wired — create/update/delete
+  in the UI is written through to the DB (best-effort via `/api/employees`,
+  `/api/employees/[id]`, `/api/users`, `/api/users/[id]`). When no DB is configured the
+  write is silently skipped and the in-memory store behaves exactly as before.
+  Not yet wired: org-structure entities, nested employee sub-records (dependents,
+  education, certifications, skills, history) and the other stores (leave, payroll,
+  attendance, onboarding, …).

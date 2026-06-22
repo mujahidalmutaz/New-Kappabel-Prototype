@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { persist as dbPersist } from '@/lib/persist'
 
 // Seed users (sementara, nanti ganti ke API)
 const SEED_USERS = [
@@ -99,9 +100,9 @@ export const useAuthStore = create(
         if (real) set({ currentUser: real, realUser: null })
       },
 
-      addUser:    (u)     => set(s => ({ userList: [...s.userList, u] })),
-      updateUser: (id, d) => set(s => ({ userList: s.userList.map(u => u.id===id ? {...u,...d} : u) })),
-      deleteUser: (id)    => set(s => ({ userList: s.userList.filter(u => u.id !== id) })),
+      addUser:    (u)     => { set(s => ({ userList: [...s.userList, u] })); dbPersist('/api/users', 'POST', u) },
+      updateUser: (id, d) => { set(s => ({ userList: s.userList.map(u => u.id===id ? {...u,...d} : u) })); dbPersist(`/api/users/${id}`, 'PUT', d) },
+      deleteUser: (id)    => { set(s => ({ userList: s.userList.filter(u => u.id !== id) })); dbPersist(`/api/users/${id}`, 'DELETE') },
     }),
     {
       name: 'hcm-auth',

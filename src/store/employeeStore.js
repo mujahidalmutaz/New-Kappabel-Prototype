@@ -1,5 +1,6 @@
 ﻿import { create } from 'zustand'
 import { autoAssignOnboardingForEmployee } from './onboardingAutoAssign'
+import { persist } from '@/lib/persist'
 
 // ─── Action & Reason LOV ──────────────────────────────────────────────────────
 export const HISTORY_ACTIONS = [
@@ -1413,6 +1414,7 @@ export const useEmployeeStore = create((set, get) => ({
       ...d, id,
     }
     set(s => ({ lastAddedEmpId: id, employees: [...s.employees, emp] }))
+    persist('/api/employees', 'POST', emp)   // write-through to DB (best-effort)
 
     // Rule-based auto-assign onboarding for the new hire so no one is missed.
     // Done after state update; failures must not block employee creation.
@@ -1423,12 +1425,14 @@ export const useEmployeeStore = create((set, get) => ({
     }
     return id
   },
-  updateEmployee: (id, d) => set(s => ({
-    employees: s.employees.map(e => e.id === id ? { ...e, ...d } : e)
-  })),
-  deleteEmployee: (id)   => set(s => ({
-    employees: s.employees.filter(e => e.id !== id)
-  })),
+  updateEmployee: (id, d) => {
+    set(s => ({ employees: s.employees.map(e => e.id === id ? { ...e, ...d } : e) }))
+    persist(`/api/employees/${id}`, 'PUT', d)
+  },
+  deleteEmployee: (id) => {
+    set(s => ({ employees: s.employees.filter(e => e.id !== id) }))
+    persist(`/api/employees/${id}`, 'DELETE')
+  },
 
   // ── Photo ──────────────────────────────────────────────────────
   setPhoto: (id, dataUrl) => set(s => ({
