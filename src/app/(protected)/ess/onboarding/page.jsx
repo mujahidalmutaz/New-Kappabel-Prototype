@@ -5,10 +5,12 @@ import { useOnboardingStore }  from '@/store/onboardingStore'
 import { useT }                from '@/store/languageStore'
 
 const STATUS_CLS = {
-  Draft:    'bg-gray-100 text-gray-600',
-  Pending:  'bg-yellow-100 text-yellow-700',
-  Approved: 'bg-green-100 text-green-700',
-  Rejected: 'bg-red-100 text-red-700',
+  Draft:       'bg-gray-100 text-gray-600',
+  Preparation: 'bg-indigo-100 text-indigo-700',
+  Active:      'bg-blue-100 text-blue-700',
+  Pending:     'bg-yellow-100 text-yellow-700',
+  Approved:    'bg-green-100 text-green-700',
+  Rejected:    'bg-red-100 text-red-700',
 }
 
 const SEC_COLORS = [
@@ -120,6 +122,7 @@ export default function EssOnboardingPage() {
   const status          = myOnboarding?.workflowStatus
   const isPreparation   = status === 'Preparation'
   const isRejected      = status === 'Rejected'
+  const isApproved      = status === 'Approved'
   const isActive        = myOnboarding && !isRejected && !isPreparation
 
   const [form,  setForm ] = useState(null)
@@ -198,7 +201,11 @@ export default function EssOnboardingPage() {
     )
   }
 
-  const mainSections = form.mainSections ?? []
+  // Only show tasks assigned to the employee (or unassigned = legacy data)
+  const mainSections = (form.mainSections ?? []).map(ms => ({
+    ...ms,
+    items: (ms.items ?? []).filter(i => !i.assignedTo || i.assignedTo === 'employee'),
+  }))
 
   return (
     <div className='pb-10'>
@@ -360,7 +367,7 @@ export default function EssOnboardingPage() {
                             <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                               <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8 text-xs'>{idx + 1}</td>
                               <td className='px-2 py-1.5 w-28'>
-                                {isApproved
+                                {!isRejected
                                   ? <input type='date' value={toDateInput(item.date || '')}
                                       onChange={e => updItem(ms.id, item.id, 'date', e.target.value)}
                                       className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
@@ -379,7 +386,7 @@ export default function EssOnboardingPage() {
                               <td className='px-3 py-1.5 text-center w-16'>
                                 <input type='checkbox' checked={!!item.completed}
                                   onChange={e => updItem(ms.id, item.id, 'completed', e.target.checked)}
-                                  disabled={!isApproved}
+                                  disabled={isRejected}
                                   className='w-4 h-4 accent-red-600 disabled:cursor-not-allowed disabled:opacity-40' />
                               </td>
                             </tr>

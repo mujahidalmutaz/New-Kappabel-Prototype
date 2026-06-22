@@ -1,5 +1,5 @@
 'use client'
-import { useState }              from 'react'
+import { useState, useEffect }   from 'react'
 import { useAuthStore }          from '@/store/authStore'
 import { useEmployeeStore }      from '@/store/employeeStore'
 import { useWorkflowStore }      from '@/store/workflowStore'
@@ -388,6 +388,19 @@ export default function OnboardingTrackerPage() {
     setDelId(null)
     flash(t('Data onboarding dihapus', 'Onboarding record deleted'))
   }
+
+  // Auto-activate: move to useEffect to avoid side-effects during render
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    onboardings.forEach(ob => {
+      if (ob.workflowStatus !== 'Preparation') return
+      const emp = employees.find(e => e.id === Number(ob.employeeId))
+      if (emp?.joinDate && String(emp.joinDate).slice(0, 10) <= today) {
+        activateOnboarding(ob.id, null, 'System (Auto)')
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboardings.map(o => o.id + o.workflowStatus).join(',')])
 
   // ── FORM VIEW ─────────────────────────────────────────────────────────────
   if (view === 'form' && form) {
@@ -995,16 +1008,6 @@ export default function OnboardingTrackerPage() {
   }
 
   // ── LIST VIEW ──────────────────────────────────────────────────────────────
-
-  // Auto-activate: if joinDate <= today and status is Preparation, activate automatically
-  const today = new Date().toISOString().slice(0, 10)
-  onboardings.forEach(ob => {
-    if (ob.workflowStatus !== 'Preparation') return
-    const emp = employees.find(e => e.id === Number(ob.employeeId))
-    if (emp?.joinDate && String(emp.joinDate).slice(0, 10) <= today) {
-      activateOnboarding(ob.id, null, 'System (Auto)')
-    }
-  })
 
   const kpis = {
     total:       onboardings.length,
