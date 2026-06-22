@@ -122,7 +122,6 @@ export default function OnboardingTrackerPage() {
   const [viewOnly,   setViewOnly  ] = useState(false)
   const [msg,        setMsg       ] = useState(null)
   const [delId,      setDelId     ] = useState(null)
-  const [templateId,     setTemplateId   ] = useState('')
   const [perTypeTplId,   setPerTypeTplId ] = useState({})
   const [form,           setForm         ] = useState(null)
   const [autoAssignOpen, setAutoAssignOpen] = useState(false)
@@ -135,7 +134,6 @@ export default function OnboardingTrackerPage() {
 
   const openNew = () => {
     setEditId(null)
-    setTemplateId('')
     setForm(JSON.parse(JSON.stringify(EMPTY_FORM)))
     setView('form')
   }
@@ -164,51 +162,6 @@ export default function OnboardingTrackerPage() {
           }
         : item
     )
-
-  const handleGenerateFromTemplate = () => {
-    if (!templateId) return
-    const tpl = templates.find(t => String(t.id) === String(templateId))
-    if (!tpl) return
-    const addRuntime = (item) => ({ ...item, id: Math.random(), date: '', completed: false })
-
-    // Build new sections from template — filter empty-type entries (legacy data)
-    let newSections = (tpl.mainSections ?? [])
-      .filter(ms => ms.type)
-      .map(ms => ({
-        ...ms,
-        id: `ms_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
-        sections: (ms.sections ?? []).map(s => ({ ...s })),
-        items:    (ms.items    ?? []).map(addRuntime),
-      }))
-
-    // Migrate old-format templates that still use generalItems/technicalItems
-    if (newSections.length === 0) {
-      const genSec  = (tpl.generalSections   ?? []).map(s => ({ ...s }))
-      const genItem = (tpl.generalItems      ?? []).map(addRuntime)
-      const techSec = (tpl.technicalSections ?? []).map(s => ({ ...s }))
-      const techItem= (tpl.technicalItems    ?? []).map(addRuntime)
-      if (genItem.length > 0 || genSec.length > 0)
-        newSections.push({ id: `ms_gen_${Date.now()}`,  type: 'Materi Induksi General', sections: genSec,  items: genItem  })
-      if (techItem.length > 0 || techSec.length > 0)
-        newSections.push({ id: `ms_tech_${Date.now()}`, type: 'Materi Induksi Teknis',  sections: techSec, items: techItem })
-    }
-
-    setForm(f => {
-      const currentEmp = employees.find(e => e.id === Number(f.employeeId))
-      const supervisor = currentEmp ? employees.find(e => e.id === currentEmp.managerId) : null
-      const rawReview  = (tpl.reviewItems ?? []).map(addRuntime)
-      return {
-        ...f,
-        // APPEND to existing sections instead of replacing
-        mainSections: [...(f.mainSections ?? []), ...newSections],
-        // Only add Periodic Review if not already present
-        reviewItems: f.reviewItems !== null
-          ? f.reviewItems
-          : (rawReview.length > 0 ? resolveDirectManager(rawReview, supervisor) : null),
-      }
-    })
-    setTemplateId('')  // reset after generate so user can pick next template
-  }
 
   const handleGenerateByType = (type) => {
     const tplId = perTypeTplId[type]
@@ -450,44 +403,6 @@ export default function OnboardingTrackerPage() {
           </div>
         )}
 
-        {/* ── Template LOV ─────────────────────────────────────────── */}
-        {!editId && (
-          <div className='mb-4'>
-          <SectionCard title={t('Mulai dari Template', 'Start from Template')} icon='⚡' bodyClass='flex flex-wrap items-end gap-4'>
-            <div className='flex items-center gap-2'>
-              <span className='text-xs font-semibold text-gray-600 whitespace-nowrap'>
-                {t('Template Onboarding', 'Onboarding Template')} :
-              </span>
-              <select value={templateId} onChange={e => setTemplateId(e.target.value)}
-                className='text-xs px-3 py-2 border border-gray-200 rounded-lg outline-none focus:border-red-400 min-w-[300px]'>
-                <option value=''>{t('-- Pilih Template (opsional) --', '-- Select Template (optional) --')}</option>
-                {templates.filter(tpl => tpl.active).map(tpl => {
-                  const parts = (tpl.mainSections ?? []).filter(ms => ms.type).map(ms => ms.type)
-                  if ((tpl.reviewItems ?? []).length > 0) parts.push('Periodic Review')
-                  // fallback for old-format templates
-                  if (parts.length === 0) {
-                    if ((tpl.generalItems  ?? []).length > 0) parts.push('Materi Induksi General')
-                    if ((tpl.technicalItems ?? []).length > 0) parts.push('Materi Induksi Teknis')
-                  }
-                  return (
-                    <option key={tpl.id} value={tpl.id}>
-                      {tpl.name}{parts.length > 0 ? ` — ${parts.join(', ')}` : ''}
-                    </option>
-                  )
-                })}
-              </select>
-            </div>
-            <ActionButton size='sm' icon='⚡' onClick={handleGenerateFromTemplate} disabled={!templateId}>
-              {t('Generate Onboarding', 'Generate Onboarding')}
-            </ActionButton>
-            {templateId && (
-              <span className='text-xs text-gray-400 italic'>
-                {t('Klik "Generate" untuk mengisi agenda dari template.', 'Click "Generate" to populate agenda from the template.')}
-              </span>
-            )}
-          </SectionCard>
-          </div>
-        )}
 
         {/* ── Form card ────────────────────────────────────────────── */}
         <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
@@ -628,7 +543,7 @@ export default function OnboardingTrackerPage() {
           {/* ── Dynamic Main Sections ─────────────────────────────── */}
           {(form.mainSections ?? []).length === 0 && form.reviewItems === null && (
             <div className='px-6 py-8 text-center text-gray-400 text-sm'>
-              {t('Belum ada Main Section. Pilih template lalu klik "Generate Onboarding".', 'No Main Sections yet. Select a template and click "Generate Onboarding".')}
+              {t('Belum ada agenda. Pilih template per tipe di atas untuk menambahkan section.', 'No agenda yet. Select a template per type above to add sections.')}
             </div>
           )}
 
