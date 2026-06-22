@@ -413,10 +413,8 @@ function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories
         <div className='space-y-2'>
           {selected.map(sg => (
             <div key={sg.id} className='flex items-center gap-2 p-2 bg-gray-50 rounded-xl border border-gray-100'>
-              <div className='border border-gray-200 rounded-lg bg-white p-1 flex items-center justify-center' style={{ width:56, height:36 }}>
-                {sg.signatureImage
-                  ? <img src={sg.signatureImage} alt='ttd' className='max-h-7 max-w-full object-contain' />
-                  : <span className='text-gray-200 text-xs'>✍</span>}
+              <div className='border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center' style={{ width:56, height:36 }}>
+                <span className='text-base'>✍</span>
               </div>
               <div className='flex-1 min-w-0'>
                 <p className='text-xs font-bold text-gray-700 truncate'>{sg.name}</p>
@@ -459,10 +457,8 @@ function SignatoryPicker({ signatoryIds, onChange, onInsertToCanvas, signatories
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${checked?'border-red-500 bg-red-500':'border-gray-300'}`}>
                       {checked && <span className='text-white text-[10px] font-bold'>✓</span>}
                     </div>
-                    <div className='border border-gray-200 rounded-lg bg-white p-1 flex items-center justify-center' style={{ width:64, height:40 }}>
-                      {sg.signatureImage
-                        ? <img src={sg.signatureImage} alt='ttd' className='max-h-8 max-w-full object-contain' />
-                        : <span className='text-gray-200 text-sm'>✍</span>}
+                    <div className='border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center' style={{ width:64, height:40 }}>
+                      <span className='text-lg'>✍</span>
                     </div>
                     <div className='flex-1 min-w-0'>
                       <p className='text-sm font-bold text-gray-800 truncate'>{sg.name}</p>
