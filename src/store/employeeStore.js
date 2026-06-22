@@ -1,4 +1,5 @@
 ﻿import { create } from 'zustand'
+import { autoAssignOnboardingForEmployee } from './onboardingAutoAssign'
 
 // ─── Action & Reason LOV ──────────────────────────────────────────────────────
 export const HISTORY_ACTIONS = [
@@ -1398,23 +1399,30 @@ export const useEmployeeStore = create((set, get) => ({
   lastAddedEmpId: null,
 
   // ── Employee CRUD ──────────────────────────────────────────────
-  addEmployee: (d) => set(s => {
+  addEmployee: (d) => {
     const id = _empId++
-    return {
-      lastAddedEmpId: id,
-      employees: [...s.employees, {
-        id, photo: null,
-        dependents: [], education: [], certifications: [], skills: [],
-        history: d.joinDate ? [{
-          id: _histId++, effectiveDate: d.joinDate, effectiveSeq: 1,
-          action: 'Hire', reason: 'New Hire',
-          companyId: d.companyId||'', departmentId: d.departmentId||'',
-          positionId: d.positionId||'', gradeId: d.gradeId||'', note: '',
-        }] : [],
-        ...d
-      }],
+    const emp = {
+      id, photo: null,
+      dependents: [], education: [], certifications: [], skills: [],
+      history: d.joinDate ? [{
+        id: _histId++, effectiveDate: d.joinDate, effectiveSeq: 1,
+        action: 'Hire', reason: 'New Hire',
+        companyId: d.companyId||'', departmentId: d.departmentId||'',
+        positionId: d.positionId||'', gradeId: d.gradeId||'', note: '',
+      }] : [],
+      ...d, id,
     }
-  }),
+    set(s => ({ lastAddedEmpId: id, employees: [...s.employees, emp] }))
+
+    // Rule-based auto-assign onboarding for the new hire so no one is missed.
+    // Done after state update; failures must not block employee creation.
+    try {
+      autoAssignOnboardingForEmployee(emp, get().employees)
+    } catch (e) {
+      console.error('Auto-assign onboarding failed:', e)
+    }
+    return id
+  },
   updateEmployee: (id, d) => set(s => ({
     employees: s.employees.map(e => e.id === id ? { ...e, ...d } : e)
   })),
