@@ -114,6 +114,7 @@ function SignatoryManager() {
   const [msg,          setMsg         ] = useState(null)
   const [preview,      setPreview     ] = useState(null)
   const [passwordGate, setPasswordGate] = useState(null) // { sg, pending }
+  const [unlockedIds,  setUnlockedIds ] = useState([])   // ids whose sig image is revealed on card
   const sigRef = useRef()
   const flash = (t, type='success') => { setMsg({t,type}); setTimeout(()=>setMsg(null),3000) }
 
@@ -193,11 +194,18 @@ function SignatoryManager() {
 
               <div className='border border-gray-100 rounded-xl bg-gray-50 p-3 mb-4 flex items-center justify-center'
                 style={{ minHeight: 80 }}>
-                {sg.signatureImage ? (
+                {!sg.signatureImage ? (
+                  <span className='text-xs text-gray-300 italic'>Belum ada gambar tanda tangan</span>
+                ) : sg.password && !unlockedIds.includes(sg.id) ? (
+                  <button
+                    onClick={() => withPassword(sg, () => setUnlockedIds(ids => [...ids, sg.id]))}
+                    className='flex flex-col items-center gap-1.5 text-gray-400 hover:text-amber-600 transition group'>
+                    <span className='text-2xl group-hover:scale-110 transition-transform'>🔒</span>
+                    <span className='text-[10px] font-semibold'>Klik untuk lihat tanda tangan</span>
+                  </button>
+                ) : (
                   <img src={sg.signatureImage} alt='tanda tangan' className='max-h-16 max-w-full object-contain cursor-zoom-in'
                     onClick={() => setPreview(sg)} />
-                ) : (
-                  <span className='text-xs text-gray-300 italic'>Belum ada gambar tanda tangan</span>
                 )}
               </div>
 
@@ -232,8 +240,8 @@ function SignatoryManager() {
       {/* Form modal */}
       {form && (
         <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4' onClick={() => setForm(null)}>
-          <div className='bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden' onClick={e=>e.stopPropagation()}>
-            <div className='px-6 py-4 flex items-center justify-between'
+          <div className='bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden' style={{ maxHeight: '90vh' }} onClick={e=>e.stopPropagation()}>
+            <div className='px-6 py-4 flex items-center justify-between flex-shrink-0'
               style={{ background:'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
               <h2 className='text-white font-bold text-sm'>
                 {form.id ? 'Edit Penandatangan' : 'Tambah Penandatangan'}
@@ -242,7 +250,7 @@ function SignatoryManager() {
                 className='w-7 h-7 flex items-center justify-center rounded-full bg-white/20 text-white text-xs hover:bg-white/30'>✕</button>
             </div>
 
-            <div className='p-6 space-y-4'>
+            <div className='p-6 space-y-4 overflow-y-auto flex-1'>
               <div>
                 <label className='block text-xs font-bold text-gray-500 mb-1'>Nama Lengkap *</label>
                 <input value={form.name || ''} onChange={e=>setForm(p=>({...p,name:e.target.value}))}
