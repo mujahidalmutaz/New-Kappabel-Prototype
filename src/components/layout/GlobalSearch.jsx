@@ -18,8 +18,7 @@ const PAGES = [
   // MSS
   { label: 'Apply Leave (My Team)',      href: '/mss/apply-leave-team',                         icon: '📝', section: 'Manager Self-Service' },
   { label: 'Approve Leave',             href: '/mss/approve-leave',                            icon: '✅', section: 'Manager Self-Service' },
-  { label: 'Onboarding Tim Saya',       href: '/mss/onboarding',                               icon: '📋', section: 'Manager Self-Service' },
-  { label: 'Onboarding Tracker',        href: '/mss/approve-onboarding',                       icon: '🎯', section: 'Manager Self-Service' },
+  { label: 'Onboarding Tim Saya',       href: '/mss/approve-onboarding',                       icon: '📋', section: 'Manager Self-Service' },
   { label: 'Team Attendance',           href: '/mss/team-attendance',                          icon: '📋', section: 'Manager Self-Service' },
   // HR - Employee
   { label: 'Employee Data',             href: '/hr/employee',                                  icon: '📋', section: 'HR Administration' },
@@ -48,7 +47,6 @@ const PAGES = [
   // HR - Onboarding
   { label: 'Onboarding Tracker (HR)',   href: '/hr/onboarding/tracker',                        icon: '📋', section: 'HR · Onboarding' },
   { label: 'Master Onboarding',         href: '/hr/onboarding/master',                         icon: '📄', section: 'HR · Onboarding' },
-  { label: 'Auto Assign Onboarding',    href: '/hr/onboarding/auto-assign',                    icon: '⚡', section: 'HR · Onboarding' },
   { label: 'Form Evaluation',           href: '/hr/evaluation',                                icon: '📊', section: 'HR · Onboarding' },
   // HR - Time & Labour
   { label: 'Shift Setting',             href: '/hr/time-labour/shift-setting',                 icon: '🕐', section: 'HR · Time & Labour' },

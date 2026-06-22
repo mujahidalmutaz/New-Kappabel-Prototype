@@ -167,8 +167,7 @@ const MSS_GROUPS = [
     { label: 'Team Performance Check-In', href: '/mss/check-in',           icon: ic('gauge') },
     { label: 'Form Feedback',              href: '/mss/feedback',           icon: ic('edit') },
     { label: 'Congratulation Message',     href: '/mss/congratulation',     icon: ic('smile') },
-    { label: 'Onboarding Tim Saya',        href: '/mss/onboarding',         icon: ic('clipboard') },
-    { label: 'Onboarding Tracker',         href: '/mss/approve-onboarding', icon: ic('userCheck') },
+    { label: 'Onboarding Tim Saya',        href: '/mss/approve-onboarding', icon: ic('userCheck') },
   ]},
   { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Personnel Action', href: '/mss/personnel-action', icon: ic('list') },
@@ -224,7 +223,6 @@ const HR_GROUPS = [
   { title: 'Onboarding', icon: '🎯', items: [
     { label: 'Onboarding Tracker',         href: '/hr/onboarding/tracker',    icon: ic('users') },
     { label: 'Master Onboarding',          href: '/hr/onboarding/master',     icon: ic('clipboard') },
-    { label: 'Auto Assign Onboarding',     href: '/hr/onboarding/auto-assign', icon: ic('zap') },
     { label: 'Form Evaluation',            href: '/hr/evaluation',            icon: ic('fileText') },
     { label: 'Form Evaluation (Contract)', href: '/hr/evaluation-contract',   icon: ic('edit') },
   ]},
