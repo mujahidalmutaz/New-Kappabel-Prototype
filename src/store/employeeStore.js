@@ -1,5 +1,4 @@
 ﻿import { create } from 'zustand'
-import IMPORTED_EMPLOYEES from '@/data/importedEmployees.json'
 
 // ─── Action & Reason LOV ──────────────────────────────────────────────────────
 export const HISTORY_ACTIONS = [
@@ -1334,18 +1333,15 @@ let _skillId   = 10
 let _histId    = 20
 
 export const useEmployeeStore = create((set, get) => ({
-  // Demo seed employees (ids 1–50, used by login/demo flows) + imported employees
-  // from the Excel upload (ids 200001+), with supervisor links resolved to ids.
-  employees: [
-    ...SEED_EMPLOYEES.map(e => ({ ...e,
-      dependents:     (e.dependents     || []).map(x=>({...x})),
-      education:      (e.education      || []).map(x=>({...x})),
-      certifications: (e.certifications || []).map(x=>({...x})),
-      skills:         (e.skills         || []).map(x=>({...x})),
-      history:        (e.history        || []).map(x=>({...x})),
-    })),
-    ...IMPORTED_EMPLOYEES,
-  ],
+  // Demo seed employees (ids 1–50, used by login/demo flows). Imported employees
+  // from the Excel upload (ids 200001+) are hydrated at runtime — see bottom of file.
+  employees: SEED_EMPLOYEES.map(e => ({ ...e,
+    dependents:     (e.dependents     || []).map(x=>({...x})),
+    education:      (e.education      || []).map(x=>({...x})),
+    certifications: (e.certifications || []).map(x=>({...x})),
+    skills:         (e.skills         || []).map(x=>({...x})),
+    history:        (e.history        || []).map(x=>({...x})),
+  })),
   lastAddedEmpId: null,
 
   // ── Employee CRUD ──────────────────────────────────────────────
@@ -1464,3 +1460,15 @@ export const useEmployeeStore = create((set, get) => ({
       : e)
   })),
 }))
+
+// ─── Hydrate imported employees (from Excel upload) ───────────────────────────
+// The dataset is large (~9.9 MB / 9,940 records), so it is served as a static
+// asset from /public and fetched at runtime instead of being bundled into the JS.
+// Appended once on the client, non-destructively, on top of the demo seed.
+if (typeof window !== 'undefined' && !window.__kpbEmployeesLoaded) {
+  window.__kpbEmployeesLoaded = true
+  fetch('/data/importedEmployees.json')
+    .then(r => r.json())
+    .then(list => useEmployeeStore.setState(s => ({ employees: [...s.employees, ...list] })))
+    .catch(() => { window.__kpbEmployeesLoaded = false })
+}

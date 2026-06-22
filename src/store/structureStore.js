@@ -1,5 +1,4 @@
 ﻿import { create } from 'zustand'
-import IMPORTED from '@/data/importedStructure.json'
 
 // Hierarchy: Enterprise → Division (sub-group) → Company → Business Unit → Department
 
@@ -236,16 +235,14 @@ const SEED_POSITIONS = [
 let _eId=2, _dId=4, _coId=4, _bId=9, _dpId=11, _jfId=5, _posId=56, _gId=73
 
 export const useStructureStore = create((set) => ({
-  // Seed data + imported org structure (from Excel upload). Imported grades reuse
-  // the existing Mercer PC map (Person Grade value === PC === gradeId).
-  enterprises:   [...SEED_ENTERPRISES.map(x=>({...x})),    ...IMPORTED.enterprises],
-  divisions:     [...SEED_DIVISIONS.map(x=>({...x})),      ...IMPORTED.divisions],
-  companies:     [...SEED_COMPANIES.map(x=>({...x})),      ...IMPORTED.companies],
-  businessUnits: [...SEED_BUSINESS_UNITS.map(x=>({...x})), ...IMPORTED.businessUnits],
-  departments:   [...SEED_DEPARTMENTS.map(x=>({...x})),    ...IMPORTED.departments],
+  enterprises:   SEED_ENTERPRISES.map(x=>({...x})),
+  divisions:     SEED_DIVISIONS.map(x=>({...x})),
+  companies:     SEED_COMPANIES.map(x=>({...x})),
+  businessUnits: SEED_BUSINESS_UNITS.map(x=>({...x})),
+  departments:   SEED_DEPARTMENTS.map(x=>({...x})),
   grades:        SEED_GRADES.map(x=>({...x})),
-  jobFamilies:   [...SEED_JOB_FAMILIES.map(x=>({...x})),   ...IMPORTED.jobFamilies],
-  positions:     [...SEED_POSITIONS.map(x=>({...x})),      ...IMPORTED.positions],
+  jobFamilies:   SEED_JOB_FAMILIES.map(x=>({...x})),
+  positions:     SEED_POSITIONS.map(x=>({...x})),
 
   addEnterprise:    (d)    => set(s=>({ enterprises:   [...s.enterprises,   { id:_eId++,  ...d }] })),
   updateEnterprise: (id,d) => set(s=>({ enterprises:   s.enterprises.map(x=>x.id===id?{...x,...d}:x) })),
@@ -279,3 +276,23 @@ export const useStructureStore = create((set) => ({
   updatePosition: (id,d) => set(s=>({ positions:    s.positions.map(x=>x.id===id?{...x,...d}:x) })),
   deletePosition: (id)   => set(s=>({ positions:    s.positions.filter(x=>x.id!==id) })),
 }))
+
+// ─── Hydrate imported org structure (from Excel upload) ───────────────────────
+// The dataset is large (~1 MB), so it is served as a static asset from /public and
+// fetched at runtime instead of being bundled into the JS. Appended once on the
+// client, non-destructively, on top of the demo seed.
+if (typeof window !== 'undefined' && !window.__kpbStructureLoaded) {
+  window.__kpbStructureLoaded = true
+  fetch('/data/importedStructure.json')
+    .then(r => r.json())
+    .then(d => useStructureStore.setState(s => ({
+      enterprises:   [...s.enterprises,   ...d.enterprises],
+      divisions:     [...s.divisions,     ...d.divisions],
+      companies:     [...s.companies,     ...d.companies],
+      businessUnits: [...s.businessUnits, ...d.businessUnits],
+      departments:   [...s.departments,   ...d.departments],
+      jobFamilies:   [...s.jobFamilies,   ...d.jobFamilies],
+      positions:     [...s.positions,     ...d.positions],
+    })))
+    .catch(() => { window.__kpbStructureLoaded = false })
+}
