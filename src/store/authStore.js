@@ -115,12 +115,15 @@ export const useAuthStore = create(
 
 // ─── Hydrate login accounts for imported employees (from Excel upload) ─────────
 // One account per imported employee: username = employee ID (NIK), password =
-// "pass123", role copied from the employee. Served as a static asset from /public
-// and appended once on the client so it stays out of the JS bundle.
+// "pass123", role copied from the employee. Source priority: DB via /api/users
+// (when configured & seeded), otherwise the static /public JSON. Appended once.
 if (typeof window !== 'undefined' && !window.__kpbUsersLoaded) {
   window.__kpbUsersLoaded = true
-  fetch('/data/importedUsers.json')
-    .then(r => r.json())
+  const load = async () => {
+    try { const r = await fetch('/api/users'); if (r.ok) return await r.json() } catch {}
+    return (await fetch('/data/importedUsers.json')).json()
+  }
+  load()
     .then(list => useAuthStore.setState(s => {
       const existing = new Set(s.userList.map(u => u.id))
       return { userList: [...s.userList, ...list.filter(u => !existing.has(u.id))] }

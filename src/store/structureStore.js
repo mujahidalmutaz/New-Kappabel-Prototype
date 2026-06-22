@@ -278,13 +278,16 @@ export const useStructureStore = create((set) => ({
 }))
 
 // ─── Hydrate imported org structure (from Excel upload) ───────────────────────
-// The dataset is large (~1 MB), so it is served as a static asset from /public and
-// fetched at runtime instead of being bundled into the JS. Appended once on the
-// client, non-destructively, on top of the demo seed.
+// Source priority: DB via /api/structure (when a database is configured & seeded),
+// otherwise the static /public JSON. Appended once on the client, non-destructively,
+// on top of the demo seed. Grades are kept from the seed (standard Mercer PC map).
 if (typeof window !== 'undefined' && !window.__kpbStructureLoaded) {
   window.__kpbStructureLoaded = true
-  fetch('/data/importedStructure.json')
-    .then(r => r.json())
+  const load = async () => {
+    try { const r = await fetch('/api/structure'); if (r.ok) return await r.json() } catch {}
+    return (await fetch('/data/importedStructure.json')).json()
+  }
+  load()
     .then(d => useStructureStore.setState(s => ({
       enterprises:   [...s.enterprises,   ...d.enterprises],
       divisions:     [...s.divisions,     ...d.divisions],

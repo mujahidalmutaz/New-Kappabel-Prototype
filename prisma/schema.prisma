@@ -11,39 +11,160 @@ datasource db {
 
 // ─── AUTH & USERS ─────────────────────────────
 model User {
-  id       Int     @id @default(autoincrement())
-  username String  @unique
-  password String
-  name     String
-  role     String  // employee | manager | hr | superadmin
-  dept     String
-  position String
-  email    String
-  salary   Int     @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int     @id                     // explicit id (matches Employee.id for imported users)
+  username   String  @unique
+  password   String
+  name       String
+  role       String  // employee | manager | hr | hr_officer | hr_manager | od_officer | od_manager | superadmin
+  dept       String  @default("")
+  position   String  @default("")
+  email      String  @default("")
+  employeeId Int?                            // link to Employee.id
+  salary     Int     @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   leaves   Leave[]
 }
 
+// ─── ORG STRUCTURE ────────────────────────────
+// Enterprise → Division → Company → Business Unit → Department; Position lives under
+// Department and references JobFamily + Grade. References use plain Int fields (with
+// indexes) rather than enforced FKs, to keep the bulk import seed order-independent.
+model Enterprise {
+  id       Int     @id
+  code     String  @default("")
+  name     String
+  country  String  @default("")
+  industry String  @default("")
+  status   String  @default("Active")
+}
+
+model Division {
+  id           Int    @id
+  enterpriseId Int?
+  code         String @default("")
+  name         String
+  headName     String @default("")
+  status       String @default("Active")
+
+  @@index([enterpriseId])
+}
+
+model Company {
+  id          Int    @id
+  divisionId  Int?
+  code        String @default("")
+  companyCode String @default("")
+  name        String
+  legalEntity String @default("")
+  country     String @default("")
+  status      String @default("Active")
+
+  @@index([divisionId])
+}
+
+model BusinessUnit {
+  id         Int    @id
+  companyId  Int?
+  code       String @default("")
+  name       String
+  costCenter String @default("")
+  status     String @default("Active")
+
+  @@index([companyId])
+}
+
+model Department {
+  id             Int    @id
+  businessUnitId Int?
+  code           String @default("")
+  name           String
+  status         String @default("Active")
+
+  @@index([businessUnitId])
+}
+
+model JobFamily {
+  id          Int    @id
+  code        String @default("")
+  name        String
+  description String @default("")
+  status      String @default("Active")
+}
+
+model Grade {
+  id        Int    @id   // == Mercer PC
+  code      String @default("")
+  pc        Int
+  name      String @default("")
+  category  String @default("")
+  minSalary Int    @default(0)
+  maxSalary Int    @default(0)
+}
+
+model Position {
+  id           Int    @id
+  departmentId Int?
+  jobFamilyId  Int?
+  gradeId      Int?
+  code         String @default("")
+  name         String
+  status       String @default("Active")
+
+  @@index([departmentId])
+  @@index([jobFamilyId])
+}
+
 // ─── EMPLOYEE ─────────────────────────────────
 model Employee {
-  id       Int     @id @default(autoincrement())
-  nik      String  @unique
-  name     String
-  dept     String
-  position String
-  role     String
-  status   String  @default("Active")
-  joinDate String
-  email    String
-  salary   Int     @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             Int     @id                 // explicit id (200001+ for imported)
+  nik            String                      // Person Number (not unique: source has 1 dup)
+  name           String
+  status         String  @default("Active")
+  // Employment / org placement
+  companyId      Int?
+  divisionId     Int?
+  businessUnitId Int?
+  departmentId   Int?
+  positionId     Int?
+  gradeId        Int?
+  managerId      Int?                         // supervisor Employee.id
+  employmentType String  @default("")
+  role           String  @default("employee")
+  joinDate       String  @default("")
+  endDate        String  @default("")
+  // Bio
+  gender         String  @default("")
+  birthPlace     String  @default("")
+  birthDate      String  @default("")
+  nationality    String  @default("")
+  religion       String  @default("")
+  maritalStatus  String  @default("")
+  ktp            String  @default("")
+  phone          String  @default("")
+  email          String  @default("")
+  personalEmail  String  @default("")
+  address        String  @default("")
+  city           String  @default("")
+  province       String  @default("")
+  country        String  @default("")
+  location       String  @default("")
+  // Legacy plain-text fields (demo compatibility)
+  dept           String  @default("")
+  position       String  @default("")
+  salary         Int     @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   payroll     Payroll?
   assignments ScheduleAssignment[]
   attendance  Attendance[]
+
+  @@index([nik])
+  @@index([managerId])
+  @@index([departmentId])
+  @@index([companyId])
 }
 
 // ─── LEAVE ────────────────────────────────────

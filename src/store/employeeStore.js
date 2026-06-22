@@ -1523,13 +1523,18 @@ export const useEmployeeStore = create((set, get) => ({
 }))
 
 // ─── Hydrate imported employees (from Excel upload) ───────────────────────────
-// The dataset is large (~9.9 MB / 9,940 records), so it is served as a static
-// asset from /public and fetched at runtime instead of being bundled into the JS.
-// Appended once on the client, non-destructively, on top of the demo seed.
+// Source priority: DB via /api/employees (when a database is configured & seeded),
+// otherwise the static /public JSON. Appended once on the client, non-destructively,
+// on top of the demo seed. Nested arrays are normalized so DB rows (which omit them)
+// don't break the CRUD actions above.
 if (typeof window !== 'undefined' && !window.__kpbEmployeesLoaded) {
   window.__kpbEmployeesLoaded = true
-  fetch('/data/importedEmployees.json')
-    .then(r => r.json())
-    .then(list => useEmployeeStore.setState(s => ({ employees: [...s.employees, ...list] })))
+  const norm = (e) => ({ dependents: [], education: [], certifications: [], skills: [], history: [], ...e })
+  const load = async () => {
+    try { const r = await fetch('/api/employees'); if (r.ok) return await r.json() } catch {}
+    return (await fetch('/data/importedEmployees.json')).json()
+  }
+  load()
+    .then(list => useEmployeeStore.setState(s => ({ employees: [...s.employees, ...list.map(norm)] })))
     .catch(() => { window.__kpbEmployeesLoaded = false })
 }
