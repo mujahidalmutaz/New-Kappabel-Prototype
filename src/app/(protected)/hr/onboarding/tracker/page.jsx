@@ -465,42 +465,46 @@ export default function OnboardingTrackerPage() {
             </div>
           </div>
 
-          {/* ── Per-type template selector (only for new/draft records) ── */}
+          {/* ── Section builder (only for new/draft records) ── */}
           {!isReadOnly && (!editId || savedStatus === 'Draft') && (() => {
-            // Collect all types that exist across active templates (new + old format)
             const activeTemplates = templates.filter(tpl => tpl.active)
-            const allTypes = []
-            activeTemplates.forEach(tpl => {
-              ;(tpl.mainSections ?? []).forEach(ms => {
-                if (ms.type && !allTypes.includes(ms.type)) allTypes.push(ms.type)
-              })
-              // Old format fallback
-              if ((tpl.generalItems  ?? []).length > 0 && !allTypes.includes('Materi Induksi General'))
-                allTypes.push('Materi Induksi General')
-              if ((tpl.technicalItems ?? []).length > 0 && !allTypes.includes('Materi Induksi Teknis'))
-                allTypes.push('Materi Induksi Teknis')
-              if ((tpl.reviewItems ?? []).length > 0 && !allTypes.includes('Periodic Review'))
-                allTypes.push('Periodic Review')
-            })
-            if (allTypes.length === 0) return null
+            const ALL_SECTION_TYPES = ['Materi Induksi General', 'Materi Induksi Teknis', 'Periodic Review']
+
+            const tplsForType = (type) => {
+              if (type === 'Periodic Review') return activeTemplates.filter(tpl => (tpl.reviewItems ?? []).length > 0)
+              return activeTemplates.filter(tpl =>
+                (tpl.mainSections ?? []).some(ms => ms.type === type) ||
+                (type === 'Materi Induksi General' && (tpl.generalItems ?? []).length > 0) ||
+                (type === 'Materi Induksi Teknis'  && (tpl.technicalItems ?? []).length > 0)
+              )
+            }
+
+            const addBlankSection = (type) => {
+              if (type === 'Periodic Review') {
+                setForm(f => f.reviewItems !== null ? f : {
+                  ...f,
+                  reviewItems: [{ id: Math.random(), agenda: '', type: '', date: '', reviewerEmpId: '', reviewerName: 'Direct Manager', reviewerPosition: '', completed: false, isDirectManager: true }],
+                })
+              } else {
+                setForm(f => {
+                  if ((f.mainSections ?? []).some(ms => ms.type === type)) return f
+                  const newMs = { id: `ms_${Date.now()}`, type, sections: [], items: [] }
+                  return { ...f, mainSections: [...(f.mainSections ?? []), newMs] }
+                })
+              }
+            }
+
             return (
               <div className='px-6 py-4 border-b border-gray-100 bg-gray-50'>
                 <div className='text-xs font-bold text-gray-500 uppercase tracking-wide mb-3'>
-                  {t('Pilih Template per Tipe', 'Select Template per Type')}
+                  {t('Tambah Section', 'Add Section')}
                 </div>
                 <div className='space-y-2'>
-                  {allTypes.map(type => {
-                    const tplsForType = activeTemplates.filter(tpl => {
-                      if (type === 'Periodic Review') return (tpl.reviewItems ?? []).length > 0
-                      if (type === 'Materi Induksi General')
-                        return (tpl.mainSections ?? []).some(ms => ms.type === type) || (tpl.generalItems ?? []).length > 0
-                      if (type === 'Materi Induksi Teknis')
-                        return (tpl.mainSections ?? []).some(ms => ms.type === type) || (tpl.technicalItems ?? []).length > 0
-                      return (tpl.mainSections ?? []).some(ms => ms.type === type)
-                    })
+                  {ALL_SECTION_TYPES.map(type => {
                     const alreadyAdded = type === 'Periodic Review'
                       ? form.reviewItems !== null
                       : (form.mainSections ?? []).some(ms => ms.type === type)
+                    const tpls = tplsForType(type)
                     return (
                       <div key={type} className='flex items-center gap-3'>
                         <span className='text-xs font-semibold text-gray-700 w-52 flex-shrink-0'>{type}</span>
@@ -510,21 +514,31 @@ export default function OnboardingTrackerPage() {
                           </span>
                         ) : (
                           <>
-                            <select
-                              value={perTypeTplId[type] || ''}
-                              onChange={e => setPerTypeTplId(prev => ({ ...prev, [type]: e.target.value }))}
-                              className='text-xs px-2 py-1.5 border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white flex-1 max-w-xs'>
-                              <option value=''>{t('-- Pilih Template --', '-- Select Template --')}</option>
-                              {tplsForType.map(tpl => (
-                                <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
-                              ))}
-                            </select>
+                            {tpls.length > 0 && (
+                              <>
+                                <select
+                                  value={perTypeTplId[type] || ''}
+                                  onChange={e => setPerTypeTplId(prev => ({ ...prev, [type]: e.target.value }))}
+                                  className='text-xs px-2 py-1.5 border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white flex-1 max-w-xs'>
+                                  <option value=''>{t('-- Pilih Template (opsional) --', '-- Select Template (optional) --')}</option>
+                                  {tpls.map(tpl => (
+                                    <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
+                                  ))}
+                                </select>
+                                <button
+                                  onClick={() => handleGenerateByType(type)}
+                                  disabled={!perTypeTplId[type]}
+                                  className='px-3 py-1.5 text-xs font-semibold rounded-lg text-white transition disabled:opacity-40 disabled:cursor-not-allowed'
+                                  style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                                  + {t('Dari Template', 'From Template')}
+                                </button>
+                                <span className='text-xs text-gray-300'>atau</span>
+                              </>
+                            )}
                             <button
-                              onClick={() => handleGenerateByType(type)}
-                              disabled={!perTypeTplId[type]}
-                              className='px-3 py-1.5 text-xs font-semibold rounded-lg text-white transition disabled:opacity-40 disabled:cursor-not-allowed'
-                              style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                              + {t('Tambah', 'Add')}
+                              onClick={() => addBlankSection(type)}
+                              className='px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-gray-600 hover:bg-white transition'>
+                              + {t('Kosong', 'Blank')}
                             </button>
                           </>
                         )}
