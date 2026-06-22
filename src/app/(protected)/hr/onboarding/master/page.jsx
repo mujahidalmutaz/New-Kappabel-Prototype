@@ -50,7 +50,6 @@ const EMPTY_FORM = {
   reviewItems: null,
   reviewSections: [],
   autoAssign: false,
-  readyToSubmit: true,
   criteria: { employmentTypes: [], departmentIds: [], companyIds: [], positionIds: [] },
 }
 
@@ -448,14 +447,6 @@ export default function MasterOnboardingPage() {
                 </button>
               </div>
 
-              <div className='flex items-center gap-3'>
-                <label className='text-xs font-semibold text-gray-600 w-32 flex-shrink-0'>Ready to Submit</label>
-                <button onClick={() => setField('readyToSubmit', !form.readyToSubmit)}
-                  className={`px-4 py-1.5 text-xs font-bold rounded-full transition ${form.readyToSubmit ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                  {form.readyToSubmit ? '✓ Auto-submit ke Pending' : '✗ Manual submit'}
-                </button>
-                <span className='text-xs text-gray-400'>Jika aktif, onboarding yang di-assign otomatis langsung masuk Pending (skip Draft)</span>
-              </div>
 
             </div>
           </SectionCard>
@@ -759,11 +750,7 @@ export default function MasterOnboardingPage() {
                   <StatusBadge tone={tpl.active ? 'success' : 'neutral'}>
                     {tpl.active ? t('Aktif','Active') : t('Nonaktif','Inactive')}
                   </StatusBadge>
-                  {tpl.readyToSubmit && (
-                    <span className='text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full w-fit'>
-                      Auto-submit
-                    </span>
-                  )}
+
                 </div>
               </Td>
               <Td className='text-gray-400 text-xs'>

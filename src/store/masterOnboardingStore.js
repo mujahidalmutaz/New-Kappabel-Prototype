@@ -101,7 +101,6 @@ function migrateTemplate(t) {
     ...(copy.criteria ?? {}),
   }
   if (copy.autoAssign === undefined) copy.autoAssign = false
-  if (copy.readyToSubmit === undefined) copy.readyToSubmit = true
   return copy
 }
 
