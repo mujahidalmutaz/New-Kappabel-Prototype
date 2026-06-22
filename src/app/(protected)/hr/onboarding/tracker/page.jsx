@@ -1021,7 +1021,7 @@ export default function OnboardingTrackerPage() {
         subtitle={t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
         actions={
           <ActionButton icon='+' onClick={openNew}>
-            {t('Tambah Onboarding', 'New Onboarding')}
+            {t('+ Onboarding Manual', '+ Manual Onboarding')}
           </ActionButton>
         }
       />
@@ -1046,7 +1046,7 @@ export default function OnboardingTrackerPage() {
           icon='🚀'
           title={t('Belum ada data onboarding.', 'No onboarding records yet.')}
           description={t('Buat onboarding pertama untuk memulai.', 'Create your first onboarding to get started.')}
-          action={<ActionButton size='sm' icon='+' onClick={openNew}>{t('Tambah Onboarding', 'New Onboarding')}</ActionButton>}
+          action={<ActionButton size='sm' icon='+' onClick={openNew}>{t('+ Onboarding Manual', '+ Manual Onboarding')}</ActionButton>}
         />
       ) : (
         <DataTable
