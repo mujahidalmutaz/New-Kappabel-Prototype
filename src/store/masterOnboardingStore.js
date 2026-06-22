@@ -129,12 +129,12 @@ export const useMasterOnboardingStore = create(
         set(s => ({ templates: s.templates.filter(t => t.id !== id) })),
     }),
     {
-      name: 'hcm-master-onboarding-v2',
+      name: 'hcm-master-onboarding-v3',
       migrate: (persisted) => ({
         ...persisted,
         templates: (persisted.templates ?? SEED).map(migrateTemplate),
       }),
-      version: 2,
+      version: 3,
     }
   )
 )

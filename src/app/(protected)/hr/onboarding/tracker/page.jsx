@@ -474,12 +474,19 @@ export default function OnboardingTrackerPage() {
             const ALL_SECTION_TYPES = ['Materi Induksi General', 'Materi Induksi Teknis', 'Periodic Review']
 
             const tplsForType = (type) => {
-              if (type === 'Periodic Review') return activeTemplates.filter(tpl => (tpl.reviewItems ?? []).length > 0)
-              return activeTemplates.filter(tpl =>
-                (tpl.mainSections ?? []).some(ms => ms.type === type) ||
-                (type === 'Materi Induksi General' && (tpl.generalItems ?? []).length > 0) ||
-                (type === 'Materi Induksi Teknis'  && (tpl.technicalItems ?? []).length > 0)
-              )
+              if (type === 'Periodic Review')
+                return activeTemplates.filter(tpl => (tpl.reviewItems ?? []).length > 0)
+              if (type === 'Materi Induksi General')
+                return activeTemplates.filter(tpl =>
+                  (tpl.mainSections ?? []).some(ms => ms.type === 'Materi Induksi General') ||
+                  (tpl.generalItems ?? []).length > 0
+                )
+              if (type === 'Materi Induksi Teknis')
+                return activeTemplates.filter(tpl =>
+                  (tpl.mainSections ?? []).some(ms => ms.type === 'Materi Induksi Teknis') ||
+                  (tpl.technicalItems ?? []).filter(ti => ti.category !== 'review').length > 0
+                )
+              return []
             }
 
             const addBlankSection = (type) => {
