@@ -8,13 +8,16 @@ import {
   PageHeader, StatCard, SectionCard, DataTable, Tr, Td,
   FormField, Input, Select, ActionButton, EmptyState, BRAND_GRADIENT,
 } from '@/components/ui'
-
-const ROLES = ['employee','manager','hr','superadmin']
+import { ROLES, ROLE_LABELS } from '@/constants/roles'
 
 const ROLE_STYLE = {
   employee:   'bg-gray-100 text-gray-600',
   manager:    'bg-blue-100 text-blue-700',
   hr:         'bg-red-100 text-red-700',
+  hr_officer: 'bg-red-100 text-red-700',
+  hr_manager: 'bg-red-100 text-red-700',
+  od_officer: 'bg-purple-100 text-purple-700',
+  od_manager: 'bg-purple-100 text-purple-700',
   superadmin: 'bg-red-100 text-red-700',
 }
 
@@ -254,7 +257,7 @@ export default function UserManagementPage() {
             {/* Role */}
             <FormField label='Role'>
               <Select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
               </Select>
             </FormField>
 
@@ -301,7 +304,7 @@ export default function UserManagementPage() {
                     </Td>
                     <Td>
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${ROLE_STYLE[u.role] || 'bg-gray-100'}`}>
-                        {u.role}
+                        {ROLE_LABELS[u.role] || u.role}
                       </span>
                     </Td>
                     <Td className='text-gray-500'>{u.dept || '—'}</Td>

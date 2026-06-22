@@ -59,6 +59,11 @@ const SEED_USERS = [
   { id:48, username:'angelo',    password:'pass123', name:'Angelo Bautista',  role:'manager',    dept:'IT',             position:'IT Manager',                email:'angelo.bautista@company.com' },
   { id:49, username:'sophia',    password:'pass123', name:'Sophia Mendoza',   role:'employee',   dept:'IT',             position:'IT Officer',                email:'sophia.mendoza@company.com' },
   { id:50, username:'luis',      password:'pass123', name:'Luis Garcia',      role:'employee',   dept:'IT',             position:'IT Officer',                email:'luis.garcia@company.com' },
+  // ── HR & Organization Development roles (can access HR menu) ─────────────────
+  { id:51, username:'hrofficer', password:'pass123', name:'Nadia Pratiwi',    role:'hr_officer', dept:'HR Operations',  position:'HR Officer',                          email:'nadia.hro@company.com'  },
+  { id:52, username:'hrmanager', password:'pass123', name:'Bambang Wijaya',   role:'hr_manager', dept:'HR Operations',  position:'HR Manager',                          email:'bambang.hrm@company.com' },
+  { id:53, username:'odofficer', password:'pass123', name:'Citra Lestari',    role:'od_officer', dept:'HR Operations',  position:'Organization Development Officer',     email:'citra.odo@company.com'  },
+  { id:54, username:'odmanager', password:'pass123', name:'Surya Hidayat',    role:'od_manager', dept:'HR Operations',  position:'Organization Development Manager',     email:'surya.odm@company.com'  },
 ]
 
 export const useAuthStore = create(

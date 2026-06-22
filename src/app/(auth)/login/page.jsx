@@ -134,6 +134,10 @@ export default function LoginPage() {
                   ['admin','pass123','Superadmin'],
                   ['rizky','pass123','CTO (Mgr)'],
                   ['kartika','pass123','CHRO (HR)'],
+                  ['hrofficer','pass123','HR Officer'],
+                  ['hrmanager','pass123','HR Manager'],
+                  ['odofficer','pass123','OD Officer'],
+                  ['odmanager','pass123','OD Manager'],
                 ].map(([u,p,r]) => (
                   <><span key={u} className='text-gray-700 font-mono cursor-pointer hover:text-red-600' onClick={() => setUsername(u)}>{u}</span>
                   <span className='text-gray-500 font-mono'>{p}</span>

@@ -10,6 +10,7 @@ import Toast                from '@/components/layout/Toast'
 import { useBrandingStore } from '@/store/brandingStore'
 import { useLanguageStore } from '@/store/languageStore'
 import { useToastStore }    from '@/store/toastStore'
+import { roleLabel }        from '@/constants/roles'
 
 // ─── Keywords that trigger a success toast ────────────────────────────────────
 const ACTION_KEYWORDS = [
@@ -120,8 +121,6 @@ export default function ProtectedLayout({ children }) {
     window.location.href = '/dashboard'
   }
 
-  const roleLabel = (r) =>
-    ({ employee: 'Employee', manager: 'Manager', hr: 'HR', superadmin: 'Superadmin' }[r] || r)
 
   const initials = (currentUser?.name || '?').trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
   const realInitials = (realUser?.name || '?').trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()

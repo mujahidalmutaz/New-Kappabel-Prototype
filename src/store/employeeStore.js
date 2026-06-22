@@ -1323,9 +1323,62 @@ const SEED_EMPLOYEES = [
       { id:1, effectiveDate:'2024-06-01', effectiveSeq:1, action:'Hire', reason:'New Hire', companyId:3, departmentId:8, positionId:55, gradeId:5, note:'' },
     ],
   },
+  // ── Demo users for HR / Organization Development roles ───────────────────────
+  {
+    id:51, nik:'EMP051', status:'Active', photo:null,
+    companyId:1, divisionId:1, businessUnitId:4, departmentId:5,
+    positionId:23, gradeId:20, employmentType:'Permanent',
+    managerId:12, joinDate:'2023-02-01', endDate:'', role:'hr_officer',
+    name:'Nadia Pratiwi', gender:'Female', birthPlace:'Jakarta',
+    birthDate:'1994-08-12', nationality:'Indonesian', religion:'Islam',
+    maritalStatus:'Single', ktp:'', npwp:'', bpjs:'',
+    phone:'0812000051', email:'nadia.hro@company.com', personalEmail:'',
+    address:'Jakarta', city:'Jakarta', country:'Indonesia',
+    dependents:[], education:[], certifications:[], skills:[],
+    history:[{ id:1, effectiveDate:'2023-02-01', effectiveSeq:1, action:'Hire', reason:'New Hire', companyId:1, departmentId:5, positionId:23, gradeId:20, note:'' }],
+  },
+  {
+    id:52, nik:'EMP052', status:'Active', photo:null,
+    companyId:1, divisionId:1, businessUnitId:4, departmentId:5,
+    positionId:22, gradeId:53, employmentType:'Permanent',
+    managerId:9, joinDate:'2021-09-01', endDate:'', role:'hr_manager',
+    name:'Bambang Wijaya', gender:'Male', birthPlace:'Semarang',
+    birthDate:'1986-03-25', nationality:'Indonesian', religion:'Islam',
+    maritalStatus:'Married', ktp:'', npwp:'', bpjs:'',
+    phone:'0812000052', email:'bambang.hrm@company.com', personalEmail:'',
+    address:'Jakarta', city:'Jakarta', country:'Indonesia',
+    dependents:[], education:[], certifications:[], skills:[],
+    history:[{ id:1, effectiveDate:'2021-09-01', effectiveSeq:1, action:'Hire', reason:'New Hire', companyId:1, departmentId:5, positionId:22, gradeId:53, note:'' }],
+  },
+  {
+    id:53, nik:'EMP053', status:'Active', photo:null,
+    companyId:1, divisionId:1, businessUnitId:4, departmentId:5,
+    positionId:23, gradeId:20, employmentType:'Permanent',
+    managerId:54, joinDate:'2023-05-15', endDate:'', role:'od_officer',
+    name:'Citra Lestari', gender:'Female', birthPlace:'Bandung',
+    birthDate:'1995-11-02', nationality:'Indonesian', religion:'Kristen',
+    maritalStatus:'Single', ktp:'', npwp:'', bpjs:'',
+    phone:'0812000053', email:'citra.odo@company.com', personalEmail:'',
+    address:'Jakarta', city:'Jakarta', country:'Indonesia',
+    dependents:[], education:[], certifications:[], skills:[],
+    history:[{ id:1, effectiveDate:'2023-05-15', effectiveSeq:1, action:'Hire', reason:'New Hire', companyId:1, departmentId:5, positionId:23, gradeId:20, note:'' }],
+  },
+  {
+    id:54, nik:'EMP054', status:'Active', photo:null,
+    companyId:1, divisionId:1, businessUnitId:4, departmentId:5,
+    positionId:22, gradeId:53, employmentType:'Permanent',
+    managerId:9, joinDate:'2020-07-01', endDate:'', role:'od_manager',
+    name:'Surya Hidayat', gender:'Male', birthPlace:'Surabaya',
+    birthDate:'1984-01-18', nationality:'Indonesian', religion:'Islam',
+    maritalStatus:'Married', ktp:'', npwp:'', bpjs:'',
+    phone:'0812000054', email:'surya.odm@company.com', personalEmail:'',
+    address:'Jakarta', city:'Jakarta', country:'Indonesia',
+    dependents:[], education:[], certifications:[], skills:[],
+    history:[{ id:1, effectiveDate:'2020-07-01', effectiveSeq:1, action:'Hire', reason:'New Hire', companyId:1, departmentId:5, positionId:22, gradeId:53, note:'' }],
+  },
 ]
 
-let _empId     = 51   // after 50 seed employees
+let _empId     = 55   // after 54 seed employees
 let _depId     = 10
 let _eduId     = 10
 let _certId    = 10
