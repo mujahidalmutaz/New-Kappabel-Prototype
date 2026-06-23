@@ -204,7 +204,7 @@ export default function EssOnboardingPage() {
   // Only show tasks assigned to the employee (or unassigned = legacy data)
   const mainSections = (form.mainSections ?? []).map(ms => ({
     ...ms,
-    items: (ms.items ?? []).filter(i => !i.assignedTo || i.assignedTo === 'employee'),
+    items: (ms.items ?? []).filter(i => { const v = i.assignedTo; return !v || v === 'self' || v === 'employee' }),
   }))
 
   return (

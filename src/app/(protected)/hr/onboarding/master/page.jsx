@@ -7,6 +7,7 @@ import { useCourseBatchStore }      from '@/store/courseBatchStore'
 import { useT }                     from '@/store/languageStore'
 import { EMP_TYPES }                from '@/utils/constants'
 import { PageHeader, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
+import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 
 // ── Row factory helpers ───────────────────────────────────────────────────────
 const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
@@ -117,18 +118,18 @@ function MentorSelect({ empId, employees, positions, onChange }) {
   )
 }
 
-// ── Assignee dropdown ─────────────────────────────────────────────────────────
-const ASSIGNEE_OPTS = [
-  { value: 'hr',       label: 'HR',       color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  { value: 'manager',  label: 'Manager',  color: 'text-purple-700 bg-purple-50 border-purple-200' },
-  { value: 'employee', label: 'Employee', color: 'text-green-700 bg-green-50 border-green-200' },
-]
-function AssigneeSelect({ value, onChange }) {
-  const opt = ASSIGNEE_OPTS.find(o => o.value === value) ?? ASSIGNEE_OPTS[0]
+function AssigneeSelect({ value, onChange, employees = [] }) {
+  const normalized = (!value || value === 'employee' || value === 'hr') ? 'self' : value
+  const isEmp = normalized.startsWith('emp:')
   return (
-    <select value={value || 'hr'} onChange={e => onChange(e.target.value)}
-      className={`px-2 py-1 text-xs border rounded outline-none focus:border-red-400 w-full min-w-[90px] font-semibold ${opt.color}`}>
-      {ASSIGNEE_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+    <select value={normalized} onChange={e => onChange(e.target.value)}
+      className={`px-2 py-1 text-xs border rounded outline-none focus:border-red-400 w-full min-w-[120px] font-semibold ${assigneeBadgeCls(normalized)}`}>
+      <option value='self'>Self (Karyawan)</option>
+      <option value='manager'>Manager Langsung</option>
+      {employees.length > 0 && <option disabled>──────────────</option>}
+      {employees.map(e => (
+        <option key={e.id} value={`emp:${e.id}`}>{e.name}</option>
+      ))}
     </select>
   )
 }
@@ -167,9 +168,9 @@ function TableHead({ t }) {
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
         {['NO', t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
-          t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), ''].map((h, i) => (
+          t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
-            style={{ minWidth: i === 1 ? 200 : i === 2 ? 160 : i === 3 ? 200 : i === 0 ? 40 : 110 }}>
+            style={{ minWidth: i === 1 ? 200 : i === 2 ? 160 : i === 3 ? 200 : i === 6 ? 130 : i === 0 ? 40 : 110 }}>
             {h}
           </th>
         ))}
@@ -583,6 +584,10 @@ export default function MasterOnboardingPage() {
                               </td>
                               <td className='px-2 py-1.5 w-32 text-xs text-gray-500'>
                                 {row.mentorPosition || <span className='text-gray-300 italic'>{t('Otomatis','Auto')}</span>}
+                              </td>
+                              <td className='px-2 py-1.5 w-36'>
+                                <AssigneeSelect value={row.assignedTo || 'self'} employees={employees}
+                                  onChange={v => updGeneral(ms.id, row.id, 'assignedTo', v)} />
                               </td>
                               <td className='px-2 py-1.5 w-10 text-center'>
                                 <button onClick={() => delGeneral(ms.id, row.id)}

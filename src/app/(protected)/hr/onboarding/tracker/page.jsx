@@ -10,6 +10,7 @@ import { useStructureStore }     from '@/store/structureStore'
 import { useCourseBatchStore }   from '@/store/courseBatchStore'
 import { useT }                  from '@/store/languageStore'
 import { PageHeader, StatCard, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
+import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 
 const PROBATION_OPTIONS = ['0', '3', '6', '12']
 const EMPLOYMENT_STATUS = ['New Hire', 'Existing Employee']
@@ -358,7 +359,7 @@ export default function OnboardingTrackerPage() {
     // The form is only locked when explicitly opened in view-only mode.
     const isReadOnly    = viewOnly
     const showCompleted = viewOnly && savedStatus === 'Approved'
-    const colSpanMain   = 8
+    const colSpanMain   = 9
     const colSpanRev    = 7
 
     const SEC_COLORS = [
@@ -601,10 +602,10 @@ export default function OnboardingTrackerPage() {
                       <thead>
                         <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
                           {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
-                            t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'),
+                            t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'),
                             showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                             <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                              style={{ minWidth: i===2?180 : i===4?160 : i===7?36 : 70 }}>{h}</th>
+                              style={{ minWidth: i===2?180 : i===4?160 : i===7?130 : i===8?36 : 70 }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -677,6 +678,21 @@ export default function OnboardingTrackerPage() {
                               }
                             </td>
                             <td className='px-2 py-1.5 w-28 text-gray-600 text-xs'>{item.mentorPosition || '—'}</td>
+                            <td className='px-2 py-1.5 w-36'>
+                              {isReadOnly
+                                ? <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${assigneeBadgeCls(item.assignedTo)}`}>
+                                    {assigneeLabel(item.assignedTo, employees)}
+                                  </span>
+                                : <select value={item.assignedTo || 'self'}
+                                    onChange={e => updateMsItem(ms.id, item.id, 'assignedTo', e.target.value)}
+                                    className={`px-2 py-1 text-xs border rounded outline-none focus:border-red-400 w-full font-semibold ${assigneeBadgeCls(item.assignedTo || 'self')}`}>
+                                    <option value='self'>Self (Karyawan)</option>
+                                    <option value='manager'>Manager Langsung</option>
+                                    {employees.length > 0 && <option disabled>──────────────</option>}
+                                    {employees.map(e => <option key={e.id} value={`emp:${e.id}`}>{e.name}</option>)}
+                                  </select>
+                              }
+                            </td>
                             <td className='px-2 py-1.5 w-9 text-center'>
                               {showCompleted
                                 ? <input type='checkbox' checked={!!item.completed} readOnly disabled className='w-4 h-4 accent-red-600 opacity-60 cursor-default' />

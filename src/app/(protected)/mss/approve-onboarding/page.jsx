@@ -8,6 +8,7 @@ import { useOnboardingStore }   from '@/store/onboardingStore'
 import { useCourseBatchStore }  from '@/store/courseBatchStore'
 import { useFeedbackStore }     from '@/store/feedbackStore'
 import { useT }                 from '@/store/languageStore'
+import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TYPE_LOV        = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
@@ -473,7 +474,7 @@ export default function ApproveOnboardingPage() {
                 <tbody className='divide-y divide-gray-100'>
                   {myTeamActive.map(ob => {
                     const allItems = (ob.mainSections ?? []).flatMap(ms => ms.items ?? [])
-                    const empItems = allItems.filter(i => (i.assignedTo || 'hr') === 'employee')
+                    const empItems = allItems.filter(i => { const v = i.assignedTo; return !v || v === 'self' || v === 'employee' || v === 'hr' })
                     const done = empItems.filter(i => i.completed).length
                     const pct = empItems.length === 0 ? 0 : Math.round(done / empItems.length * 100)
                     const emp = employees.find(e => e.id === Number(ob.employeeId))
@@ -563,11 +564,11 @@ export default function ApproveOnboardingPage() {
         {/* ── Progress Summary ── */}
         {localMainSections.length > 0 && (() => {
           const allItems = localMainSections.flatMap(ms => ms.items ?? [])
-          const byRole = (role) => allItems.filter(i => (i.assignedTo || 'hr') === role)
+          const isSelf = (v) => !v || v === 'self' || v === 'employee' || v === 'hr'
+          const selfItems  = allItems.filter(i => isSelf(i.assignedTo))
+          const mgrItems   = allItems.filter(i => i.assignedTo === 'manager')
+          const otherItems = allItems.filter(i => i.assignedTo && i.assignedTo.startsWith('emp:'))
           const pct = (items) => items.length === 0 ? 0 : Math.round(items.filter(i => i.completed).length / items.length * 100)
-          const hrItems  = byRole('hr')
-          const mgrItems = byRole('manager')
-          const empItems = byRole('employee')
           return (
             <div className='px-6 pt-5 pb-2'>
               <div className='flex items-center gap-2 mb-3'>
@@ -576,9 +577,9 @@ export default function ApproveOnboardingPage() {
               </div>
               <div className='grid grid-cols-3 gap-3'>
                 {[
-                  { label: 'HR', items: hrItems, color: 'blue' },
+                  { label: 'Self', items: selfItems, color: 'green' },
                   { label: 'Manager', items: mgrItems, color: 'purple' },
-                  { label: 'Employee', items: empItems, color: 'green' },
+                  { label: 'Lainnya', items: otherItems, color: 'orange' },
                 ].map(({ label, items, color }) => (
                   <div key={label} className={`rounded-lg border border-${color}-100 bg-${color}-50 px-4 py-3`}>
                     <div className='flex justify-between items-center mb-1.5'>
@@ -636,11 +637,8 @@ export default function ApproveOnboardingPage() {
                           <tr><td colSpan={colSpan} className='px-4 py-3 text-center text-gray-300 text-xs italic'>{t('Tidak ada baris.','No rows.')}</td></tr>
                         )}
                         {rows.map((item, idx) => {
-                          const role = item.assignedTo || 'hr'
-                          const roleCls = role === 'manager' ? 'bg-purple-50 text-purple-700 border-purple-200'
-                            : role === 'employee' ? 'bg-green-50 text-green-700 border-green-200'
-                            : 'bg-blue-50 text-blue-700 border-blue-200'
-                          const roleLabel = role === 'hr' ? 'HR' : role === 'manager' ? 'Manager' : 'Employee'
+                          const roleCls   = assigneeBadgeCls(item.assignedTo)
+                          const roleLabel = assigneeLabel(item.assignedTo, employees)
                           return (
                             <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                               <td className='px-2 py-1.5 w-10 text-center text-gray-500 font-medium'>{idx + 1}</td>
