@@ -3,6 +3,75 @@ import { useState, useEffect } from 'react'
 import { useAuthStore }        from '@/store/authStore'
 import { useOnboardingStore }  from '@/store/onboardingStore'
 import { useT }                from '@/store/languageStore'
+import { validateResponse }    from '@/utils/formBuilderUtils'
+
+// ── Form Fill Modal ───────────────────────────────────────────────────────────
+function FormFillModal({ item, onSave, onClose }) {
+  const [resp, setResp] = useState(item.formResponse ?? {})
+  const schema = item.formSchema ?? []
+  const setField = (id, val) => setResp(r => ({ ...r, [id]: val }))
+  const isValid  = validateResponse(schema, resp)
+
+  return (
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+      <div className='bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden'>
+        <div style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }} className='px-6 py-4'>
+          <h2 className='text-sm font-bold text-white'>📋 {item.module || 'Configurable Form'}</h2>
+        </div>
+        <div className='px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto'>
+          {schema.length === 0 && (
+            <p className='text-gray-400 text-sm text-center py-4'>Form belum memiliki field.</p>
+          )}
+          {schema.map(f => {
+            const val = resp[f.id] ?? ''
+            const opts = (f.options || '').split(',').map(s => s.trim()).filter(Boolean)
+            return (
+              <div key={f.id}>
+                <label className='block text-xs font-semibold text-gray-700 mb-1'>
+                  {f.label}{f.required && <span className='text-red-500 ml-0.5'>*</span>}
+                </label>
+                {f.type === 'text'     && <input value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
+                {f.type === 'textarea' && <textarea value={val} onChange={e => setField(f.id, e.target.value)} rows={3} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />}
+                {f.type === 'number'   && <input type='number' value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
+                {f.type === 'date'     && <input type='date' value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
+                {f.type === 'dropdown' && (
+                  <select value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                    <option value=''>— Pilih —</option>
+                    {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                )}
+                {f.type === 'radio' && (
+                  <div className='space-y-1'>
+                    {opts.map(o => (
+                      <label key={o} className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
+                        <input type='radio' name={f.id} value={o} checked={val === o} onChange={() => setField(f.id, o)} className='accent-red-600' />
+                        {o}
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {f.type === 'checkbox' && (
+                  <label className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
+                    <input type='checkbox' checked={!!val} onChange={e => setField(f.id, e.target.checked)} className='w-4 h-4 accent-red-600' />
+                    Ya
+                  </label>
+                )}
+              </div>
+            )
+          })}
+        </div>
+        <div className='px-6 py-4 border-t border-gray-100 flex justify-end gap-3'>
+          <button onClick={onClose} className='px-4 py-2 text-sm text-gray-500 hover:text-gray-700'>Batal</button>
+          <button onClick={() => onSave(resp)} disabled={!isValid && schema.length > 0}
+            className='px-4 py-2 text-sm font-semibold rounded-lg text-white transition disabled:opacity-40'
+            style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+            Simpan Jawaban
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const STATUS_CLS = {
   Draft:       'bg-gray-100 text-gray-600',
@@ -125,8 +194,9 @@ export default function EssOnboardingPage() {
   const isApproved      = status === 'Approved'
   const isActive        = myOnboarding && !isRejected && !isPreparation
 
-  const [form,  setForm ] = useState(null)
-  const [saved, setSaved] = useState(false)
+  const [form,       setForm      ] = useState(null)
+  const [saved,      setSaved     ] = useState(false)
+  const [fillModal,  setFillModal ] = useState(null) // { msId, item }
 
   useEffect(() => {
     if (myOnboarding) setForm(JSON.parse(JSON.stringify(myOnboarding)))
@@ -138,6 +208,15 @@ export default function EssOnboardingPage() {
       mainSections: f.mainSections.map(ms =>
         ms.id === msId
           ? { ...ms, items: ms.items.map(i => i.id === itemId ? { ...i, [key]: val } : i) }
+          : ms
+      ),
+    }))
+  const patchItem = (msId, itemId, patch) =>
+    setForm(f => ({
+      ...f,
+      mainSections: f.mainSections.map(ms =>
+        ms.id === msId
+          ? { ...ms, items: ms.items.map(i => i.id === itemId ? { ...i, ...patch } : i) }
           : ms
       ),
     }))
@@ -209,6 +288,16 @@ export default function EssOnboardingPage() {
 
   return (
     <div className='pb-10'>
+      {fillModal && (
+        <FormFillModal
+          item={fillModal.item}
+          onClose={() => setFillModal(null)}
+          onSave={resp => {
+            patchItem(fillModal.msId, fillModal.item.id, { formResponse: resp, completed: true })
+            setFillModal(null)
+          }}
+        />
+      )}
       <div className='flex items-center justify-between mb-1'>
         <h1 className='text-2xl font-bold text-gray-800'>{t('Onboarding Saya','My Onboarding')}</h1>
         <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${STATUS_CLS[myOnboarding.workflowStatus] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -330,9 +419,15 @@ export default function EssOnboardingPage() {
                           <td className='px-3 py-1.5 text-gray-800 font-medium text-xs'>{item.module || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-gray-600 text-xs w-36'>{item.type || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-xs'>
-                            {item.link
-                              ? <a href={item.link} target='_blank' rel='noreferrer' className='text-red-600 hover:underline break-all'>{item.link}</a>
-                              : <span className='text-gray-300'>—</span>}
+                            {item.type === 'Configurable Form'
+                              ? <button onClick={() => setFillModal({ msId: ms.id, item })} disabled={isRejected}
+                                  className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
+                                  {item.formResponse ? '✏ Edit Jawaban' : '📋 Isi Form'}
+                                </button>
+                              : item.link
+                                ? <a href={item.link} target='_blank' rel='noreferrer' className='text-red-600 hover:underline break-all'>{item.link}</a>
+                                : <span className='text-gray-300'>—</span>
+                            }
                           </td>
                           <td className='px-3 py-1.5 text-gray-700 text-xs w-28'>{item.mentorName || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-gray-600 text-xs w-28'>{item.mentorPosition || <span className='text-gray-300'>—</span>}</td>
@@ -377,9 +472,15 @@ export default function EssOnboardingPage() {
                               <td className='px-3 py-1.5 text-gray-800 font-medium text-xs'>{item.module || <span className='text-gray-300'>—</span>}</td>
                               <td className='px-3 py-1.5 text-gray-600 text-xs w-36'>{item.type || <span className='text-gray-300'>—</span>}</td>
                               <td className='px-3 py-1.5 text-xs'>
-                                {item.link
-                                  ? <a href={item.link} target='_blank' rel='noreferrer' className='text-red-600 hover:underline break-all'>{item.link}</a>
-                                  : <span className='text-gray-300'>—</span>}
+                                {item.type === 'Configurable Form'
+                                  ? <button onClick={() => setFillModal({ msId: ms.id, item })} disabled={isRejected}
+                                      className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
+                                      {item.formResponse ? '✏ Edit Jawaban' : '📋 Isi Form'}
+                                    </button>
+                                  : item.link
+                                    ? <a href={item.link} target='_blank' rel='noreferrer' className='text-red-600 hover:underline break-all'>{item.link}</a>
+                                    : <span className='text-gray-300'>—</span>
+                                }
                               </td>
                               <td className='px-3 py-1.5 text-gray-700 text-xs w-28'>{item.mentorName || <span className='text-gray-300'>—</span>}</td>
                               <td className='px-3 py-1.5 text-gray-600 text-xs w-28'>{item.mentorPosition || <span className='text-gray-300'>—</span>}</td>

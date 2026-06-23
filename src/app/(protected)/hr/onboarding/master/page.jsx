@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useMasterOnboardingStore } from '@/store/masterOnboardingStore'
 import { useEmployeeStore }         from '@/store/employeeStore'
 import { useStructureStore }        from '@/store/structureStore'
@@ -8,6 +8,71 @@ import { useT }                     from '@/store/languageStore'
 import { EMP_TYPES }                from '@/utils/constants'
 import { PageHeader, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
 import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
+import { FIELD_TYPES, newField } from '@/utils/formBuilderUtils'
+
+// ── Form Builder Panel ────────────────────────────────────────────────────────
+function FormBuilderPanel({ schema = [], onChange }) {
+  const fields = schema.length > 0 ? schema : []
+  const add    = () => onChange([...fields, newField()])
+  const del    = (id) => onChange(fields.filter(f => f.id !== id))
+  const upd    = (id, key, val) => onChange(fields.map(f => f.id === id ? { ...f, [key]: val } : f))
+  const move   = (idx, dir) => {
+    const arr = [...fields]
+    const swp = idx + dir
+    if (swp < 0 || swp >= arr.length) return
+    ;[arr[idx], arr[swp]] = [arr[swp], arr[idx]]
+    onChange(arr)
+  }
+
+  return (
+    <div className='mt-2 mb-1 ml-8 mr-2 rounded-lg border border-dashed border-red-200 bg-red-50/40 p-3'>
+      <div className='flex items-center justify-between mb-2'>
+        <span className='text-xs font-bold text-red-700'>⚙ Form Fields</span>
+        <button onClick={add}
+          className='text-xs px-2.5 py-1 rounded border border-red-300 text-red-600 hover:bg-red-100 font-semibold transition'>
+          + Tambah Field
+        </button>
+      </div>
+      {fields.length === 0 && (
+        <p className='text-xs text-gray-400 italic text-center py-2'>Belum ada field. Klik "+ Tambah Field" untuk mulai.</p>
+      )}
+      <div className='space-y-2'>
+        {fields.map((f, idx) => (
+          <div key={f.id} className='flex items-start gap-2 bg-white rounded border border-gray-200 px-2 py-1.5'>
+            <div className='flex flex-col gap-0.5 pt-0.5'>
+              <button onClick={() => move(idx, -1)} disabled={idx === 0}
+                className='text-[10px] text-gray-400 hover:text-gray-600 disabled:opacity-30 leading-none'>▲</button>
+              <button onClick={() => move(idx, 1)} disabled={idx === fields.length - 1}
+                className='text-[10px] text-gray-400 hover:text-gray-600 disabled:opacity-30 leading-none'>▼</button>
+            </div>
+            <div className='flex-1 grid grid-cols-1 md:grid-cols-4 gap-1.5'>
+              <input value={f.label} onChange={e => upd(f.id, 'label', e.target.value)}
+                placeholder='Label field…'
+                className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 md:col-span-2' />
+              <select value={f.type} onChange={e => upd(f.id, 'type', e.target.value)}
+                className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
+                {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+              <div className='flex items-center gap-2'>
+                <label className='flex items-center gap-1 text-xs text-gray-600 cursor-pointer'>
+                  <input type='checkbox' checked={!!f.required} onChange={e => upd(f.id, 'required', e.target.checked)}
+                    className='w-3 h-3 accent-red-600' />
+                  Wajib
+                </label>
+                <button onClick={() => del(f.id)} className='ml-auto text-red-400 hover:text-red-600 text-sm font-bold'>✕</button>
+              </div>
+              {(f.type === 'dropdown' || f.type === 'radio') && (
+                <input value={f.options || ''} onChange={e => upd(f.id, 'options', e.target.value)}
+                  placeholder='Opsi dipisah koma: A, B, C'
+                  className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 md:col-span-4' />
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // ── Row factory helpers ───────────────────────────────────────────────────────
 const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
@@ -565,35 +630,45 @@ export default function MasterOnboardingPage() {
                             </tr>
                           )}
                           {rows.map((row, idx) => (
-                            <tr key={row.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                              <td className='px-2 py-1.5 w-12 text-center text-xs text-gray-500 font-medium'>{idx + 1}</td>
-                              <td className='px-2 py-1.5'>
-                                <IC value={row.module} onChange={v => updGeneral(ms.id, row.id, 'module', v)}
-                                  placeholder={t('Nama modul…','Module name…')} wide />
-                              </td>
-                              <td className='px-2 py-1.5'>
-                                <SC value={row.type || ''} onChange={v => patchGeneral(ms.id, row.id, { type: v, link: '' })} />
-                              </td>
-                              <td className='px-2 py-1.5'>
-                                <LinkCell type={row.type} value={row.link || ''}
-                                  onChange={v => updGeneral(ms.id, row.id, 'link', v)} batches={batches} />
-                              </td>
-                              <td className='px-2 py-1.5 w-36'>
-                                <MentorSelect empId={row.mentorEmpId} employees={employees} positions={positions}
-                                  onChange={(empId, name, pos) => patchGeneral(ms.id, row.id, { mentorEmpId: empId, mentorName: name, mentorPosition: pos })} />
-                              </td>
-                              <td className='px-2 py-1.5 w-32 text-xs text-gray-500'>
-                                {row.mentorPosition || <span className='text-gray-300 italic'>{t('Otomatis','Auto')}</span>}
-                              </td>
-                              <td className='px-2 py-1.5 w-36'>
-                                <AssigneeSelect value={row.assignedTo || 'self'} employees={employees}
-                                  onChange={v => updGeneral(ms.id, row.id, 'assignedTo', v)} />
-                              </td>
-                              <td className='px-2 py-1.5 w-10 text-center'>
-                                <button onClick={() => delGeneral(ms.id, row.id)}
-                                  className='text-red-400 hover:text-red-600 text-sm font-bold transition'>✕</button>
-                              </td>
-                            </tr>
+                            <React.Fragment key={row.id}>
+                              <tr className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                                <td className='px-2 py-1.5 w-12 text-center text-xs text-gray-500 font-medium'>{idx + 1}</td>
+                                <td className='px-2 py-1.5'>
+                                  <IC value={row.module} onChange={v => updGeneral(ms.id, row.id, 'module', v)}
+                                    placeholder={t('Nama modul…','Module name…')} wide />
+                                </td>
+                                <td className='px-2 py-1.5'>
+                                  <SC value={row.type || ''} onChange={v => patchGeneral(ms.id, row.id, { type: v, link: '' })} />
+                                </td>
+                                <td className='px-2 py-1.5'>
+                                  <LinkCell type={row.type} value={row.link || ''}
+                                    onChange={v => updGeneral(ms.id, row.id, 'link', v)} batches={batches} />
+                                </td>
+                                <td className='px-2 py-1.5 w-36'>
+                                  <MentorSelect empId={row.mentorEmpId} employees={employees} positions={positions}
+                                    onChange={(empId, name, pos) => patchGeneral(ms.id, row.id, { mentorEmpId: empId, mentorName: name, mentorPosition: pos })} />
+                                </td>
+                                <td className='px-2 py-1.5 w-32 text-xs text-gray-500'>
+                                  {row.mentorPosition || <span className='text-gray-300 italic'>{t('Otomatis','Auto')}</span>}
+                                </td>
+                                <td className='px-2 py-1.5 w-36'>
+                                  <AssigneeSelect value={row.assignedTo || 'self'} employees={employees}
+                                    onChange={v => updGeneral(ms.id, row.id, 'assignedTo', v)} />
+                                </td>
+                                <td className='px-2 py-1.5 w-10 text-center'>
+                                  <button onClick={() => delGeneral(ms.id, row.id)}
+                                    className='text-red-400 hover:text-red-600 text-sm font-bold transition'>✕</button>
+                                </td>
+                              </tr>
+                              {row.type === 'Configurable Form' && (
+                                <tr>
+                                  <td colSpan={8} className='px-2 pb-2'>
+                                    <FormBuilderPanel schema={row.formSchema ?? []}
+                                      onChange={s => updGeneral(ms.id, row.id, 'formSchema', s)} />
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
                           ))}
                         </tbody>
                       </table>
