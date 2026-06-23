@@ -5,6 +5,7 @@ import { useEmployeeStore }      from '@/store/employeeStore'
 import { useWorkflowStore }      from '@/store/workflowStore'
 import { useOnboardingStore }    from '@/store/onboardingStore'
 import { useMasterOnboardingStore } from '@/store/masterOnboardingStore'
+import { useMasterFormStore }       from '@/store/masterFormStore'
 import { templateMatchesEmployee, buildOnboardingFromTemplate } from '@/store/onboardingAutoAssign'
 import { useStructureStore }     from '@/store/structureStore'
 import { useCourseBatchStore }   from '@/store/courseBatchStore'
@@ -13,52 +14,84 @@ import { PageHeader, StatCard, SectionCard, DataTable, Tr, Td, StatusBadge, Acti
 import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 import { FIELD_TYPES, newField } from '@/utils/formBuilderUtils'
 
-function FormBuilderPanel({ schema = [], onChange }) {
-  const fields = schema.length > 0 ? schema : []
-  const add    = () => onChange([...fields, newField()])
-  const del    = (id) => onChange(fields.filter(f => f.id !== id))
-  const upd    = (id, key, val) => onChange(fields.map(f => f.id === id ? { ...f, [key]: val } : f))
-  const move   = (idx, dir) => {
-    const arr = [...fields]; const swp = idx + dir
-    if (swp < 0 || swp >= arr.length) return
-    ;[arr[idx], arr[swp]] = [arr[swp], arr[idx]]; onChange(arr)
+// ── Form Picker Panel (library + custom) ──────────────────────────────────────
+function FormPickerPanel({ item, masterForms, onChange }) {
+  const [mode, setMode] = useState(item.masterFormId ? 'library' : (item.formSchema?.length > 0 ? 'custom' : 'library'))
+  const activeForms = masterForms.filter(f => f.active)
+
+  const pickLibrary = (formId) => {
+    const mf = masterForms.find(f => f.id === Number(formId))
+    onChange({ masterFormId: mf ? mf.id : null, formSchema: mf ? mf.fields : [] })
   }
+  const addField  = () => onChange({ formSchema: [...(item.formSchema ?? []), newField()] })
+  const delField  = (id) => onChange({ formSchema: (item.formSchema ?? []).filter(f => f.id !== id) })
+  const updField  = (id, key, val) => onChange({ formSchema: (item.formSchema ?? []).map(f => f.id === id ? { ...f, [key]: val } : f) })
+  const moveField = (idx, dir) => {
+    const arr = [...(item.formSchema ?? [])]; const swp = idx + dir
+    if (swp < 0 || swp >= arr.length) return
+    ;[arr[idx], arr[swp]] = [arr[swp], arr[idx]]; onChange({ formSchema: arr })
+  }
+
   return (
     <div className='mt-1 mb-1 ml-6 mr-1 rounded-lg border border-dashed border-red-200 bg-red-50/40 p-3'>
-      <div className='flex items-center justify-between mb-2'>
+      <div className='flex items-center gap-3 mb-2'>
         <span className='text-xs font-bold text-red-700'>⚙ Form Fields</span>
-        <button onClick={add} className='text-xs px-2.5 py-1 rounded border border-red-300 text-red-600 hover:bg-red-100 font-semibold transition'>+ Tambah Field</button>
+        <div className='flex rounded overflow-hidden border border-red-200 text-xs'>
+          <button onClick={() => setMode('library')} className={`px-2.5 py-1 font-semibold transition ${mode === 'library' ? 'bg-red-600 text-white' : 'bg-white text-red-600 hover:bg-red-50'}`}>Dari Library</button>
+          <button onClick={() => setMode('custom')} className={`px-2.5 py-1 font-semibold transition ${mode === 'custom' ? 'bg-red-600 text-white' : 'bg-white text-red-600 hover:bg-red-50'}`}>Custom</button>
+        </div>
       </div>
-      {fields.length === 0 && <p className='text-xs text-gray-400 italic text-center py-2'>Belum ada field.</p>}
-      <div className='space-y-2'>
-        {fields.map((f, idx) => (
-          <div key={f.id} className='flex items-start gap-2 bg-white rounded border border-gray-200 px-2 py-1.5'>
-            <div className='flex flex-col gap-0.5 pt-0.5'>
-              <button onClick={() => move(idx, -1)} disabled={idx === 0} className='text-[10px] text-gray-400 hover:text-gray-600 disabled:opacity-30 leading-none'>▲</button>
-              <button onClick={() => move(idx, 1)} disabled={idx === fields.length - 1} className='text-[10px] text-gray-400 hover:text-gray-600 disabled:opacity-30 leading-none'>▼</button>
-            </div>
-            <div className='flex-1 grid grid-cols-1 md:grid-cols-4 gap-1.5'>
-              <input value={f.label} onChange={e => upd(f.id, 'label', e.target.value)} placeholder='Label field…'
-                className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 md:col-span-2' />
-              <select value={f.type} onChange={e => upd(f.id, 'type', e.target.value)}
-                className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
-                {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+      {mode === 'library' ? (
+        <div>
+          {activeForms.length === 0
+            ? <p className='text-xs text-gray-400 italic'>Belum ada form di library. Buat di menu <strong>Master Form</strong>.</p>
+            : <select value={item.masterFormId ?? ''} onChange={e => pickLibrary(e.target.value)}
+                className='w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                <option value=''>— Pilih Form dari Library —</option>
+                {activeForms.map(f => <option key={f.id} value={f.id}>{f.name} ({(f.fields ?? []).length} field)</option>)}
               </select>
-              <div className='flex items-center gap-2'>
-                <label className='flex items-center gap-1 text-xs text-gray-600 cursor-pointer'>
-                  <input type='checkbox' checked={!!f.required} onChange={e => upd(f.id, 'required', e.target.checked)} className='w-3 h-3 accent-red-600' />Wajib
-                </label>
-                <button onClick={() => del(f.id)} className='ml-auto text-red-400 hover:text-red-600 text-sm font-bold'>✕</button>
-              </div>
-              {(f.type === 'dropdown' || f.type === 'radio') && (
-                <input value={f.options || ''} onChange={e => upd(f.id, 'options', e.target.value)}
-                  placeholder='Opsi dipisah koma: A, B, C'
-                  className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 md:col-span-4' />
-              )}
+          }
+          {item.masterFormId && (
+            <div className='mt-2 flex flex-wrap gap-1'>
+              {(item.formSchema ?? []).map(f => (
+                <span key={f.id} className='text-[10px] px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-600'>{f.label || f.type}{f.required ? ' *' : ''}</span>
+              ))}
             </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          <div className='flex justify-end mb-1'>
+            <button onClick={addField} className='text-xs px-2.5 py-1 rounded border border-red-300 text-red-600 hover:bg-red-100 font-semibold transition'>+ Tambah Field</button>
           </div>
-        ))}
-      </div>
+          {(item.formSchema ?? []).length === 0 && <p className='text-xs text-gray-400 italic text-center py-2'>Belum ada field.</p>}
+          <div className='space-y-2'>
+            {(item.formSchema ?? []).map((f, idx) => (
+              <div key={f.id} className='flex items-start gap-2 bg-white rounded border border-gray-200 px-2 py-1.5'>
+                <div className='flex flex-col gap-0.5 pt-0.5'>
+                  <button onClick={() => moveField(idx, -1)} disabled={idx === 0} className='text-[10px] text-gray-400 hover:text-gray-600 disabled:opacity-30 leading-none'>▲</button>
+                  <button onClick={() => moveField(idx, 1)} disabled={idx === (item.formSchema ?? []).length - 1} className='text-[10px] text-gray-400 hover:text-gray-600 disabled:opacity-30 leading-none'>▼</button>
+                </div>
+                <div className='flex-1 grid grid-cols-1 md:grid-cols-4 gap-1.5'>
+                  <input value={f.label} onChange={e => updField(f.id, 'label', e.target.value)} placeholder='Label field…' className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 md:col-span-2' />
+                  <select value={f.type} onChange={e => updField(f.id, 'type', e.target.value)} className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
+                    {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                  <div className='flex items-center gap-2'>
+                    <label className='flex items-center gap-1 text-xs text-gray-600 cursor-pointer'>
+                      <input type='checkbox' checked={!!f.required} onChange={e => updField(f.id, 'required', e.target.checked)} className='w-3 h-3 accent-red-600' />Wajib
+                    </label>
+                    <button onClick={() => delField(f.id)} className='ml-auto text-red-400 hover:text-red-600 text-sm font-bold'>✕</button>
+                  </div>
+                  {(f.type === 'dropdown' || f.type === 'radio') && (
+                    <input value={f.options || ''} onChange={e => updField(f.id, 'options', e.target.value)} placeholder='Opsi dipisah koma: A, B, C' className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 md:col-span-4' />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -167,6 +200,7 @@ export default function OnboardingTrackerPage() {
           activateOnboarding }                       = useOnboardingStore()
 
   const { templates }  = useMasterOnboardingStore()
+  const { forms: masterForms } = useMasterFormStore()
   const { batches }    = useCourseBatchStore()
 
   const [view,       setView      ] = useState('list')
@@ -755,8 +789,8 @@ export default function OnboardingTrackerPage() {
                           {item.type === 'Configurable Form' && !isReadOnly && (
                             <tr>
                               <td colSpan={9} className='px-2 pb-2'>
-                                <FormBuilderPanel schema={item.formSchema ?? []}
-                                  onChange={s => updateMsItem(ms.id, item.id, 'formSchema', s)} />
+                                <FormPickerPanel item={item} masterForms={masterForms}
+                                  onChange={patch => patchMsItem(ms.id, item.id, patch)} />
                               </td>
                             </tr>
                           )}

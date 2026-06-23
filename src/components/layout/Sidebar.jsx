@@ -223,6 +223,7 @@ const HR_GROUPS = [
   { title: 'Onboarding', icon: '🎯', items: [
     { label: 'Onboarding Tracker',         href: '/hr/onboarding/tracker',    icon: ic('users') },
     { label: 'Master Onboarding',          href: '/hr/onboarding/master',     icon: ic('clipboard') },
+    { label: 'Master Form',                href: '/hr/onboarding/forms',      icon: ic('fileText') },
     { label: 'Form Evaluation',            href: '/hr/evaluation',            icon: ic('fileText') },
     { label: 'Form Evaluation (Contract)', href: '/hr/evaluation-contract',   icon: ic('edit') },
   ]},
