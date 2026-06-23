@@ -257,7 +257,7 @@ export default function OnboardingTrackerPage() {
     setForm(f => ({ ...f, mainSections: f.mainSections.map(ms => ms.id !== msId ? ms :
       { ...ms, items: [...ms.items, { id: Math.random(), module: '', type: '', link: '',
           date: '', mentorName: '', mentorPosition: '', mentorEmpId: '', completed: false,
-          assignedTo: 'hr', category }] }) }))
+          assignedTo: 'employee', category }] }) }))
   const delMsItem = (msId, itemId) =>
     setForm(f => ({ ...f, mainSections: f.mainSections.map(ms => ms.id !== msId ? ms :
       { ...ms, items: ms.items.filter(i => i.id !== itemId) }) }))
@@ -358,7 +358,7 @@ export default function OnboardingTrackerPage() {
     // The form is only locked when explicitly opened in view-only mode.
     const isReadOnly    = viewOnly
     const showCompleted = viewOnly && savedStatus === 'Approved'
-    const colSpanMain   = 9
+    const colSpanMain   = 8
     const colSpanRev    = 7
 
     const SEC_COLORS = [
@@ -601,10 +601,10 @@ export default function OnboardingTrackerPage() {
                       <thead>
                         <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
                           {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
-                            t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'),
+                            t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'),
                             showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                             <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                              style={{ minWidth: i===2?180 : i===4?160 : i===7?90 : i===8?36 : 70 }}>{h}</th>
+                              style={{ minWidth: i===2?180 : i===4?160 : i===7?36 : 70 }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -677,21 +677,6 @@ export default function OnboardingTrackerPage() {
                               }
                             </td>
                             <td className='px-2 py-1.5 w-28 text-gray-600 text-xs'>{item.mentorPosition || '—'}</td>
-                            <td className='px-2 py-1.5 w-24'>
-                              {isReadOnly
-                                ? (() => {
-                                    const a = item.assignedTo || 'hr'
-                                    const cls = a === 'manager' ? 'bg-purple-50 text-purple-700 border-purple-200' : a === 'employee' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'
-                                    return <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${cls} capitalize`}>{a === 'hr' ? 'HR' : a === 'manager' ? 'Manager' : 'Employee'}</span>
-                                  })()
-                                : <select value={item.assignedTo || 'hr'} onChange={e => updateMsItem(ms.id, item.id, 'assignedTo', e.target.value)}
-                                    className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
-                                    <option value='hr'>HR</option>
-                                    <option value='manager'>Manager</option>
-                                    <option value='employee'>Employee</option>
-                                  </select>
-                              }
-                            </td>
                             <td className='px-2 py-1.5 w-9 text-center'>
                               {showCompleted
                                 ? <input type='checkbox' checked={!!item.completed} readOnly disabled className='w-4 h-4 accent-red-600 opacity-60 cursor-default' />
