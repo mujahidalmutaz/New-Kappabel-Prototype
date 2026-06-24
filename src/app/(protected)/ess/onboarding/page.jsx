@@ -6,63 +6,214 @@ import { useT }                from '@/store/languageStore'
 import { validateResponse }    from '@/utils/formBuilderUtils'
 
 // ── Form Fill Modal ───────────────────────────────────────────────────────────
-function FormFillModal({ item, onSave, onClose }) {
+const NILAI_OPTS   = ['A', 'B', 'C', 'D', 'E']
+const OBS_OPTS     = ['+', '0', '-']
+const KESIMPULAN   = ['Lulus', 'Mengulang', 'Tidak Lulus']
+
+function FormFillModal({ item, allSections, onSave, onClose }) {
   const [resp, setResp] = useState(item.formResponse ?? {})
-  const schema = item.formSchema ?? []
+  const schema   = item.formSchema ?? []
+  const formType = item.formType ?? 'field'
   const setField = (id, val) => setResp(r => ({ ...r, [id]: val }))
-  const isValid  = validateResponse(schema, resp)
+  const isValid  = formType === 'field' ? validateResponse(schema, resp) : true
+
+  // evaluasi: topics from item or auto-derive from all completed non-form tasks
+  const evalTopics = (() => {
+    if (formType !== 'evaluasi') return []
+    const pre = item.evalTopics ?? []
+    if (pre.length > 0) return pre
+    // auto: all completed items from all sections (excluding forms)
+    const auto = (allSections ?? []).flatMap(ms =>
+      (ms.items ?? []).filter(i => i.completed && i.type !== 'Configurable Form')
+        .map(i => ({ id: i.id, label: i.module || i.agenda || i.id, section: ms.type }))
+    )
+    return auto
+  })()
+
+  // summary: gather all completed tasks
+  const summaryRows = formType === 'summary'
+    ? (allSections ?? []).flatMap(ms =>
+        (ms.items ?? []).filter(i => i.completed)
+          .map(i => ({ id: i.id, label: i.module || i.agenda || '—', type: i.type, date: i.date, section: ms.type }))
+      )
+    : []
+
+  const evalMethod = item.evalMethod ?? 'nilai'
+  const scoreOpts  = evalMethod === 'nilai' ? NILAI_OPTS : OBS_OPTS
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
-      <div className='bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden'>
-        <div style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }} className='px-6 py-4'>
-          <h2 className='text-sm font-bold text-white'>📋 {item.module || 'Configurable Form'}</h2>
+      <div className='bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden'>
+        <div style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }} className='px-6 py-4 flex items-center justify-between'>
+          <h2 className='text-sm font-bold text-white'>
+            {formType === 'evaluasi' ? '📊' : formType === 'summary' ? '📋' : '📝'} {item.module || 'Form'}
+          </h2>
+          <span className='text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white capitalize'>{formType}</span>
         </div>
-        <div className='px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto'>
-          {schema.length === 0 && (
-            <p className='text-gray-400 text-sm text-center py-4'>Form belum memiliki field.</p>
-          )}
-          {schema.map(f => {
-            const val = resp[f.id] ?? ''
-            const opts = (f.options || '').split(',').map(s => s.trim()).filter(Boolean)
-            return (
-              <div key={f.id}>
-                <label className='block text-xs font-semibold text-gray-700 mb-1'>
-                  {f.label}{f.required && <span className='text-red-500 ml-0.5'>*</span>}
-                </label>
-                {f.type === 'text'     && <input value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
-                {f.type === 'textarea' && <textarea value={val} onChange={e => setField(f.id, e.target.value)} rows={3} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />}
-                {f.type === 'number'   && <input type='number' value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
-                {f.type === 'date'     && <input type='date' value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
-                {f.type === 'dropdown' && (
-                  <select value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
-                    <option value=''>— Pilih —</option>
-                    {opts.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                )}
-                {f.type === 'radio' && (
-                  <div className='space-y-1'>
-                    {opts.map(o => (
-                      <label key={o} className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
-                        <input type='radio' name={f.id} value={o} checked={val === o} onChange={() => setField(f.id, o)} className='accent-red-600' />
-                        {o}
+
+        <div className='px-6 py-5 max-h-[65vh] overflow-y-auto'>
+
+          {/* ── Field type ─────────────────────────────────────────────────── */}
+          {formType === 'field' && (
+            <div className='space-y-4'>
+              {schema.length === 0 && (
+                <p className='text-gray-400 text-sm text-center py-4'>Form belum memiliki field.</p>
+              )}
+              {schema.map(f => {
+                const val = resp[f.id] ?? ''
+                const opts = (f.options || '').split(',').map(s => s.trim()).filter(Boolean)
+                return (
+                  <div key={f.id}>
+                    <label className='block text-xs font-semibold text-gray-700 mb-1'>
+                      {f.label}{f.required && <span className='text-red-500 ml-0.5'>*</span>}
+                    </label>
+                    {f.type === 'text'     && <input value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
+                    {f.type === 'textarea' && <textarea value={val} onChange={e => setField(f.id, e.target.value)} rows={3} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />}
+                    {f.type === 'number'   && <input type='number' value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
+                    {f.type === 'date'     && <input type='date' value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />}
+                    {f.type === 'dropdown' && (
+                      <select value={val} onChange={e => setField(f.id, e.target.value)} className='w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                        <option value=''>— Pilih —</option>
+                        {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    )}
+                    {f.type === 'radio' && (
+                      <div className='space-y-1'>
+                        {opts.map(o => (
+                          <label key={o} className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
+                            <input type='radio' name={f.id} value={o} checked={val === o} onChange={() => setField(f.id, o)} className='accent-red-600' />
+                            {o}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {f.type === 'checkbox' && (
+                      <label className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
+                        <input type='checkbox' checked={!!val} onChange={e => setField(f.id, e.target.checked)} className='w-4 h-4 accent-red-600' />
+                        Ya
                       </label>
-                    ))}
+                    )}
                   </div>
-                )}
-                {f.type === 'checkbox' && (
-                  <label className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
-                    <input type='checkbox' checked={!!val} onChange={e => setField(f.id, e.target.checked)} className='w-4 h-4 accent-red-600' />
-                    Ya
-                  </label>
-                )}
+                )
+              })}
+            </div>
+          )}
+
+          {/* ── Evaluasi type ──────────────────────────────────────────────── */}
+          {formType === 'evaluasi' && (
+            <div>
+              <p className='text-xs text-gray-500 mb-3'>
+                Metode penilaian: <strong>{evalMethod === 'nilai' ? 'Nilai (A/B/C/D/E)' : 'Observasi (+/0/−)'}</strong>
+              </p>
+              {evalTopics.length === 0 ? (
+                <p className='text-sm text-gray-400 text-center py-6'>Belum ada topik evaluasi. Selesaikan task terlebih dahulu.</p>
+              ) : (
+                <table className='w-full text-xs border border-gray-200 rounded-lg overflow-hidden'>
+                  <thead>
+                    <tr className='bg-gray-50'>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600 w-8'>No</th>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600'>Topik / Materi</th>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600 w-24'>Seksi</th>
+                      <th className='px-3 py-2 text-center font-semibold text-gray-600 w-24'>
+                        {evalMethod === 'nilai' ? 'Nilai' : 'Observasi'}
+                      </th>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600 w-40'>Catatan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {evalTopics.map((t, idx) => (
+                      <tr key={t.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                        <td className='px-3 py-1.5 text-center text-gray-400'>{idx + 1}</td>
+                        <td className='px-3 py-1.5 text-gray-800 font-medium'>{t.label}</td>
+                        <td className='px-3 py-1.5 text-gray-500 text-[10px]'>{t.section || '—'}</td>
+                        <td className='px-3 py-1.5 text-center'>
+                          <select value={resp[`score_${t.id}`] ?? ''} onChange={e => setField(`score_${t.id}`, e.target.value)}
+                            className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white w-16'>
+                            <option value=''>—</option>
+                            {scoreOpts.map(o => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        </td>
+                        <td className='px-3 py-1.5'>
+                          <input value={resp[`note_${t.id}`] ?? ''} onChange={e => setField(`note_${t.id}`, e.target.value)}
+                            placeholder='opsional…'
+                            className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400' />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              <div className='mt-4 flex items-center gap-3'>
+                <label className='text-xs font-semibold text-gray-700'>Kesimpulan:</label>
+                <div className='flex gap-2'>
+                  {KESIMPULAN.map(k => (
+                    <label key={k} className='flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer'>
+                      <input type='radio' name='kesimpulan' value={k} checked={resp.kesimpulan === k}
+                        onChange={() => setField('kesimpulan', k)} className='accent-red-600' />
+                      {k}
+                    </label>
+                  ))}
+                </div>
               </div>
-            )
-          })}
+            </div>
+          )}
+
+          {/* ── Summary type ───────────────────────────────────────────────── */}
+          {formType === 'summary' && (
+            <div>
+              <p className='text-xs text-gray-500 mb-3'>Ringkasan seluruh task onboarding yang telah diselesaikan.</p>
+              {summaryRows.length === 0 ? (
+                <p className='text-sm text-gray-400 text-center py-6'>Belum ada task yang diselesaikan.</p>
+              ) : (
+                <table className='w-full text-xs border border-gray-200 rounded-lg overflow-hidden'>
+                  <thead>
+                    <tr className='bg-gray-50'>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600 w-8'>No</th>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600'>Materi / Task</th>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600 w-28'>Seksi</th>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600 w-24'>Tipe</th>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600 w-24'>Tanggal</th>
+                      <th className='px-3 py-2 text-left font-semibold text-gray-600 w-32'>Catatan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summaryRows.map((r, idx) => (
+                      <tr key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                        <td className='px-3 py-1.5 text-center text-gray-400'>{idx + 1}</td>
+                        <td className='px-3 py-1.5 text-gray-800 font-medium'>{r.label}</td>
+                        <td className='px-3 py-1.5 text-gray-500 text-[10px]'>{r.section}</td>
+                        <td className='px-3 py-1.5 text-gray-500 text-[10px]'>{r.type || '—'}</td>
+                        <td className='px-3 py-1.5 text-gray-500'>{r.date || '—'}</td>
+                        <td className='px-3 py-1.5'>
+                          <input value={resp[`note_${r.id}`] ?? ''} onChange={e => setField(`note_${r.id}`, e.target.value)}
+                            placeholder='opsional…'
+                            className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400' />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              <div className='mt-4 flex items-center gap-3'>
+                <label className='text-xs font-semibold text-gray-700'>Kesimpulan Akhir:</label>
+                <div className='flex gap-2'>
+                  {KESIMPULAN.map(k => (
+                    <label key={k} className='flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer'>
+                      <input type='radio' name='kesimpulan_summary' value={k} checked={resp.kesimpulan === k}
+                        onChange={() => setField('kesimpulan', k)} className='accent-red-600' />
+                      {k}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
+
         <div className='px-6 py-4 border-t border-gray-100 flex justify-end gap-3'>
           <button onClick={onClose} className='px-4 py-2 text-sm text-gray-500 hover:text-gray-700'>Batal</button>
-          <button onClick={() => onSave(resp)} disabled={!isValid && schema.length > 0}
+          <button onClick={() => onSave(resp)} disabled={formType === 'field' && !isValid && schema.length > 0}
             className='px-4 py-2 text-sm font-semibold rounded-lg text-white transition disabled:opacity-40'
             style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
             Simpan Jawaban
@@ -291,6 +442,7 @@ export default function EssOnboardingPage() {
       {fillModal && (
         <FormFillModal
           item={fillModal.item}
+          allSections={mainSections}
           onClose={() => setFillModal(null)}
           onSave={resp => {
             patchItem(fillModal.msId, fillModal.item.id, { formResponse: resp, completed: true })

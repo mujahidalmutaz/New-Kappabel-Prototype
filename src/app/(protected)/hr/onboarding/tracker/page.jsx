@@ -21,7 +21,14 @@ function FormPickerPanel({ item, masterForms, onChange }) {
 
   const pickLibrary = (formId) => {
     const mf = masterForms.find(f => f.id === Number(formId))
-    onChange({ masterFormId: mf ? mf.id : null, formSchema: mf ? mf.fields : [] })
+    if (!mf) { onChange({ masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [] }); return }
+    onChange({
+      masterFormId: mf.id,
+      formSchema: mf.fields ?? [],
+      formType: mf.formType ?? 'field',
+      evalMethod: mf.evalMethod ?? 'nilai',
+      evalTopics: mf.evalTopics ?? [],
+    })
   }
   const addField  = () => onChange({ formSchema: [...(item.formSchema ?? []), newField()] })
   const delField  = (id) => onChange({ formSchema: (item.formSchema ?? []).filter(f => f.id !== id) })
@@ -48,16 +55,29 @@ function FormPickerPanel({ item, masterForms, onChange }) {
             : <select value={item.masterFormId ?? ''} onChange={e => pickLibrary(e.target.value)}
                 className='w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
                 <option value=''>— Pilih Form dari Library —</option>
-                {activeForms.map(f => <option key={f.id} value={f.id}>{f.name} ({(f.fields ?? []).length} field)</option>)}
+                {activeForms.map(f => {
+                  const ft = f.formType ?? 'field'
+                  const suffix = ft === 'field' ? `${(f.fields ?? []).length} field` : ft === 'evaluasi' ? `Evaluasi · ${f.evalMethod ?? 'nilai'}` : 'Summary'
+                  return <option key={f.id} value={f.id}>{f.name} ({suffix})</option>
+                })}
               </select>
           }
-          {item.masterFormId && (
-            <div className='mt-2 flex flex-wrap gap-1'>
-              {(item.formSchema ?? []).map(f => (
-                <span key={f.id} className='text-[10px] px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-600'>{f.label || f.type}{f.required ? ' *' : ''}</span>
-              ))}
-            </div>
-          )}
+          {item.masterFormId && (() => {
+            const ft = item.formType ?? 'field'
+            if (ft === 'summary') return <p className='mt-1 text-[10px] text-teal-600 italic'>Form Summary: ringkasan otomatis task selesai.</p>
+            if (ft === 'evaluasi') return (
+              <p className='mt-1 text-[10px] text-amber-600 italic'>
+                Form Evaluasi · metode: {item.evalMethod ?? 'nilai'} · {(item.evalTopics ?? []).length} topik
+              </p>
+            )
+            return (
+              <div className='mt-2 flex flex-wrap gap-1'>
+                {(item.formSchema ?? []).map(f => (
+                  <span key={f.id} className='text-[10px] px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-600'>{f.label || f.type}{f.required ? ' *' : ''}</span>
+                ))}
+              </div>
+            )
+          })()}
         </div>
       ) : (
         <div>
