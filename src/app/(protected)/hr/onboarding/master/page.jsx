@@ -340,10 +340,10 @@ function TableHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('AGENDA [Module]','AGENDA [Module]'), t('Due Date','Due Date'), 'Type', 'Link',
+        {['NO', t('AGENDA [Module]','AGENDA [Module]'), 'H+', 'Type', 'Link',
           t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
-            style={{ minWidth: i === 1 ? 200 : i === 2 ? 100 : i === 3 ? 160 : i === 4 ? 200 : i === 7 ? 130 : i === 0 ? 40 : 110 }}>
+            style={{ minWidth: i === 1 ? 200 : i === 2 ? 70 : i === 3 ? 160 : i === 4 ? 200 : i === 7 ? 130 : i === 0 ? 40 : 110 }}>
             {h}
           </th>
         ))}
@@ -746,9 +746,13 @@ export default function MasterOnboardingPage() {
                                   <IC value={row.module} onChange={v => updGeneral(ms.id, row.id, 'module', v)}
                                     placeholder={t('Nama modul…','Module name…')} wide />
                                 </td>
-                                <td className='px-2 py-1.5 w-28'>
-                                  <input type='date' value={row.dueDate || ''} onChange={e => updGeneral(ms.id, row.id, 'dueDate', e.target.value)}
-                                    className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400' />
+                                <td className='px-2 py-1.5 w-20'>
+                                  <div className='flex items-center gap-1'>
+                                    <span className='text-[10px] font-bold text-red-600'>H+</span>
+                                    <input type='number' min='0' value={row.dueDate || ''} onChange={e => updGeneral(ms.id, row.id, 'dueDate', e.target.value)}
+                                      placeholder='0'
+                                      className='w-14 px-1.5 py-0.5 text-xs border border-gray-200 rounded outline-none focus:border-red-400 text-center' />
+                                  </div>
                                 </td>
                                 <td className='px-2 py-1.5'>
                                   <SC value={row.type || ''} onChange={v => patchGeneral(ms.id, row.id, { type: v, link: '' })} />
