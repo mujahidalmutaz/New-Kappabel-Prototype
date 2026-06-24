@@ -147,7 +147,7 @@ function calcEndDate(startDate, duration, unit) {
 }
 
 const TYPE_LOV        = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
-const REVIEW_TYPE_LOV = ['Form Evaluation', 'Form Feedback']
+const REVIEW_TYPE_LOV = ['Form Evaluation', 'Form Feedback', 'Configurable Form']
 
 const STATUS_BADGE = {
   Draft:       'bg-gray-100 text-gray-600',
@@ -875,49 +875,59 @@ export default function OnboardingTrackerPage() {
                         </td>
                       </tr>
                     ) : (form.reviewItems ?? []).map((item, idx) => (
-                      <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
-                        <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
-                        <td className='px-2 py-1.5 w-28'>
-                          <InputCell value={item.date || ''} onChange={v => updateReview(item.id, 'date', v)} type='date' disabled={isReadOnly} />
-                        </td>
-                        <td className='px-2 py-1.5'>
-                          {isReadOnly
-                            ? <span className='text-xs text-gray-600'>{item.agenda || '—'}</span>
-                            : <InputCell value={item.agenda || ''} onChange={v => updateReview(item.id, 'agenda', v)} placeholder={t('Agenda…','Agenda…')} />
-                          }
-                        </td>
-                        <td className='px-2 py-1.5 w-36'>
-                          {isReadOnly
-                            ? <span className='text-xs text-gray-600'>{item.type || '—'}</span>
-                            : <select value={item.type || ''} onChange={e => updateReview(item.id, 'type', e.target.value)}
-                                className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[140px]'>
-                                <option value=''>— Pilih —</option>
-                                {REVIEW_TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
-                              </select>
-                          }
-                        </td>
-                        <td className='px-2 py-1.5 w-36'>
-                          {isReadOnly
-                            ? <span className='text-xs text-gray-600'>{item.reviewerName || '—'}</span>
-                            : <select value={item.reviewerEmpId || ''} onChange={e => {
-                                const emp = employees.find(em => em.id === Number(e.target.value))
-                                const pos = positions.find(p => p.id === emp?.positionId)
-                                patchReview(item.id, { reviewerEmpId: e.target.value, reviewerName: emp?.name ?? '', reviewerPosition: pos?.name ?? '' })
-                              }}
-                                className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
-                                <option value=''>— Pilih Reviewer —</option>
-                                {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
-                              </select>
-                          }
-                        </td>
-                        <td className='px-2 py-1.5 w-28 text-gray-600 text-xs'>{item.reviewerPosition || '—'}</td>
-                        <td className='px-2 py-1.5 w-9 text-center'>
-                          {showCompleted
-                            ? <input type='checkbox' checked={!!item.completed} readOnly disabled className='w-4 h-4 accent-red-600 opacity-60 cursor-default' />
-                            : !isReadOnly && <button onClick={() => delReviewItem(item.id)} className='text-red-400 hover:text-red-600 text-sm font-bold transition'>✕</button>
-                          }
-                        </td>
-                      </tr>
+                      <React.Fragment key={item.id}>
+                        <tr className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                          <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
+                          <td className='px-2 py-1.5 w-28'>
+                            <InputCell value={item.date || ''} onChange={v => updateReview(item.id, 'date', v)} type='date' disabled={isReadOnly} />
+                          </td>
+                          <td className='px-2 py-1.5'>
+                            {isReadOnly
+                              ? <span className='text-xs text-gray-600'>{item.agenda || '—'}</span>
+                              : <InputCell value={item.agenda || ''} onChange={v => updateReview(item.id, 'agenda', v)} placeholder={t('Agenda…','Agenda…')} />
+                            }
+                          </td>
+                          <td className='px-2 py-1.5 w-36'>
+                            {isReadOnly
+                              ? <span className='text-xs text-gray-600'>{item.type || '—'}</span>
+                              : <select value={item.type || ''} onChange={e => patchReview(item.id, { type: e.target.value, masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] })}
+                                  className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[140px]'>
+                                  <option value=''>— Pilih —</option>
+                                  {REVIEW_TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
+                                </select>
+                            }
+                          </td>
+                          <td className='px-2 py-1.5 w-36'>
+                            {isReadOnly
+                              ? <span className='text-xs text-gray-600'>{item.reviewerName || '—'}</span>
+                              : <select value={item.reviewerEmpId || ''} onChange={e => {
+                                  const emp = employees.find(em => em.id === Number(e.target.value))
+                                  const pos = positions.find(p => p.id === emp?.positionId)
+                                  patchReview(item.id, { reviewerEmpId: e.target.value, reviewerName: emp?.name ?? '', reviewerPosition: pos?.name ?? '' })
+                                }}
+                                  className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
+                                  <option value=''>— Pilih Reviewer —</option>
+                                  {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
+                                </select>
+                            }
+                          </td>
+                          <td className='px-2 py-1.5 w-28 text-gray-600 text-xs'>{item.reviewerPosition || '—'}</td>
+                          <td className='px-2 py-1.5 w-9 text-center'>
+                            {showCompleted
+                              ? <input type='checkbox' checked={!!item.completed} readOnly disabled className='w-4 h-4 accent-red-600 opacity-60 cursor-default' />
+                              : !isReadOnly && <button onClick={() => delReviewItem(item.id)} className='text-red-400 hover:text-red-600 text-sm font-bold transition'>✕</button>
+                            }
+                          </td>
+                        </tr>
+                        {item.type === 'Configurable Form' && !isReadOnly && (
+                          <tr>
+                            <td colSpan={7} className='px-2 pb-2'>
+                              <FormPickerPanel item={item} masterForms={masterForms}
+                                onChange={patch => patchReview(item.id, patch)} />
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

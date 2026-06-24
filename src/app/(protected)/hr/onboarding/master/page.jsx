@@ -146,7 +146,7 @@ const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '',
 const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
 const newR = () => ({ id: Math.random(), agenda: '', type: '', reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
 
-const REVIEW_TYPE_LOV = ['Form Evaluation', 'Form Feedback']
+const REVIEW_TYPE_LOV = ['Form Evaluation', 'Form Feedback', 'Configurable Form']
 
 const TYPE_LOV = [
   'Manual Task',
@@ -784,33 +784,43 @@ export default function MasterOnboardingPage() {
                         </td>
                       </tr>
                     ) : form.reviewItems.map((row, idx) => (
-                      <tr key={row.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                        <td className='px-2 py-1.5 w-12 text-center text-xs text-gray-500 font-medium'>
-                          {idx + 1}
-                        </td>
-                        <td className='px-2 py-1.5'>
-                          <IC value={row.agenda} onChange={v => updReview(row.id, 'agenda', v)}
-                            placeholder={t('Agenda…','Agenda…')} wide />
-                        </td>
-                        <td className='px-2 py-1.5'>
-                          <RTC value={row.type || ''} onChange={v => updReview(row.id, 'type', v)} />
-                        </td>
-                        <td className='px-2 py-1.5 w-36'>
-                          {idx === 0
-                            ? <span className='text-xs font-semibold text-gray-700 px-1'>Direct Manager</span>
-                            : <span className='text-xs text-gray-300 italic px-1'>—</span>
-                          }
-                        </td>
-                        <td className='px-2 py-1.5 w-32 text-xs text-gray-500'>
-                          <span className='text-gray-300 italic text-xs'>{t('Otomatis','Auto')}</span>
-                        </td>
-                        <td className='px-2 py-1.5 w-10 text-center'>
-                          {idx > 0 && (
-                            <button onClick={() => delReview(row.id)}
-                              className='text-red-400 hover:text-red-600 text-sm font-bold transition'>✕</button>
-                          )}
-                        </td>
-                      </tr>
+                      <React.Fragment key={row.id}>
+                        <tr className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                          <td className='px-2 py-1.5 w-12 text-center text-xs text-gray-500 font-medium'>
+                            {idx + 1}
+                          </td>
+                          <td className='px-2 py-1.5'>
+                            <IC value={row.agenda} onChange={v => updReview(row.id, 'agenda', v)}
+                              placeholder={t('Agenda…','Agenda…')} wide />
+                          </td>
+                          <td className='px-2 py-1.5'>
+                            <RTC value={row.type || ''} onChange={v => patchReview(row.id, { type: v, masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] })} />
+                          </td>
+                          <td className='px-2 py-1.5 w-36'>
+                            {idx === 0
+                              ? <span className='text-xs font-semibold text-gray-700 px-1'>Direct Manager</span>
+                              : <span className='text-xs text-gray-300 italic px-1'>—</span>
+                            }
+                          </td>
+                          <td className='px-2 py-1.5 w-32 text-xs text-gray-500'>
+                            <span className='text-gray-300 italic text-xs'>{t('Otomatis','Auto')}</span>
+                          </td>
+                          <td className='px-2 py-1.5 w-10 text-center'>
+                            {idx > 0 && (
+                              <button onClick={() => delReview(row.id)}
+                                className='text-red-400 hover:text-red-600 text-sm font-bold transition'>✕</button>
+                            )}
+                          </td>
+                        </tr>
+                        {row.type === 'Configurable Form' && (
+                          <tr>
+                            <td colSpan={6} className='px-2 pb-2'>
+                              <FormPickerPanel row={row} masterForms={masterForms}
+                                onChange={patch => patchReview(row.id, patch)} />
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

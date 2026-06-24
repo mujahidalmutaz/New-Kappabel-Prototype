@@ -396,11 +396,11 @@ function ReviewHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), 'Type',
+        {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), 'Type', 'Form',
           t('Nama Reviewer','Reviewer Name'), t('Posisi Reviewer','Reviewer Position'),
           t('Completed','Completed')].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap text-xs'
-            style={{ minWidth: i===2?200 : i===6?80 : i===0?40 : 100 }}>{h}</th>
+            style={{ minWidth: i===2?200 : i===4?140 : i===7?80 : i===0?40 : 100 }}>{h}</th>
         ))}
       </tr>
     </thead>
@@ -619,7 +619,7 @@ export default function EssOnboardingPage() {
                     <ReviewHead t={t} />
                     <tbody>
                       {(ms.items ?? []).length === 0 ? (
-                        <tr><td colSpan={7} className='px-6 py-6 text-center text-gray-400 text-sm'>{t('Tidak ada data.','No data.')}</td></tr>
+                        <tr><td colSpan={8} className='px-6 py-6 text-center text-gray-400 text-sm'>{t('Tidak ada data.','No data.')}</td></tr>
                       ) : (ms.items ?? []).map((item, idx) => (
                         <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
                           <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
@@ -633,6 +633,15 @@ export default function EssOnboardingPage() {
                           </td>
                           <td className='px-3 py-1.5 text-gray-800'>{item.agenda || item.module || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-gray-600 w-36'>{item.type || <span className='text-gray-300'>—</span>}</td>
+                          <td className='px-3 py-1.5 text-xs'>
+                            {item.type === 'Configurable Form'
+                              ? <button onClick={() => setFillModal({ msId: ms.id, item })} disabled={isRejected}
+                                  className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
+                                  {item.formResponse ? '✏ Edit' : '📋 Isi Form'}
+                                </button>
+                              : <span className='text-gray-300'>—</span>
+                            }
+                          </td>
                           <td className='px-3 py-1.5 text-gray-700 w-28'>{item.reviewerName || item.mentorName || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-gray-600 w-28'>{item.reviewerPosition || item.mentorPosition || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-center w-16'>
