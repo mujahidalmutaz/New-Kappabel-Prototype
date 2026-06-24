@@ -172,9 +172,27 @@ export default function KeyPositionPage() {
             <div className='px-6 py-5 space-y-4'>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Posisi <span className='text-red-400'>*</span></label>
-                <input value={form.positionName} onChange={e => setForm(f => ({ ...f, positionName: e.target.value }))}
-                  placeholder='Masukkan nama posisi…'
-                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                <select
+                  value={positions?.find(p => p.name === form.positionName)?.id || ''}
+                  onChange={e => {
+                    const pos = positions?.find(p => p.id === Number(e.target.value))
+                    if (pos) {
+                      setForm(f => ({
+                        ...f,
+                        positionName: pos.name,
+                        positionId: pos.id,
+                        pcLevel: f.pcLevel || pos.gradeId || '',
+                      }))
+                    } else {
+                      setForm(f => ({ ...f, positionName: '', positionId: null }))
+                    }
+                  }}
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                  <option value=''>— Pilih Posisi —</option>
+                  {positions?.filter(p => p.status === 'Active').sort((a, b) => a.name.localeCompare(b.name)).map(p => (
+                    <option key={p.id} value={p.id}>{p.name} {p.gradeId ? `(PC ${p.gradeId})` : ''}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Incumbent <span className='text-red-400'>*</span></label>
@@ -189,6 +207,7 @@ export default function KeyPositionPage() {
                         employeeName: emp.name,
                         employeeId: emp.id,
                         positionName: f.positionName || pos?.name || '',
+                        pcLevel: f.pcLevel || pos?.gradeId || '',
                       }))
                     }
                   }}
