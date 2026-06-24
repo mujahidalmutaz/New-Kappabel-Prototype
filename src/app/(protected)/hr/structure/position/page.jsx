@@ -18,12 +18,15 @@ export default function PositionPage() {
     addPosition, updatePosition, deletePosition,
   } = useStructureStore()
 
-  const [form,    setForm   ] = useState(BLANK)
-  const [editing, setEditing] = useState(null)
-  const [msg,     setMsg    ] = useState(null)
+  const [form,       setForm     ] = useState(BLANK)
+  const [editing,    setEditing  ] = useState(null)
+  const [showModal,  setShowModal] = useState(false)
+  const [msg,        setMsg      ] = useState(null)
   const [filterDept, setFilterDept] = useState('')
 
   const flash = (text, type='success') => { setMsg({text,type}); setTimeout(()=>setMsg(null),3000) }
+
+  const openNew = () => { setEditing(null); setForm(BLANK); setShowModal(true) }
 
   const handleSave = () => {
     if (!form.departmentId || !form.gradeId || !form.code || !form.name)
@@ -34,8 +37,10 @@ export default function PositionPage() {
       jobFamilyId:  form.jobFamilyId ? +form.jobFamilyId : null,
       gradeId:      +form.gradeId,
     }
-    if (editing) { updatePosition(editing, data); setEditing(null); flash(t('Position diperbarui.','Position updated.')) }
+    if (editing) { updatePosition(editing, data); flash(t('Position diperbarui.','Position updated.')) }
     else         { addPosition(data); flash(t('Position ditambahkan.','Position added.')) }
+    setShowModal(false)
+    setEditing(null)
     setForm(BLANK)
   }
 
@@ -49,7 +54,10 @@ export default function PositionPage() {
       name:         x.name,
       status:       x.status,
     })
+    setShowModal(true)
   }
+
+  const closeModal = () => { setShowModal(false); setEditing(null); setForm(BLANK) }
 
   const deptName  = (id) => departments.find(d=>d.id===id)?.name  || '-'
   const jfName    = (id) => jobFamilies.find(j=>j.id===id)?.name  || '-'
@@ -57,7 +65,6 @@ export default function PositionPage() {
 
   const selectedGrade = grades.find(g=>g.id===+form.gradeId)
 
-  // Group grades by category for <optgroup>
   const gradeGroups = useMemo(() => {
     const map = {}
     grades.forEach(g => {
@@ -75,6 +82,14 @@ export default function PositionPage() {
 
   return (
     <div>
+      {/* Toast */}
+      {msg && (
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold
+          ${msg.type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+          {msg.type === 'error' ? '⚠' : '✓'} {msg.text}
+        </div>
+      )}
+
       <PageHeader
         icon='📌'
         title='Position'
@@ -99,133 +114,65 @@ export default function PositionPage() {
         <StatCard label={t('Job Family','Job Family')} value={jobFamilies.length} icon='🧩' tone='blue' />
       </div>
 
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-        {/* Form */}
-        <SectionCard title={`${editing?t('Edit','Edit'):t('Tambah','Add')} Position`} icon={editing?'✏️':'➕'}>
-          {msg && <div className={`mb-3 rounded-lg px-3 py-2 text-xs ${msg.type==='error'?'bg-red-50 text-red-600':'bg-emerald-50 text-emerald-700'}`}>{msg.text}</div>}
-          <div className='flex flex-col gap-3'>
-
-            <FormField label='Department' required>
-              <Select value={form.departmentId} onChange={e=>setForm(f=>({...f,departmentId:e.target.value}))}>
-                <option value=''>-- {t('Pilih Department','Select Department')} --</option>
-                {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
-              </Select>
-            </FormField>
-
-            {[[t('Kode','Code'),'code'],[t('Nama Position','Position Name'),'name']].map(([lbl,key])=>(
-              <FormField key={key} label={lbl} required>
-                <Input value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))} />
-              </FormField>
-            ))}
-
-            <FormField label='Job Family'>
-              <Select value={form.jobFamilyId} onChange={e=>setForm(f=>({...f,jobFamilyId:e.target.value}))}>
-                <option value=''>-- {t('Opsional','Optional')} --</option>
-                {jobFamilies.filter(j=>j.status==='Active').map(j=><option key={j.id} value={j.id}>{j.name}</option>)}
-              </Select>
-            </FormField>
-
-            <FormField label='Grade (Position Class)' required>
-              <Select value={form.gradeId} onChange={e=>setForm(f=>({...f,gradeId:e.target.value}))}>
-                <option value=''>-- {t('Pilih PC','Select PC')} --</option>
-                {Object.entries(gradeGroups).map(([cat, items]) => (
-                  <optgroup key={cat} label={`── ${cat} ──`}>
-                    {items.map(g => (
-                      <option key={g.id} value={g.id}>
-                        {g.code} · {g.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </Select>
-              {/* Grade preview card */}
-              {selectedGrade && (
-                <div className='mt-2 rounded-lg bg-red-50 px-3 py-2.5 text-xs ring-1 ring-red-100'>
-                  <div className='mb-1 flex items-center justify-between'>
-                    <span className='font-bold text-red-700'>{selectedGrade.code}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${PC_CATEGORY_COLOR[selectedGrade.category]}`}>
-                      {selectedGrade.category}
-                    </span>
-                  </div>
-                  <div className='font-medium text-gray-700'>{selectedGrade.name}</div>
-                  {selectedGrade.isBoard
-                    ? <div className='mt-1 text-gray-400'>Honorarium-based (non-payroll)</div>
-                    : <div className='mt-1 text-gray-500'>
-                        Salary range: {fmt(selectedGrade.minSalary)} – {fmt(selectedGrade.maxSalary)}
-                      </div>
-                  }
-                </div>
-              )}
-            </FormField>
-
-            <FormField label='Status'>
-              <Select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
-                <option>Active</option><option>Inactive</option>
-              </Select>
-            </FormField>
-
-            <div className='flex gap-2 pt-1'>
-              <ActionButton onClick={handleSave} className='flex-1'>{editing?t('Simpan','Save'):t('Tambah','Add')}</ActionButton>
-              {editing && <ActionButton variant='secondary' onClick={()=>{setEditing(null);setForm(BLANK)}}>{t('Batal','Cancel')}</ActionButton>}
-            </div>
+      {/* Table */}
+      <SectionCard
+        title={t('Daftar Position','Position List')}
+        icon='📌'
+        bodyClass='p-0'
+        actions={
+          <div className='flex items-center gap-3'>
+            <Select value={filterDept} onChange={e=>setFilterDept(e.target.value)} className='py-1.5 text-xs'>
+              <option value=''>{t('Semua Department','All Departments')}</option>
+              {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+            </Select>
+            <button onClick={openNew}
+              className='flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-lg shadow-sm hover:opacity-90 transition whitespace-nowrap'
+              style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+              + {t('Tambah Position','Add Position')}
+            </button>
           </div>
-        </SectionCard>
-
-        {/* Table */}
-        <div className='lg:col-span-2'>
-          <SectionCard
-            title={t('Daftar Position','Position List')}
-            icon='📌'
-            bodyClass='p-0'
-            actions={
-              <Select value={filterDept} onChange={e=>setFilterDept(e.target.value)} className='py-1.5 text-xs'>
-                <option value=''>{t('Semua Department','All Departments')}</option>
-                {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
-              </Select>
-            }
+        }
+      >
+        {filtered.length ? (
+          <DataTable
+            className='rounded-none shadow-none ring-0'
+            columns={[t('Kode','Code'),t('Nama Position','Position Name'),'Department','Job Family','Grade',t('Salary Range','Salary Range'),'Status',{label:t('Aksi','Action'),align:'right'}]}
           >
-            {filtered.length ? (
-              <DataTable
-                className='rounded-none shadow-none ring-0'
-                columns={[t('Kode','Code'),t('Nama Position','Position Name'),'Department','Job Family','Grade',t('Salary Range','Salary Range'),'Status',{label:t('Aksi','Action'),align:'right'}]}
-              >
-                {filtered.map(x=>{
-                  const g = grades.find(gr=>gr.id===x.gradeId)
-                  return (
-                    <Tr key={x.id}>
-                      <Td className='font-mono text-xs text-gray-500'>{x.code}</Td>
-                      <Td className='font-medium text-gray-800'>{x.name}</Td>
-                      <Td className='text-xs text-gray-500'>{deptName(x.departmentId)}</Td>
-                      <Td className='text-xs text-gray-500'>{x.jobFamilyId ? jfName(x.jobFamilyId) : '-'}</Td>
-                      <Td>
-                        <span className='rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700'>
-                          {gradeCode(x.gradeId)}
-                        </span>
-                      </Td>
-                      <Td className='whitespace-nowrap text-xs text-gray-500'>
-                        {g ? `${fmt(g.minSalary)} – ${fmt(g.maxSalary)}` : '-'}
-                      </Td>
-                      <Td><StatusBadge status={x.status} /></Td>
-                      <Td align='right'>
-                        <div className='flex justify-end gap-2'>
-                          <ActionButton size='sm' variant='secondary' onClick={()=>handleEdit(x)}>Edit</ActionButton>
-                          <ActionButton size='sm' variant='danger' onClick={()=>deletePosition(x.id)}>{t('Hapus','Delete')}</ActionButton>
-                        </div>
-                      </Td>
-                    </Tr>
-                  )
-                })}
-              </DataTable>
-            ) : (
-              <div className='p-5'>
-                <EmptyState icon='📌' title={t('Belum ada position.','No positions yet.')} />
-              </div>
-            )}
-          </SectionCard>
-        </div>
-      </div>
+            {filtered.map(x=>{
+              const g = grades.find(gr=>gr.id===x.gradeId)
+              return (
+                <Tr key={x.id}>
+                  <Td className='font-mono text-xs text-gray-500'>{x.code}</Td>
+                  <Td className='font-medium text-gray-800'>{x.name}</Td>
+                  <Td className='text-xs text-gray-500'>{deptName(x.departmentId)}</Td>
+                  <Td className='text-xs text-gray-500'>{x.jobFamilyId ? jfName(x.jobFamilyId) : '-'}</Td>
+                  <Td>
+                    <span className='rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700'>
+                      {gradeCode(x.gradeId)}
+                    </span>
+                  </Td>
+                  <Td className='whitespace-nowrap text-xs text-gray-500'>
+                    {g ? `${fmt(g.minSalary)} – ${fmt(g.maxSalary)}` : '-'}
+                  </Td>
+                  <Td><StatusBadge status={x.status} /></Td>
+                  <Td align='right'>
+                    <div className='flex justify-end gap-2'>
+                      <ActionButton size='sm' variant='secondary' onClick={()=>handleEdit(x)}>Edit</ActionButton>
+                      <ActionButton size='sm' variant='danger' onClick={()=>deletePosition(x.id)}>{t('Hapus','Delete')}</ActionButton>
+                    </div>
+                  </Td>
+                </Tr>
+              )
+            })}
+          </DataTable>
+        ) : (
+          <div className='p-5'>
+            <EmptyState icon='📌' title={t('Belum ada position.','No positions yet.')} />
+          </div>
+        )}
+      </SectionCard>
 
-      {/* Grade Reference — grouped by category */}
+      {/* Grade Reference */}
       <div className='mt-6'>
         <SectionCard title={t('Position Class Reference (PC 1–72)','Position Class Reference (PC 1–72)')} icon='📊'>
           {Object.entries(gradeGroups).map(([cat, items]) => (
@@ -256,6 +203,88 @@ export default function PositionPage() {
           ))}
         </SectionCard>
       </div>
+
+      {/* Modal Add/Edit */}
+      {showModal && (
+        <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4' onClick={closeModal}>
+          <div className='bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto' onClick={e=>e.stopPropagation()}>
+            <div className='px-6 py-4 border-b border-gray-100 flex items-center justify-between'>
+              <h2 className='text-base font-bold text-gray-800'>
+                {editing ? t('Edit Position','Edit Position') : t('Tambah Position','Add Position')}
+              </h2>
+              <button onClick={closeModal} className='text-gray-400 hover:text-gray-600 text-xl font-bold leading-none'>×</button>
+            </div>
+            <div className='px-6 py-5 space-y-4'>
+              <FormField label='Department' required>
+                <Select value={form.departmentId} onChange={e=>setForm(f=>({...f,departmentId:e.target.value}))}>
+                  <option value=''>-- {t('Pilih Department','Select Department')} --</option>
+                  {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+                </Select>
+              </FormField>
+
+              {[[t('Kode','Code'),'code'],[t('Nama Position','Position Name'),'name']].map(([lbl,key])=>(
+                <FormField key={key} label={lbl} required>
+                  <Input value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))} />
+                </FormField>
+              ))}
+
+              <FormField label='Job Family'>
+                <Select value={form.jobFamilyId} onChange={e=>setForm(f=>({...f,jobFamilyId:e.target.value}))}>
+                  <option value=''>-- {t('Opsional','Optional')} --</option>
+                  {jobFamilies.filter(j=>j.status==='Active').map(j=><option key={j.id} value={j.id}>{j.name}</option>)}
+                </Select>
+              </FormField>
+
+              <FormField label='Grade (Position Class)' required>
+                <Select value={form.gradeId} onChange={e=>setForm(f=>({...f,gradeId:e.target.value}))}>
+                  <option value=''>-- {t('Pilih PC','Select PC')} --</option>
+                  {Object.entries(gradeGroups).map(([cat, items]) => (
+                    <optgroup key={cat} label={`── ${cat} ──`}>
+                      {items.map(g => (
+                        <option key={g.id} value={g.id}>{g.code} · {g.name}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </Select>
+                {selectedGrade && (
+                  <div className='mt-2 rounded-lg bg-red-50 px-3 py-2.5 text-xs ring-1 ring-red-100'>
+                    <div className='mb-1 flex items-center justify-between'>
+                      <span className='font-bold text-red-700'>{selectedGrade.code}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${PC_CATEGORY_COLOR[selectedGrade.category]}`}>
+                        {selectedGrade.category}
+                      </span>
+                    </div>
+                    <div className='font-medium text-gray-700'>{selectedGrade.name}</div>
+                    {selectedGrade.isBoard
+                      ? <div className='mt-1 text-gray-400'>Honorarium-based (non-payroll)</div>
+                      : <div className='mt-1 text-gray-500'>
+                          Salary range: {fmt(selectedGrade.minSalary)} – {fmt(selectedGrade.maxSalary)}
+                        </div>
+                    }
+                  </div>
+                )}
+              </FormField>
+
+              <FormField label='Status'>
+                <Select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
+                  <option>Active</option><option>Inactive</option>
+                </Select>
+              </FormField>
+            </div>
+            <div className='px-6 pb-5 flex gap-3'>
+              <button onClick={handleSave}
+                className='flex-1 py-2.5 text-sm font-semibold text-white rounded-xl hover:opacity-90 transition'
+                style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                {editing ? t('Simpan Perubahan','Save Changes') : t('Tambah Position','Add Position')}
+              </button>
+              <button onClick={closeModal}
+                className='flex-1 py-2.5 text-sm font-semibold bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition'>
+                {t('Batal','Cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
