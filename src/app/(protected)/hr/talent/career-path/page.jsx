@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useTalentStore } from '@/store/talentStore'
+import { useEmployeeStore } from '@/store/employeeStore'
+import { useStructureStore } from '@/store/structureStore'
 
 const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
 
@@ -27,6 +29,8 @@ const PATH_EMPTY = { employeeName: '', currentPosition: '', currentPCLevel: '' }
 
 export default function CareerPathPage() {
   const { careerPaths, addCareerPath, deleteCareerPath, addCareerStep, updateCareerStep, deleteCareerStep } = useTalentStore()
+  const { employees } = useEmployeeStore()
+  const { positions } = useStructureStore()
 
   const [filterDir, setFilterDir] = useState('all')
   const [showModal, setShowModal] = useState(false)
@@ -344,9 +348,27 @@ export default function CareerPathPage() {
             <div className='px-6 py-5 space-y-4'>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Karyawan <span className='text-red-400'>*</span></label>
-                <input value={form.employeeName} onChange={e => setForm(f => ({ ...f, employeeName: e.target.value }))}
-                  placeholder='Nama karyawan…'
-                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                <select
+                  value={employees.find(e => e.name === form.employeeName)?.id || ''}
+                  onChange={e => {
+                    const emp = employees.find(x => x.id === Number(e.target.value))
+                    if (emp) {
+                      const pos = positions?.find(p => p.id === emp.positionId)
+                      setForm(f => ({
+                        ...f,
+                        employeeName: emp.name,
+                        employeeId: emp.id,
+                        currentPosition: pos?.name || f.currentPosition,
+                        currentPCLevel: emp.gradeId || f.currentPCLevel,
+                      }))
+                    }
+                  }}
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                  <option value=''>— Pilih Karyawan —</option>
+                  {employees.filter(e => e.status === 'Active').map(e => (
+                    <option key={e.id} value={e.id}>{e.name} ({e.nik || ''})</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Posisi Saat Ini <span className='text-red-400'>*</span></label>

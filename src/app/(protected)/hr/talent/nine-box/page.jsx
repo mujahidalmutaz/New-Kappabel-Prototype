@@ -262,6 +262,89 @@ export default function NineBoxPage() {
         </div>
       )}
 
+      {/* Import dari Evaluasi modal (GAP 4) */}
+      {showImport && (() => {
+        // evaluationStore: evaluations have employeeId, employeeName, status, coreValues/coreCompetency/etc with ratings
+        // Build a performance score from submitted evaluations: average of all rated items
+        const calcEvalScore = (ev) => {
+          const allItems = [
+            ...(ev.coreValues || []),
+            ...(ev.coreCompetency || []),
+            ...(ev.strategicLeadership || []),
+            ...(ev.technicalCompetency || []),
+          ].filter(it => it.rating != null)
+          if (!allItems.length) return null
+          // ratings are expected to be numeric 1-5 or strings; parse safely
+          const sum = allItems.reduce((s, it) => s + (Number(it.rating) || 0), 0)
+          return Math.round((sum / allItems.length) * 10) / 10
+        }
+        const completedEvals = evaluations.filter(ev => ev.status === 'Submitted')
+        return (
+          <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4' onClick={() => setShowImport(false)}>
+            <div className='bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto' onClick={e => e.stopPropagation()}>
+              <div className='px-6 py-4 border-b border-gray-100 flex items-center justify-between'>
+                <h2 className='text-base font-bold text-gray-800'>Import dari Evaluasi Kinerja</h2>
+                <button onClick={() => setShowImport(false)} className='text-gray-400 hover:text-gray-600 text-xl font-bold'>×</button>
+              </div>
+              <div className='px-6 py-4'>
+                {completedEvals.length === 0 ? (
+                  <p className='text-sm text-gray-400 text-center py-6'>Belum ada evaluasi yang telah disubmit tahun ini.</p>
+                ) : (
+                  <div className='space-y-2'>
+                    <p className='text-xs text-gray-500 mb-3'>Pilih karyawan untuk di-import skor performanya ke 9-Box. Skor dihitung dari rata-rata rating evaluasi.</p>
+                    {completedEvals.map(ev => {
+                      const perfScore = calcEvalScore(ev)
+                      const alreadyIn = talentBoxes.some(t =>
+                        (t.employeeId === ev.employeeId || t.employeeName === ev.employeeName) && t.year === yearFilter
+                      )
+                      return (
+                        <div key={ev.id} className='flex items-center justify-between px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-100'>
+                          <div>
+                            <p className='text-sm font-semibold text-gray-800'>{ev.employeeName}</p>
+                            <p className='text-xs text-gray-400'>
+                              {perfScore != null ? `Skor Evaluasi: ${perfScore}/5` : 'Belum ada rating'}
+                              {alreadyIn && <span className='ml-2 text-green-600 font-medium'>✓ Sudah ada</span>}
+                            </p>
+                          </div>
+                          <button
+                            disabled={perfScore == null}
+                            onClick={() => {
+                              const { col, row } = calcBox(perfScore, 0)
+                              const boxCol = col
+                              const boxRow = 1 // default low competency until assessment syncs
+                              addTalentBox({
+                                employeeId: ev.employeeId,
+                                employeeName: ev.employeeName,
+                                year: yearFilter,
+                                performanceScore: perfScore,
+                                competencyScore: 0,
+                                boxRow,
+                                boxCol,
+                                boxLabel: BOX_CONFIG[`${boxRow}-${boxCol}`]?.label || 'Underperformer',
+                                notes: `Import dari evaluasi ${yearFilter}`,
+                              })
+                              flash(`${ev.employeeName} berhasil diimport ke 9-Box.`)
+                            }}
+                            className='px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-40 transition'>
+                            Import
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className='px-6 pb-5'>
+                <button onClick={() => setShowImport(false)}
+                  className='w-full py-2.5 text-sm font-semibold bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition'>
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Add/Edit modal */}
       {showModal && (
         <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4' onClick={() => setShowModal(false)}>

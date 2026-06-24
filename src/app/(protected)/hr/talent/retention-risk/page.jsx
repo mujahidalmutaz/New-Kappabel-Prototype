@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useTalentStore } from '@/store/talentStore'
+import { useEmployeeStore } from '@/store/employeeStore'
+import { useStructureStore } from '@/store/structureStore'
 
 const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
 
@@ -57,6 +59,8 @@ function RiskScoreBar({ score }) {
 
 export default function RetentionRiskPage() {
   const { retentionRisks, addRetentionRisk, deleteRetentionRisk, resolveRetentionRisk, updateRetentionRisk } = useTalentStore()
+  const { employees } = useEmployeeStore()
+  const { positions, departments } = useStructureStore()
 
   const [filterLevel, setFilterLevel] = useState('all')
   const [filterResolved, setFilterResolved] = useState('all')
@@ -420,9 +424,28 @@ export default function RetentionRiskPage() {
               <div className='grid grid-cols-2 gap-3'>
                 <div className='col-span-2'>
                   <label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Karyawan <span className='text-red-400'>*</span></label>
-                  <input value={flagForm.employeeName} onChange={e => setFlagForm(f => ({ ...f, employeeName: e.target.value }))}
-                    placeholder='Nama karyawan…'
-                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                  <select
+                    value={employees.find(e => e.name === flagForm.employeeName)?.id || ''}
+                    onChange={e => {
+                      const emp = employees.find(x => x.id === Number(e.target.value))
+                      if (emp) {
+                        const pos = positions?.find(p => p.id === emp.positionId)
+                        const dept = departments?.find(d => d.id === emp.departmentId)
+                        setFlagForm(f => ({
+                          ...f,
+                          employeeName: emp.name,
+                          employeeId: emp.id,
+                          position: pos?.name || f.position,
+                          department: dept?.name || f.department,
+                        }))
+                      }
+                    }}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                    <option value=''>— Pilih Karyawan —</option>
+                    {employees.filter(e => e.status === 'Active').map(e => (
+                      <option key={e.id} value={e.id}>{e.name} ({e.nik || ''})</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className='block text-xs font-semibold text-gray-600 mb-1'>Posisi</label>

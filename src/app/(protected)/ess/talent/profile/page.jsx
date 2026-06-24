@@ -153,12 +153,12 @@ export default function MyTalentProfile() {
               <h3 className="font-semibold text-gray-800 mb-3">Informasi Saat Ini</h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {[
-                  ['Posisi', 'HR Supervisor'],
-                  ['Departemen', 'Human Resources'],
-                  ['Atasan Langsung', 'HR Manager'],
-                  ['PC Level', '54'],
-                  ['Tahun di Posisi', '3 Tahun'],
-                  ['Tahun di Level', '3 Tahun (Supervisor)'],
+                  ['Posisi', empPosition],
+                  ['Departemen', empDept],
+                  ['Atasan Langsung', empRecord?.managerId ? `Manager #${empRecord.managerId}` : '—'],
+                  ['PC Level', empGrade],
+                  ['Join Date', empRecord?.joinDate || '—'],
+                  ['Status', empRecord?.employmentType || '—'],
                 ].map(([k, v]) => (
                   <div key={k}>
                     <div className="text-gray-400 text-xs">{k}</div>
@@ -187,14 +187,24 @@ export default function MyTalentProfile() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
               <h3 className="font-semibold text-gray-800 mb-3">Talent Box History</h3>
               <div className="space-y-2">
-                {PERF_HISTORY.map(h => (
-                  <div key={h.year} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">{h.year}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full border font-medium ${BOX_COLOR[h.talentBox]}`}>
-                      {h.talentBox}
-                    </span>
-                  </div>
-                ))}
+                {myBoxes.length > 0
+                  ? [...myBoxes].sort((a,b) => b.year - a.year).map(b => (
+                    <div key={b.id} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">{b.year}</span>
+                      <span className={`text-xs px-2 py-1 rounded-full border font-medium ${BOX_COLOR[b.boxLabel] || 'bg-gray-100 text-gray-700 border-gray-300'}`}>
+                        {b.boxLabel}
+                      </span>
+                    </div>
+                  ))
+                  : PERF_HISTORY.map(h => (
+                    <div key={h.year} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">{h.year}</span>
+                      <span className={`text-xs px-2 py-1 rounded-full border font-medium ${BOX_COLOR[h.talentBox]}`}>
+                        {h.talentBox}
+                      </span>
+                    </div>
+                  ))
+                }
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -223,7 +233,7 @@ export default function MyTalentProfile() {
             <div className="relative">
               <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200" />
               <div className="space-y-4">
-                {CAREER_HISTORY.map((c, i) => (
+                {internalHistory.map((c, i) => (
                   <div key={i} className="flex gap-4 items-start pl-10 relative">
                     <div className="absolute left-2.5 w-3 h-3 rounded-full bg-red-500 border-2 border-white shadow" />
                     <div className="flex-1 bg-gray-50 rounded-lg p-3">
@@ -314,6 +324,25 @@ export default function MyTalentProfile() {
         </div>
       )}
 
+      {activeTab === 'talent' && myCareerPath && (
+        <div className="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h3 className="font-semibold text-gray-800 mb-3">Career Path Saya</h3>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+            <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs font-medium text-red-800 whitespace-nowrap">
+              {myCareerPath.currentPosition}
+            </div>
+            {myCareerPath.steps.map((step, i) => (
+              <div key={step.id} className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 whitespace-nowrap">
+                  {step.targetPosition}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {activeTab === 'aspiration' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <h3 className="font-semibold text-gray-800 mb-4">Career Aspiration</h3>
@@ -336,6 +365,9 @@ export default function MyTalentProfile() {
           </div>
         </div>
       )}
+      <p className="text-xs text-gray-400 mt-6 text-center">
+        Data performance diambil dari modul Evaluasi. Data kompetensi diambil dari Competency Assessment.
+      </p>
     </div>
   )
 }
