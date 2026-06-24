@@ -197,6 +197,49 @@ function calcEndDate(startDate, duration, unit) {
 
 const TYPE_LOV = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
 
+function calcDateFromHplus(joinDate, hplus) {
+  if (!joinDate || hplus === '' || hplus === null || hplus === undefined) return ''
+  const n = parseInt(hplus, 10)
+  if (isNaN(n) || n < 0) return ''
+  const d = new Date(joinDate)
+  if (isNaN(d.getTime())) return ''
+  d.setDate(d.getDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
+function calcHplusFromDate(joinDate, date) {
+  if (!joinDate || !date) return ''
+  const j = new Date(joinDate), d = new Date(date)
+  if (isNaN(j.getTime()) || isNaN(d.getTime())) return ''
+  return String(Math.round((d - j) / 86400000))
+}
+
+function HplusCell({ joinDate, date, onChange, disabled }) {
+  const hplus = calcHplusFromDate(joinDate, date)
+  const actualDate = date ? new Date(date).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) : ''
+  return (
+    <div className='min-w-[90px]'>
+      <div className='flex items-center gap-1'>
+        <span className='text-[10px] font-bold text-red-600 flex-shrink-0'>H+</span>
+        <input
+          type='number'
+          min='0'
+          value={hplus}
+          disabled={disabled}
+          onChange={e => {
+            const newDate = calcDateFromHplus(joinDate, e.target.value)
+            onChange(newDate)
+          }}
+          placeholder='0'
+          className={`w-14 px-1.5 py-0.5 text-xs rounded outline-none text-center
+            ${disabled ? 'border-0 bg-transparent text-gray-700 cursor-default' : 'border border-gray-200 focus:border-red-400 bg-white'}`}
+        />
+      </div>
+      {actualDate && <div className='text-[10px] text-gray-400 mt-0.5 leading-tight'>{actualDate}</div>}
+    </div>
+  )
+}
+
 const STATUS_BADGE = {
   Draft:       'bg-gray-100 text-gray-600',
   Preparation: 'bg-indigo-100 text-indigo-700',
@@ -796,11 +839,11 @@ export default function OnboardingTrackerPage() {
                     <table key={sec.id} className='w-full text-xs border-b border-gray-100 last:border-b-0'>
                       <thead>
                         <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                          {['NO', t('Tanggal','Date'), t('Due Date','Due Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
+                          {['NO', t('H+ / Tanggal','H+ / Date'), t('Due Date','Due Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
                             t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'),
                             showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                             <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                              style={{ minWidth: i===3?180 : i===5?160 : i===8?130 : i===9?36 : 70 }}>{h}</th>
+                              style={{ minWidth: i===3?180 : i===5?160 : i===8?130 : i===9?36 : i===1?100 : 70 }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -831,8 +874,8 @@ export default function OnboardingTrackerPage() {
                           <React.Fragment key={item.id}>
                           <tr className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
                             <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
-                            <td className='px-2 py-1.5 w-28'>
-                              <InputCell value={item.date || ''} onChange={v => updateMsItem(ms.id, item.id, 'date', v)} type='date' disabled={isReadOnly} />
+                            <td className='px-2 py-1.5'>
+                              <HplusCell joinDate={form.joinDate} date={item.date || ''} onChange={v => updateMsItem(ms.id, item.id, 'date', v)} disabled={isReadOnly} />
                             </td>
                             <td className='px-2 py-1.5 w-28'>
                               <InputCell value={item.dueDate || ''} onChange={v => updateMsItem(ms.id, item.id, 'dueDate', v)} type='date' disabled={isReadOnly} />
@@ -943,11 +986,11 @@ export default function OnboardingTrackerPage() {
                 <table className='w-full text-xs'>
                   <thead>
                     <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                      {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), t('Form','Form'),
+                      {['NO', t('H+ / Tanggal','H+ / Date'), t('Agenda','Agenda'), t('Form','Form'),
                         t('Evaluators','Evaluators'),
                         showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                         <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                          style={{ minWidth: i===2?200 : i===5?36 : i===4?200 : 70 }}>{h}</th>
+                          style={{ minWidth: i===2?200 : i===5?36 : i===4?200 : i===1?100 : 70 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -962,8 +1005,8 @@ export default function OnboardingTrackerPage() {
                       <React.Fragment key={item.id}>
                         <tr className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
                           <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
-                          <td className='px-2 py-1.5 w-28'>
-                            <InputCell value={item.date || ''} onChange={v => updateReview(item.id, 'date', v)} type='date' disabled={isReadOnly} />
+                          <td className='px-2 py-1.5'>
+                            <HplusCell joinDate={form.joinDate} date={item.date || ''} onChange={v => updateReview(item.id, 'date', v)} disabled={isReadOnly} />
                           </td>
                           <td className='px-2 py-1.5'>
                             {isReadOnly
