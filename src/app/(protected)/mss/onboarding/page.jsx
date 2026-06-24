@@ -42,10 +42,10 @@ function migrateOnboarding(ob) {
   if ((ob.mainSections ?? []).length > 0) return ob
   const sections = []
   if ((ob.generalItems ?? []).length > 0 || (ob.generalSections ?? []).length > 0) {
-    sections.push({ id: 'ms_general', type: 'Materi Induksi General', sections: ob.generalSections ?? [], items: ob.generalItems ?? [] })
+    sections.push({ id: 'ms_general', type: 'Onboarding General', sections: ob.generalSections ?? [], items: ob.generalItems ?? [] })
   }
   if ((ob.technicalItems ?? []).length > 0 || (ob.technicalSections ?? []).length > 0) {
-    sections.push({ id: 'ms_teknis', type: 'Materi Induksi Teknis', sections: ob.technicalSections ?? [], items: ob.technicalItems ?? [] })
+    sections.push({ id: 'ms_teknis', type: 'Onboarding Teknis', sections: ob.technicalSections ?? [], items: ob.technicalItems ?? [] })
   }
   if ((ob.reviewItems ?? []).length > 0) {
     sections.push({ id: 'ms_review', type: 'Periodic Review', sections: [], items: ob.reviewItems ?? [] })
@@ -151,7 +151,7 @@ export default function MssOnboardingPage() {
     const tpl = templates.find(t => t.id === Number(tplTeknis))
     if (!tpl) return
 
-    const ms = (tpl.mainSections ?? []).find(s => s.type === 'Materi Induksi Teknis')
+    const ms = (tpl.mainSections ?? []).find(s => s.type === 'Onboarding Teknis')
     let newItems = []
     let newSecs  = []
 
@@ -162,12 +162,12 @@ export default function MssOnboardingPage() {
       newItems = (tpl.technicalItems ?? []).map(i => ({ ...i, id: Math.random(), completed: false, date: '' }))
     }
 
-    const existing = (form.mainSections ?? []).find(s => s.type === 'Materi Induksi Teknis')
+    const existing = (form.mainSections ?? []).find(s => s.type === 'Onboarding Teknis')
     if (existing) {
       setForm(f => ({
         ...f,
         mainSections: f.mainSections.map(s =>
-          s.type === 'Materi Induksi Teknis'
+          s.type === 'Onboarding Teknis'
             ? { ...s, sections: newSecs, items: newItems }
             : s
         ),
@@ -177,7 +177,7 @@ export default function MssOnboardingPage() {
         ...f,
         mainSections: [...f.mainSections, {
           id: `ms_teknis_${Date.now()}`,
-          type: 'Materi Induksi Teknis',
+          type: 'Onboarding Teknis',
           sections: newSecs,
           items: newItems,
         }],
@@ -202,7 +202,7 @@ export default function MssOnboardingPage() {
 
   // ── Template options for teknis ──────────────────────────────────────────────
   const teknisTpls = templates.filter(tpl =>
-    (tpl.mainSections ?? []).some(ms => ms.type === 'Materi Induksi Teknis') ||
+    (tpl.mainSections ?? []).some(ms => ms.type === 'Onboarding Teknis') ||
     (tpl.technicalItems ?? []).length > 0
   )
 
@@ -231,7 +231,7 @@ export default function MssOnboardingPage() {
               </thead>
               <tbody>
                 {subOnboardings.map((ob, idx) => {
-                  const hasTeknis = (ob.mainSections ?? []).some(ms => ms.type === 'Materi Induksi Teknis' && (ms.items ?? []).length > 0)
+                  const hasTeknis = (ob.mainSections ?? []).some(ms => ms.type === 'Onboarding Teknis' && (ms.items ?? []).length > 0)
                   return (
                     <tr key={ob.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                       <td className='px-4 py-3 font-semibold text-gray-800 text-xs'>{ob.employeeName}</td>
@@ -278,7 +278,7 @@ export default function MssOnboardingPage() {
         </span>
       </div>
       <p className='text-gray-500 text-sm mb-5'>
-        {t('Anda dapat menambah/mengedit Materi Induksi Teknis bawahan Anda.','You can add/edit Technical Induction Material for your subordinate.')}
+        {t('Anda dapat menambah/mengedit Onboarding Teknis bawahan Anda.','You can add/edit Technical Induction Material for your subordinate.')}
       </p>
 
       {msg && (
@@ -327,8 +327,8 @@ export default function MssOnboardingPage() {
 
         {/* Sections */}
         {mainSections.map((ms) => {
-          const isTeknis = ms.type === 'Materi Induksi Teknis'
-          const isGeneral = ms.type === 'Materi Induksi General'
+          const isTeknis = ms.type === 'Onboarding Teknis'
+          const isGeneral = ms.type === 'Onboarding General'
           return (
             <div key={ms.id} className='px-6 pt-5 pb-2'>
               <div className='flex items-center justify-between mb-3'>

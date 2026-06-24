@@ -671,12 +671,12 @@ export default function ApproveOnboardingPage() {
           )
         })}
 
-        {/* ── SECTION 1: Materi Induksi General (legacy format) ── */}
+        {/* ── SECTION 1: Onboarding General (legacy format) ── */}
         {localMainSections.length === 0 && <>
         <div className='px-6 pt-5 pb-2'>
           <div className='flex items-center gap-2 mb-3'>
             <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
-            <h3 className='text-sm font-bold text-gray-800'>{t('Materi Induksi General','General Induction Material')}</h3>
+            <h3 className='text-sm font-bold text-gray-800'>{t('Onboarding General','General Induction Material')}</h3>
           </div>
           <div className='overflow-x-auto rounded-lg border border-gray-200'>
             {generalSections.length === 0 ? (
@@ -747,11 +747,11 @@ export default function ApproveOnboardingPage() {
           </div>
         </div>
 
-        {/* ── SECTION 2: Materi Induksi Teknis (legacy format) ── */}
+        {/* ── SECTION 2: Onboarding Teknis (legacy format) ── */}
         <div className='px-6 pt-5 pb-2'>
           <div className='flex items-center gap-2 mb-3'>
             <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
-            <h3 className='text-sm font-bold text-gray-800'>{t('Materi Induksi Teknis','Technical Induction Material')}</h3>
+            <h3 className='text-sm font-bold text-gray-800'>{t('Onboarding Teknis','Technical Induction Material')}</h3>
           </div>
           <div className='overflow-x-auto rounded-lg border border-gray-200'>
             {technicalSections.length === 0 ? (

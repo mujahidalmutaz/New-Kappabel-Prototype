@@ -81,11 +81,11 @@ export default function AutoAssignOnboardingPage() {
   const activeTemplates = templates.filter(t => t.active)
 
   const tplsGeneral = activeTemplates.filter(t =>
-    (t.mainSections ?? []).some(ms => ms.type === 'Materi Induksi General') ||
+    (t.mainSections ?? []).some(ms => ms.type === 'Onboarding General') ||
     (t.generalItems ?? []).length > 0)
 
   const tplsTeknis = activeTemplates.filter(t =>
-    (t.mainSections ?? []).some(ms => ms.type === 'Materi Induksi Teknis') ||
+    (t.mainSections ?? []).some(ms => ms.type === 'Onboarding Teknis') ||
     (t.technicalItems ?? []).length > 0)
 
   const tplsReview = activeTemplates.filter(t => (t.reviewItems ?? []).length > 0)
@@ -170,8 +170,8 @@ export default function AutoAssignOnboardingPage() {
       const dept       = departments.find(d => d.id === emp.departmentId)
 
       const mainSections = [
-        buildSection(tplG, 'Materi Induksi General', 'generalItems',  'generalSections'),
-        buildSection(tplT, 'Materi Induksi Teknis',  'technicalItems','technicalSections'),
+        buildSection(tplG, 'Onboarding General', 'generalItems',  'generalSections'),
+        buildSection(tplT, 'Onboarding Teknis',  'technicalItems','technicalSections'),
       ].filter(Boolean)
 
       const rawReview = tplR ? (tplR.reviewItems ?? []).map(addRuntime) : []
@@ -236,8 +236,8 @@ export default function AutoAssignOnboardingPage() {
         {/* Step 1 */}
         <SectionCard title={t('1. Pilih Template','1. Select Templates')} icon='📋'>
           <div className='space-y-4'>
-            <TplSelect label='Materi Induksi General' value={tplGeneral} onChange={setTplGeneral} options={tplsGeneral} />
-            <TplSelect label='Materi Induksi Teknis'  value={tplTeknis}  onChange={setTplTeknis}  options={tplsTeknis} />
+            <TplSelect label='Onboarding General' value={tplGeneral} onChange={setTplGeneral} options={tplsGeneral} />
+            <TplSelect label='Onboarding Teknis'  value={tplTeknis}  onChange={setTplTeknis}  options={tplsTeknis} />
             <TplSelect label='Periodic Review'        value={tplReview}  onChange={setTplReview}  options={tplsReview} />
 
             <div className='pt-2 border-t border-gray-100 flex items-center gap-3'>

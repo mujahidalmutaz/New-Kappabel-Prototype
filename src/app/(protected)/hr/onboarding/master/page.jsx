@@ -175,7 +175,7 @@ const DEFAULT_REVIEW_ITEMS = [
   { id: 'review_direct_manager', agenda: 'Probation Evaluation', type: 'Form Evaluation', reviewerEmpId: '', reviewerName: 'Direct Manager', reviewerPosition: '', isDirectManager: true },
 ]
 
-const MAIN_SECTION_TYPES = ['Materi Induksi General', 'Materi Induksi Teknis', 'Periodic Review']
+const MAIN_SECTION_TYPES = ['Onboarding General', 'Onboarding Teknis', 'Periodic Review']
 
 const EMPTY_FORM = {
   name: '', description: '', active: true,
@@ -343,7 +343,7 @@ export default function MasterOnboardingPage() {
     if (!copy.mainSections) {
       copy.mainSections = [{
         id: 'ms_1',
-        title: copy.generalSectionTitle || 'Materi Induksi General',
+        title: copy.generalSectionTitle || 'Onboarding General',
         sections: copy.generalSections || [],
         items: copy.generalItems || [],
       }]

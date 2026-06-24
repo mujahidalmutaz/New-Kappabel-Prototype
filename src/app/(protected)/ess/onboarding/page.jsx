@@ -352,7 +352,7 @@ function migrateOnboarding(ob) {
   if ((ob.generalItems ?? []).length > 0 || (ob.generalSections ?? []).length > 0) {
     sections.push({
       id: 'ms_general',
-      type: 'Materi Induksi General',
+      type: 'Onboarding General',
       sections: ob.generalSections ?? [],
       items: ob.generalItems ?? [],
     })
@@ -360,7 +360,7 @@ function migrateOnboarding(ob) {
   if ((ob.technicalItems ?? []).length > 0 || (ob.technicalSections ?? []).length > 0) {
     sections.push({
       id: 'ms_teknis',
-      type: 'Materi Induksi Teknis',
+      type: 'Onboarding Teknis',
       sections: ob.technicalSections ?? [],
       items: ob.technicalItems ?? [],
     })

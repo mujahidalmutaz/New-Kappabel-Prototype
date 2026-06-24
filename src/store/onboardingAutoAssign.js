@@ -50,9 +50,9 @@ export function buildOnboardingFromTemplate(tpl, emp, employees) {
     const techSec  = (tpl.technicalSections ?? []).map(s => ({ ...s }))
     const techItem = (tpl.technicalItems    ?? []).map(addRuntime)
     if (genItem.length || genSec.length)
-      mainSections.push({ id: `ms_gen_${Date.now()}`,  type: 'Materi Induksi General', sections: genSec,  items: genItem  })
+      mainSections.push({ id: `ms_gen_${Date.now()}`,  type: 'Onboarding General', sections: genSec,  items: genItem  })
     if (techItem.length || techSec.length)
-      mainSections.push({ id: `ms_tech_${Date.now()}`, type: 'Materi Induksi Teknis',  sections: techSec, items: techItem })
+      mainSections.push({ id: `ms_tech_${Date.now()}`, type: 'Onboarding Teknis',  sections: techSec, items: techItem })
   }
 
   const rawReview   = (tpl.reviewItems ?? []).map(addRuntime)

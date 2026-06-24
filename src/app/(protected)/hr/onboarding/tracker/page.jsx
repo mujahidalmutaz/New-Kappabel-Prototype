@@ -198,14 +198,14 @@ function migrateOnboarding(ob) {
     copy.mainSections = []
     if ((copy.generalItems ?? []).length > 0 || (copy.generalSections ?? []).length > 0) {
       copy.mainSections.push({
-        id: 'ms_general', type: 'Materi Induksi General',
+        id: 'ms_general', type: 'Onboarding General',
         sections: copy.generalSections ?? [],
         items:    copy.generalItems   ?? [],
       })
     }
     if ((copy.technicalItems ?? []).length > 0 || (copy.technicalSections ?? []).length > 0) {
       copy.mainSections.push({
-        id: 'ms_technical', type: 'Materi Induksi Teknis',
+        id: 'ms_technical', type: 'Onboarding Teknis',
         sections: copy.technicalSections ?? [],
         items:    copy.technicalItems    ?? [],
       })
@@ -291,9 +291,9 @@ export default function OnboardingTrackerPage() {
       let ms = (tpl.mainSections ?? []).find(s => s.type === type)
       // Old format fallback
       if (!ms) {
-        if (type === 'Materi Induksi General' && (tpl.generalItems ?? []).length > 0)
+        if (type === 'Onboarding General' && (tpl.generalItems ?? []).length > 0)
           ms = { type, sections: tpl.generalSections ?? [], items: tpl.generalItems ?? [] }
-        else if (type === 'Materi Induksi Teknis' && (tpl.technicalItems ?? []).length > 0)
+        else if (type === 'Onboarding Teknis' && (tpl.technicalItems ?? []).length > 0)
           ms = { type, sections: tpl.technicalSections ?? [], items: tpl.technicalItems ?? [] }
       }
       if (!ms) return
@@ -586,19 +586,19 @@ export default function OnboardingTrackerPage() {
           {/* ── Section builder (only for new/draft records) ── */}
           {!isReadOnly && (!editId || savedStatus === 'Draft') && (() => {
             const activeTemplates = templates.filter(tpl => tpl.active)
-            const ALL_SECTION_TYPES = ['Materi Induksi General', 'Materi Induksi Teknis', 'Periodic Review']
+            const ALL_SECTION_TYPES = ['Onboarding General', 'Onboarding Teknis', 'Periodic Review']
 
             const tplsForType = (type) => {
               if (type === 'Periodic Review')
                 return activeTemplates.filter(tpl => (tpl.reviewItems ?? []).length > 0)
-              if (type === 'Materi Induksi General')
+              if (type === 'Onboarding General')
                 return activeTemplates.filter(tpl =>
-                  (tpl.mainSections ?? []).some(ms => ms.type === 'Materi Induksi General') ||
+                  (tpl.mainSections ?? []).some(ms => ms.type === 'Onboarding General') ||
                   (tpl.generalItems ?? []).length > 0
                 )
-              if (type === 'Materi Induksi Teknis')
+              if (type === 'Onboarding Teknis')
                 return activeTemplates.filter(tpl =>
-                  (tpl.mainSections ?? []).some(ms => ms.type === 'Materi Induksi Teknis') ||
+                  (tpl.mainSections ?? []).some(ms => ms.type === 'Onboarding Teknis') ||
                   (tpl.technicalItems ?? []).filter(ti => ti.category !== 'review').length > 0
                 )
               return []
