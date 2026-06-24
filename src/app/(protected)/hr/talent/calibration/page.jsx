@@ -1,6 +1,23 @@
 'use client'
 import { useState } from 'react'
 import { useTalentStore } from '@/store/talentStore'
+// BOX_LABELS grid: row 0=High Comp, row 2=Low Comp; col 0=Low Perf, col 2=High Perf
+// Maps adjustedBox label to { boxRow (1-3), boxCol (1-3) } in talentBoxes format
+function boxLabelToPosition(label) {
+  const grid = [
+    ['Rough Diamond','High Potential','Star'],         // row 3 (High comp), cols 1,2,3
+    ['Potential Gem','Core Employee','High Performer'], // row 2 (Mid comp)
+    ['Underperformer','Consistent','Solid Performer'],  // row 1 (Low comp)
+  ]
+  for (let ri = 0; ri < grid.length; ri++) {
+    for (let ci = 0; ci < grid[ri].length; ci++) {
+      if (grid[ri][ci] === label) {
+        return { boxRow: 3 - ri, boxCol: ci + 1 }
+      }
+    }
+  }
+  return null
+}
 
 const BOX_LABELS = [
   ['Rough Diamond','High Potential','Star'],
@@ -35,6 +52,7 @@ export default function CalibrationSession() {
   const [showNew, setShowNew] = useState(false)
   const [newDraft, setNewDraft] = useState({ sessionName: '', year: new Date().getFullYear(), facilitator: '', scheduledDate: '', notes: '' })
   const [newParticipant, setNewParticipant] = useState({ employeeName: '', role: 'HR' })
+  const [finalizeMsg, setFinalizeMsg] = useState(null)
 
   const talentBoxMap = {}
   talentBoxes.forEach(b => { if (!talentBoxMap[b.employeeId] || b.year > talentBoxMap[b.employeeId].year) talentBoxMap[b.employeeId] = b })
@@ -79,12 +97,52 @@ export default function CalibrationSession() {
     const updated = { ...selected, status: 'Completed', completedDate: new Date().toISOString().slice(0, 10) }
     setSessions(prev => prev.map(s => s.id === selected.id ? updated : s))
     setSelected(updated)
+
+    // Sync adjustments to talentBoxes (GAP 3)
+    const year = selected.year || new Date().getFullYear()
+    const adjCount = selected.adjustments.length
+    if (adjCount > 0) {
+      useTalentStore.setState(s => {
+        let talentBoxes = [...s.talentBoxes]
+        for (const adj of selected.adjustments) {
+          const pos = boxLabelToPosition(adj.adjustedBox)
+          if (!pos) continue
+          const idx = talentBoxes.findIndex(t =>
+            (t.employeeId === adj.employeeId || t.employeeName === adj.employeeName) && t.year === year
+          )
+          if (idx >= 0) {
+            talentBoxes[idx] = { ...talentBoxes[idx], boxLabel: adj.adjustedBox, boxRow: pos.boxRow, boxCol: pos.boxCol }
+          } else {
+            talentBoxes.push({
+              id: Date.now() + Math.random(),
+              employeeId: adj.employeeId,
+              employeeName: adj.employeeName,
+              year,
+              performanceScore: 0,
+              competencyScore: 0,
+              boxRow: pos.boxRow,
+              boxCol: pos.boxCol,
+              boxLabel: adj.adjustedBox,
+              notes: `Dari kalibrasi: ${selected.sessionName}`,
+            })
+          }
+        }
+        return { talentBoxes }
+      })
+      setFinalizeMsg(`✓ Kalibrasi selesai — ${adjCount} penyesuaian telah disimpan ke 9-Box Matrix`)
+      setTimeout(() => setFinalizeMsg(null), 5000)
+    }
   }
 
   const getAdjusted = (empId) => selected?.adjustments.find(a => a.employeeId === empId)
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {finalizeMsg && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold bg-green-600 text-white">
+          {finalizeMsg}
+        </div>
+      )}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Calibration Session</h1>

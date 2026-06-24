@@ -171,6 +171,8 @@ const MSS_GROUPS = [
     { label: 'Congratulation Message',     href: '/mss/congratulation',     icon: ic('smile') },
     { label: 'Onboarding Tim Saya',        href: '/mss/approve-onboarding', icon: ic('userCheck') },
     { label: 'IDP Review Tim',             href: '/mss/talent/idp-review',  icon: ic('target') },
+    { label: '9-Box Tim Saya',             href: '/mss/talent/nine-box',    icon: ic('grid') },
+    { label: 'Career Path Tim',            href: '/mss/talent/career-path', icon: ic('map') },
   ]},
   { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Personnel Action', href: '/mss/personnel-action', icon: ic('list') },
