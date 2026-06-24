@@ -8,6 +8,7 @@ import {
 } from '@/components/ui'
 
 const BLANK = { divisionId:'', code:'', companyCode:'', name:'', legalEntity:'PT', country:'Indonesia', status:'Active' }
+const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
 
 const COUNTRIES = [
   'Indonesia',
@@ -28,51 +29,54 @@ const COUNTRIES = [
 export default function CompanyPage() {
   const t = useT()
   const { divisions, companies, addCompany, updateCompany, deleteCompany } = useStructureStore()
-  const [form,    setForm   ] = useState(BLANK)
-  const [editing, setEditing] = useState(null)
-  const [msg,     setMsg    ] = useState(null)
+  const [form,      setForm     ] = useState(BLANK)
+  const [editing,   setEditing  ] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [msg,       setMsg      ] = useState(null)
 
   const flash = (text, type='success') => { setMsg({text,type}); setTimeout(()=>setMsg(null),3000) }
+
+  const openNew    = () => { setEditing(null); setForm(BLANK); setShowModal(true) }
+  const closeModal = () => { setShowModal(false); setEditing(null); setForm(BLANK) }
 
   const handleSave = () => {
     if (!form.divisionId || !form.code || !form.name) return flash(t('Division, kode, dan nama wajib diisi.','Division, code, and name are required.'),'error')
     if (form.companyCode && form.companyCode.length > 3) return flash(t('Company Code maksimal 3 karakter.','Company Code maximum 3 characters.'),'error')
-    if (editing) {
-      updateCompany(editing, {...form, divisionId:+form.divisionId})
-      setEditing(null); flash(t('Company diperbarui.','Company updated.'))
-    } else {
-      addCompany({...form, divisionId:+form.divisionId})
-      flash(t('Company ditambahkan.','Company added.'))
-    }
-    setForm(BLANK)
+    if (editing) { updateCompany(editing, {...form, divisionId:+form.divisionId}); flash(t('Company diperbarui.','Company updated.')) }
+    else         { addCompany({...form, divisionId:+form.divisionId}); flash(t('Company ditambahkan.','Company added.')) }
+    closeModal()
   }
 
   const handleEdit = (x) => {
     setEditing(x.id)
     setForm({ divisionId:x.divisionId, code:x.code, companyCode:x.companyCode||'', name:x.name, legalEntity:x.legalEntity, country:x.country, status:x.status })
+    setShowModal(true)
   }
 
-  const divName = (id) => divisions.find(d=>d.id===id)?.name || '-'
+  const divName    = (id) => divisions.find(d=>d.id===id)?.name || '-'
   const activeCount = companies.filter(c=>c.status==='Active').length
 
   return (
     <div>
+      {msg && (
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold
+          ${msg.type==='error'?'bg-red-600 text-white':'bg-green-600 text-white'}`}>
+          {msg.type==='error'?'⚠':'✓'} {msg.text}
+        </div>
+      )}
+
       <PageHeader
         icon='🏠'
         title='Company'
         subtitle={t('Entitas legal perusahaan di bawah Division.','Legal entity of the company under Division.')}
       />
 
-      {/* Breadcrumb */}
       <div className='mb-6 flex items-center gap-2 text-xs text-gray-400'>
-        <span className='px-2.5 py-1'>Enterprise</span>
-        <span>→</span>
-        <span className='px-2.5 py-1'>Division</span>
-        <span>→</span>
+        <span className='px-2.5 py-1'>Enterprise</span><span>→</span>
+        <span className='px-2.5 py-1'>Division</span><span>→</span>
         <span className='rounded-full bg-red-600 px-2.5 py-1 font-semibold text-white'>Company</span>
         <span>→</span>
-        <span className='px-2.5 py-1'>Business Unit</span>
-        <span>→</span>
+        <span className='px-2.5 py-1'>Business Unit</span><span>→</span>
         <span className='px-2.5 py-1'>Department</span>
       </div>
 
@@ -82,96 +86,112 @@ export default function CompanyPage() {
         <StatCard label={t('Tidak Aktif','Inactive')} value={companies.length-activeCount} icon='⏸️' tone='gray' />
       </div>
 
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-        {/* Form */}
-        <SectionCard title={`${editing?t('Edit','Edit'):t('Tambah','Add')} Company`} icon={editing?'✏️':'➕'}>
-          {msg && <div className={`mb-3 rounded-lg px-3 py-2 text-xs ${msg.type==='error'?'bg-red-50 text-red-600':'bg-emerald-50 text-emerald-700'}`}>{msg.text}</div>}
-          <div className='flex flex-col gap-3'>
-            <FormField label='Division' required>
-              <Select value={form.divisionId} onChange={e=>setForm(f=>({...f,divisionId:e.target.value}))}>
-                <option value=''>-- {t('Pilih Division','Select Division')} --</option>
-                {divisions.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
-              </Select>
-            </FormField>
-            {[[t('Kode','Code'),'code'],[t('Nama Company','Company Name'),'name']].map(([lbl,key])=>(
-              <FormField key={key} label={lbl} required>
-                <Input value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))} />
-              </FormField>
+      <SectionCard
+        title={t('Daftar Company','Company List')}
+        icon='🏠'
+        bodyClass='p-0'
+        actions={
+          <button onClick={openNew}
+            className='flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-lg shadow-sm hover:opacity-90 transition whitespace-nowrap'
+            style={{ background: BRAND }}>
+            + {t('Tambah Company','Add Company')}
+          </button>
+        }
+      >
+        {companies.length ? (
+          <DataTable
+            className='rounded-none shadow-none ring-0'
+            columns={[t('Kode','Code'),'Co. Code',t('Nama Company','Company Name'),'Division','Legal',t('Negara','Country'),'Status',{label:t('Aksi','Action'),align:'right'}]}
+          >
+            {companies.map(x=>(
+              <Tr key={x.id}>
+                <Td className='font-mono text-xs text-gray-500'>{x.code}</Td>
+                <Td>
+                  {x.companyCode
+                    ? <span className='rounded bg-red-50 px-2 py-0.5 font-mono text-xs font-bold tracking-widest text-red-700'>{x.companyCode}</span>
+                    : <span className='text-xs text-gray-300'>—</span>}
+                </Td>
+                <Td className='font-medium text-gray-800'>{x.name}</Td>
+                <Td className='text-xs text-gray-500'>{divName(x.divisionId)}</Td>
+                <Td>{x.legalEntity}</Td>
+                <Td>{x.country}</Td>
+                <Td><StatusBadge status={x.status} /></Td>
+                <Td align='right'>
+                  <div className='flex justify-end gap-2'>
+                    <ActionButton size='sm' variant='secondary' onClick={()=>handleEdit(x)}>Edit</ActionButton>
+                    <ActionButton size='sm' variant='danger' onClick={()=>deleteCompany(x.id)}>{t('Hapus','Delete')}</ActionButton>
+                  </div>
+                </Td>
+              </Tr>
             ))}
-            <FormField label={t('Negara','Country')}>
-              <Select value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))}>
-                {COUNTRIES.map(c=><option key={c}>{c}</option>)}
-              </Select>
-            </FormField>
-            <FormField label='Company Code' hint={t('Maks. 3 karakter','Max. 3 characters')}>
-              <div className='relative'>
-                <Input
-                  value={form.companyCode}
-                  onChange={e => setForm(f => ({ ...f, companyCode: e.target.value.toUpperCase().slice(0, 3) }))}
-                  maxLength={3}
-                  placeholder={t('mis. JKT','e.g. JKT')}
-                  className='pr-10 font-mono uppercase tracking-widest'
-                />
-                <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${form.companyCode.length === 3 ? 'text-red-500' : 'text-gray-300'}`}>
-                  {form.companyCode.length}/3
-                </span>
-              </div>
-            </FormField>
-            <FormField label='Legal Entity'>
-              <Select value={form.legalEntity} onChange={e=>setForm(f=>({...f,legalEntity:e.target.value}))}>
-                {['PT','CV','Yayasan','Koperasi','PMA'].map(l=><option key={l}>{l}</option>)}
-              </Select>
-            </FormField>
-            <FormField label='Status'>
-              <Select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
-                <option>Active</option><option>Inactive</option>
-              </Select>
-            </FormField>
-            <div className='flex gap-2 pt-1'>
-              <ActionButton onClick={handleSave} className='flex-1'>{editing?t('Simpan','Save'):t('Tambah','Add')}</ActionButton>
-              {editing && <ActionButton variant='secondary' onClick={()=>{setEditing(null);setForm(BLANK)}}>{t('Batal','Cancel')}</ActionButton>}
+          </DataTable>
+        ) : (
+          <div className='p-5'>
+            <EmptyState icon='🏠' title={t('Belum ada company.','No companies yet.')} />
+          </div>
+        )}
+      </SectionCard>
+
+      {showModal && (
+        <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4' onClick={closeModal}>
+          <div className='bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto' onClick={e=>e.stopPropagation()}>
+            <div className='px-6 py-4 border-b border-gray-100 flex items-center justify-between'>
+              <h2 className='text-base font-bold text-gray-800'>{editing?t('Edit Company','Edit Company'):t('Tambah Company','Add Company')}</h2>
+              <button onClick={closeModal} className='text-gray-400 hover:text-gray-600 text-xl font-bold leading-none'>×</button>
+            </div>
+            <div className='px-6 py-5 space-y-4'>
+              <FormField label='Division' required>
+                <Select value={form.divisionId} onChange={e=>setForm(f=>({...f,divisionId:e.target.value}))}>
+                  <option value=''>-- {t('Pilih Division','Select Division')} --</option>
+                  {divisions.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+                </Select>
+              </FormField>
+              {[[t('Kode','Code'),'code'],[t('Nama Company','Company Name'),'name']].map(([lbl,key])=>(
+                <FormField key={key} label={lbl} required>
+                  <Input value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))} />
+                </FormField>
+              ))}
+              <FormField label={t('Negara','Country')}>
+                <Select value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))}>
+                  {COUNTRIES.map(c=><option key={c}>{c}</option>)}
+                </Select>
+              </FormField>
+              <FormField label='Company Code' hint={t('Maks. 3 karakter','Max. 3 characters')}>
+                <div className='relative'>
+                  <Input
+                    value={form.companyCode}
+                    onChange={e=>setForm(f=>({...f,companyCode:e.target.value.toUpperCase().slice(0,3)}))}
+                    maxLength={3}
+                    placeholder={t('mis. JKT','e.g. JKT')}
+                    className='pr-10 font-mono uppercase tracking-widest'
+                  />
+                  <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${form.companyCode.length===3?'text-red-500':'text-gray-300'}`}>
+                    {form.companyCode.length}/3
+                  </span>
+                </div>
+              </FormField>
+              <FormField label='Legal Entity'>
+                <Select value={form.legalEntity} onChange={e=>setForm(f=>({...f,legalEntity:e.target.value}))}>
+                  {['PT','CV','Yayasan','Koperasi','PMA'].map(l=><option key={l}>{l}</option>)}
+                </Select>
+              </FormField>
+              <FormField label='Status'>
+                <Select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
+                  <option>Active</option><option>Inactive</option>
+                </Select>
+              </FormField>
+            </div>
+            <div className='px-6 pb-5 flex gap-3'>
+              <button onClick={handleSave} className='flex-1 py-2.5 text-sm font-semibold text-white rounded-xl hover:opacity-90 transition' style={{background:BRAND}}>
+                {editing?t('Simpan Perubahan','Save Changes'):t('Tambah Company','Add Company')}
+              </button>
+              <button onClick={closeModal} className='flex-1 py-2.5 text-sm font-semibold bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition'>
+                {t('Batal','Cancel')}
+              </button>
             </div>
           </div>
-        </SectionCard>
-
-        {/* Table */}
-        <div className='lg:col-span-2'>
-          <SectionCard title={t('Daftar Company','Company List')} icon='🏠' bodyClass='p-0'>
-            {companies.length ? (
-              <DataTable
-                className='rounded-none shadow-none ring-0'
-                columns={[t('Kode','Code'),'Co. Code',t('Nama Company','Company Name'),'Division','Legal',t('Negara','Country'),'Status',{label:t('Aksi','Action'),align:'right'}]}
-              >
-                {companies.map(x=>(
-                  <Tr key={x.id}>
-                    <Td className='font-mono text-xs text-gray-500'>{x.code}</Td>
-                    <Td>
-                      {x.companyCode
-                        ? <span className='rounded bg-red-50 px-2 py-0.5 font-mono text-xs font-bold tracking-widest text-red-700'>{x.companyCode}</span>
-                        : <span className='text-xs text-gray-300'>—</span>}
-                    </Td>
-                    <Td className='font-medium text-gray-800'>{x.name}</Td>
-                    <Td className='text-xs text-gray-500'>{divName(x.divisionId)}</Td>
-                    <Td>{x.legalEntity}</Td>
-                    <Td>{x.country}</Td>
-                    <Td><StatusBadge status={x.status} /></Td>
-                    <Td align='right'>
-                      <div className='flex justify-end gap-2'>
-                        <ActionButton size='sm' variant='secondary' onClick={()=>handleEdit(x)}>Edit</ActionButton>
-                        <ActionButton size='sm' variant='danger' onClick={()=>deleteCompany(x.id)}>{t('Hapus','Delete')}</ActionButton>
-                      </div>
-                    </Td>
-                  </Tr>
-                ))}
-              </DataTable>
-            ) : (
-              <div className='p-5'>
-                <EmptyState icon='🏠' title={t('Belum ada company.','No companies yet.')} />
-              </div>
-            )}
-          </SectionCard>
         </div>
-      </div>
+      )}
     </div>
   )
 }
