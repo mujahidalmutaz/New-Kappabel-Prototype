@@ -221,34 +221,6 @@ const LMS_GROUPS = [
 ]
 
 const HR_GROUPS = [
-  { title: 'Talent Management', icon: '🌟', isParent: true, subGroups: [
-    { title: 'Assessment & Planning', items: [
-      { label: 'Key Position Assessment',      href: '/hr/talent/key-position',          icon: ic('target') },
-      { label: 'Vacancy Risk Assessment',      href: '/hr/talent/vacancy-risk',           icon: ic('shield') },
-      { label: 'Competency Assessment',        href: '/hr/talent/competency-assessment',  icon: ic('clipboard') },
-      { label: 'Readiness Assessment',         href: '/hr/talent/readiness-assessment',   icon: ic('checkCircle') },
-      { label: 'Calibration Session',          href: '/hr/talent/calibration',            icon: ic('users') },
-    ]},
-    { title: 'Talent & Succession', items: [
-      { label: '9-Box Talent Matrix',          href: '/hr/talent/nine-box',               icon: ic('grid') },
-      { label: 'Talent Review Meeting',        href: '/hr/talent/talent-review',          icon: ic('calendar') },
-      { label: 'Succession Dev. Plan',         href: '/hr/talent/sdp',                    icon: ic('map') },
-      { label: 'Future Position Planning',     href: '/hr/talent/future-planning',        icon: ic('trending') },
-      { label: 'Database Talent',              href: '/hr/talent/database-talent',        icon: ic('archive') },
-      { label: 'Database Successor',           href: '/hr/talent/database-successor',     icon: ic('star') },
-    ]},
-    { title: 'Development & Risk', items: [
-      { label: 'IDP Management',               href: '/hr/talent/idp',                    icon: ic('fileText') },
-      { label: 'Career Path Management',       href: '/hr/talent/career-path',            icon: ic('layers') },
-      { label: 'Retention Risk',               href: '/hr/talent/retention-risk',         icon: ic('zap') },
-      { label: 'Talent Report',                href: '/hr/talent/report',                 icon: ic('chart') },
-    ]},
-  ]},
-  { title: 'Onboarding', icon: '🎯', items: [
-    { label: 'Onboarding Tracker',         href: '/hr/onboarding/tracker',    icon: ic('users') },
-    { label: 'Master Onboarding',          href: '/hr/onboarding/master',     icon: ic('clipboard') },
-    { label: 'Master Form',                href: '/hr/onboarding/forms',      icon: ic('fileText') },
-  ]},
   { title: 'Structure', icon: '🏛️', items: [
     { label: 'Enterprise',       href: '/hr/structure/enterprise',        icon: ic('globe') },
     { label: 'Division',         href: '/hr/structure/division',          icon: ic('layers') },
@@ -264,6 +236,11 @@ const HR_GROUPS = [
   { title: 'Employee', icon: '👤', items: [
     { label: 'Employee Data',    href: '/hr/employee',       icon: ic('person') },
     { label: 'Apply Leave (HR)', href: '/hr/apply-leave',    icon: ic('calendar') },
+  ]},
+  { title: 'Onboarding', icon: '🎯', items: [
+    { label: 'Onboarding Tracker',         href: '/hr/onboarding/tracker',    icon: ic('users') },
+    { label: 'Master Onboarding',          href: '/hr/onboarding/master',     icon: ic('clipboard') },
+    { label: 'Master Form',                href: '/hr/onboarding/forms',      icon: ic('fileText') },
   ]},
   { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Personnel Action', href: '/hr/employee/personnel-action', icon: ic('list') },
@@ -318,6 +295,29 @@ const HR_GROUPS = [
       { label: 'Notification Template', href: '/hr/learning/notification-template', icon: ic('bell') },
       { label: 'Approval Workflow',     href: '/hr/learning/approval-workflow',     icon: ic('workflow') },
       { label: 'Gamification Rules',    href: '/hr/learning/gamification',          icon: ic('zap') },
+    ]},
+  ]},
+  { title: 'Talent Management', icon: '🌟', isParent: true, subGroups: [
+    { title: 'Assessment & Planning', items: [
+      { label: 'Key Position Assessment',      href: '/hr/talent/key-position',          icon: ic('target') },
+      { label: 'Vacancy Risk Assessment',      href: '/hr/talent/vacancy-risk',           icon: ic('shield') },
+      { label: 'Competency Assessment',        href: '/hr/talent/competency-assessment',  icon: ic('clipboard') },
+      { label: 'Readiness Assessment',         href: '/hr/talent/readiness-assessment',   icon: ic('checkCircle') },
+      { label: 'Calibration Session',          href: '/hr/talent/calibration',            icon: ic('users') },
+    ]},
+    { title: 'Talent & Succession', items: [
+      { label: '9-Box Talent Matrix',          href: '/hr/talent/nine-box',               icon: ic('grid') },
+      { label: 'Talent Review Meeting',        href: '/hr/talent/talent-review',          icon: ic('calendar') },
+      { label: 'Succession Dev. Plan',         href: '/hr/talent/sdp',                    icon: ic('map') },
+      { label: 'Future Position Planning',     href: '/hr/talent/future-planning',        icon: ic('trending') },
+      { label: 'Database Talent',              href: '/hr/talent/database-talent',        icon: ic('archive') },
+      { label: 'Database Successor',           href: '/hr/talent/database-successor',     icon: ic('star') },
+    ]},
+    { title: 'Development & Risk', items: [
+      { label: 'IDP Management',               href: '/hr/talent/idp',                    icon: ic('fileText') },
+      { label: 'Career Path Management',       href: '/hr/talent/career-path',            icon: ic('layers') },
+      { label: 'Retention Risk',               href: '/hr/talent/retention-risk',         icon: ic('zap') },
+      { label: 'Talent Report',                href: '/hr/talent/report',                 icon: ic('chart') },
     ]},
   ]},
 ]
