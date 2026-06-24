@@ -254,6 +254,143 @@ function FormFillModal({ item, allSections, evaluatorId, evaluatorName, onSave, 
             )
           })()}
 
+          {/* ── Form Evaluation / Form Evaluation Contract ─────────────────── */}
+          {(formType === 'form_evaluation' || formType === 'form_evaluation_contract') && (() => {
+            const isContract = formType === 'form_evaluation_contract'
+            const RATING_OPTS = [1, 2, 3, 4]
+            const RATING_LABELS = { 1: 'Far Below Expectation', 2: 'Slightly Below Expectation', 3: 'Meet Expectation', 4: 'Exceed Expectation' }
+            const FINAL_DECISIONS = isContract
+              ? ['Passed, to be Permanent', 'Extend Contract', 'Not Passed']
+              : ['Passed to be Permanent', 'Not Passed']
+            const EXTEND_MONTHS = ['3', '6', '12']
+
+            const calcScore = () => {
+              const allCV = item.coreValues ?? []
+              const allCB = [...(item.coreCompetency ?? []), ...(item.strategicLeadership ?? []), ...(item.technicalCompetency ?? [])]
+              const rated = (arr, prefix) => arr.filter(i => resp[`${prefix}_${i.id}`])
+              const avg = (arr, prefix) => {
+                const r = rated(arr, prefix)
+                return r.length ? r.reduce((s, i) => s + Number(resp[`${prefix}_${i.id}`]), 0) / r.length : 0
+              }
+              const cvAvg = avg(allCV, 'cv')
+              const cbAvg = (() => {
+                const cc = item.coreCompetency ?? []; const sl = item.strategicLeadership ?? []; const tc = item.technicalCompetency ?? []
+                const all = [...cc, ...sl, ...tc]
+                const r = all.filter(i => resp[`cb_${i.id}`])
+                return r.length ? r.reduce((s, i) => s + Number(resp[`cb_${i.id}`]), 0) / r.length : 0
+              })()
+              return Math.round((cvAvg / 4 * 50) + (cbAvg / 4 * 50))
+            }
+
+            const RatingSelect = ({ prefix, item: ri }) => (
+              <select value={resp[`${prefix}_${ri.id}`] ?? ''}
+                onChange={e => setField(`${prefix}_${ri.id}`, e.target.value === '' ? '' : Number(e.target.value))}
+                className='w-48 px-2 py-1 text-xs rounded border border-gray-200 focus:border-red-400 outline-none bg-white'>
+                <option value=''>Select</option>
+                {RATING_OPTS.map(n => <option key={n} value={n}>{n} - {RATING_LABELS[n]}</option>)}
+              </select>
+            )
+
+            const EvalTable = ({ title, pct, items, prefix }) => (
+              <div className='mb-4'>
+                {pct && (
+                  <div className='bg-gray-200 px-4 py-2 flex justify-between'>
+                    <span className='text-xs font-bold text-gray-700 uppercase tracking-wide'>{title}</span>
+                    <span className='text-xs font-bold text-gray-700'>{pct}</span>
+                  </div>
+                )}
+                {!pct && <div className='bg-gray-100 px-4 py-1.5'><span className='text-xs font-semibold text-gray-600 italic'>{title}</span></div>}
+                {items.length === 0
+                  ? <div className='px-4 py-3 text-xs text-gray-300 italic'>Belum ada item dikonfigurasi.</div>
+                  : (
+                    <table className='w-full text-xs'>
+                      <thead>
+                        <tr className='bg-gray-50 border-b border-gray-100'>
+                          <th className='px-3 py-1.5 text-left text-gray-500 font-semibold w-8'>No</th>
+                          <th className='px-3 py-1.5 text-left text-gray-500 font-semibold w-36'>Aspek</th>
+                          <th className='px-3 py-1.5 text-left text-gray-500 font-semibold'>Key Behaviors</th>
+                          <th className='px-3 py-1.5 text-left text-gray-500 font-semibold w-52'>Rating</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items.map((ri, idx) => (
+                          <tr key={ri.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}>
+                            <td className='px-3 py-2 text-center text-gray-400'>{ri.no || idx + 1}</td>
+                            <td className='px-3 py-2 text-gray-800 font-medium'>{ri.aspect || '—'}</td>
+                            <td className='px-3 py-2 text-gray-500 leading-relaxed'>{ri.keyBehaviors || '—'}</td>
+                            <td className='px-3 py-2'><RatingSelect prefix={prefix} item={ri} /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )
+                }
+              </div>
+            )
+
+            const score = calcScore()
+            return (
+              <div className='space-y-2'>
+                <div className='overflow-x-auto border border-gray-200 rounded-lg'>
+                  <EvalTable title='Core Values' pct='50%' items={item.coreValues ?? []} prefix='cv' />
+                  <EvalTable title='Competency Based' pct='50%' items={[]} prefix='' />
+                  <EvalTable title='A. Core Competency' items={item.coreCompetency ?? []} prefix='cb' />
+                  {item.hasStrategicLeadership && <EvalTable title='B. Strategic Leadership' items={item.strategicLeadership ?? []} prefix='cb' />}
+                  <EvalTable title={item.hasStrategicLeadership ? 'C. Technical Competency' : 'B. Technical Competency'} items={item.technicalCompetency ?? []} prefix='cb' />
+                </div>
+
+                {/* Final Decision */}
+                <div className='grid grid-cols-2 gap-4 pt-2'>
+                  <div className='col-span-2 flex items-center gap-3'>
+                    <div className='flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-center'>
+                      <div className='text-[10px] text-gray-500 mb-0.5'>Final Score (skala 0–100)</div>
+                      <div className={`text-lg font-bold ${score >= 75 ? 'text-green-600' : score >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{score}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className='block text-xs font-semibold text-gray-600 mb-1'>Final Decision <span className='text-red-500'>*</span></label>
+                    <select value={resp.finalDecision ?? ''} onChange={e => setField('finalDecision', e.target.value)}
+                      className='w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-red-400 outline-none bg-white'>
+                      <option value=''>— Pilih —</option>
+                      {FINAL_DECISIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  {isContract && resp.finalDecision === 'Extend Contract' && (
+                    <div>
+                      <label className='block text-xs font-semibold text-gray-600 mb-1'>Perpanjangan Kontrak</label>
+                      <select value={resp.extendMonths ?? ''} onChange={e => setField('extendMonths', e.target.value)}
+                        className='w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-red-400 outline-none bg-white'>
+                        <option value=''>— Pilih bulan —</option>
+                        {EXTEND_MONTHS.map(m => <option key={m} value={m}>{m} bulan</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <div>
+                    <label className='block text-xs font-semibold text-gray-600 mb-1'>Tanggal Efektif Keputusan</label>
+                    <input type='date' value={resp.finalEffectiveDate ?? ''} onChange={e => setField('finalEffectiveDate', e.target.value)}
+                      className='w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-red-400 outline-none' />
+                  </div>
+                  <div className='col-span-2'>
+                    <label className='block text-xs font-semibold text-gray-600 mb-1'>Kekuatan (Strength)</label>
+                    <textarea rows={2} value={resp.strength ?? ''} onChange={e => setField('strength', e.target.value)}
+                      placeholder='Tuliskan kekuatan karyawan…'
+                      className='w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-red-400 outline-none resize-none' />
+                  </div>
+                  <div className='col-span-2'>
+                    <label className='block text-xs font-semibold text-gray-600 mb-1'>Area Pengembangan (Area Development)</label>
+                    <textarea rows={2} value={resp.areaDevelopment ?? ''} onChange={e => setField('areaDevelopment', e.target.value)}
+                      placeholder='Tuliskan area pengembangan karyawan…'
+                      className='w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-red-400 outline-none resize-none' />
+                  </div>
+                </div>
+
+                <div className='p-3 bg-gray-50 rounded-lg border border-gray-200 text-[10px] text-gray-500'>
+                  Rating: 1=Far Below Expectation · 2=Slightly Below Expectation · 3=Meet Expectation · 4=Exceed Expectation
+                </div>
+              </div>
+            )
+          })()}
+
           {/* ── Summary type ───────────────────────────────────────────────── */}
           {formType === 'summary' && (
             <div>

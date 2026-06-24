@@ -7,10 +7,12 @@ import { FIELD_TYPES, newField } from '@/utils/formBuilderUtils'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const FORM_TYPES = [
-  { value: 'field',    label: '📝 Configurable Field', desc: 'Form isian bebas dengan field Text, Dropdown, Date, dll.' },
-  { value: 'evaluasi', label: '📊 Form Evaluasi',      desc: 'Tabel evaluasi per topik dengan nilai dan kesimpulan. Diisi oleh SME/instruktur setelah tiap materi selesai.' },
-  { value: 'ojt',      label: '🏭 Form OJT',           desc: 'On the Job Training — multi-parameter aktivitas dengan penilaian A(4)/B(3)/C(2)/D(1) dan kalkulasi rata-rata otomatis.' },
-  { value: 'summary',  label: '📋 Form Summary',       desc: 'Ringkasan otomatis seluruh task onboarding yang sudah diselesaikan. Tidak perlu konfigurasi field.' },
+  { value: 'field',                    label: '📝 Configurable Field',        desc: 'Form isian bebas dengan field Text, Dropdown, Date, dll.' },
+  { value: 'evaluasi',                 label: '📊 Form Evaluasi',             desc: 'Tabel evaluasi per topik dengan nilai dan kesimpulan. Diisi oleh SME/instruktur setelah tiap materi selesai.' },
+  { value: 'ojt',                      label: '🏭 Form OJT',                  desc: 'On the Job Training — multi-parameter aktivitas dengan penilaian A(4)/B(3)/C(2)/D(1) dan kalkulasi rata-rata otomatis.' },
+  { value: 'summary',                  label: '📋 Form Summary',              desc: 'Ringkasan otomatis seluruh task onboarding yang sudah diselesaikan. Tidak perlu konfigurasi field.' },
+  { value: 'form_evaluation',          label: '🎯 Form Evaluation',           desc: 'Evaluasi masa probasi karyawan tetap: Core Values (50%) + Competency Based (50%) dengan rating 1–4. Final decision: Lulus / Tidak Lulus.' },
+  { value: 'form_evaluation_contract', label: '📃 Form Evaluation Contract',  desc: 'Evaluasi masa kontrak: sama dengan Form Evaluation dengan opsi perpanjangan kontrak dan final decision yang sesuai.' },
 ]
 
 const EVAL_METHODS = [
@@ -20,24 +22,39 @@ const EVAL_METHODS = [
 
 const KESIMPULAN_OPTS = ['Lulus', 'Mengulang', 'Tidak Lulus']
 
+function newEvalItem() {
+  return { id: `ei_${Date.now()}_${Math.random().toString(36).slice(2,5)}`, no: '', aspect: '', keyBehaviors: '' }
+}
+
 const EMPTY_FORM = {
   name: '', description: '', active: true,
   formType: 'field',
   fields: [],
   evalMethod: 'nilai',
   evalTopics: [],
-  ojtParams: [],    // for ojt type: [{ id, label, activities: [{ id, label }] }]
+  ojtParams: [],
+  // for form_evaluation / form_evaluation_contract:
+  coreValues: [],
+  coreCompetency: [],
+  strategicLeadership: [],
+  technicalCompetency: [],
+  hasStrategicLeadership: false,
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formTypeBadge(ft) {
   const map = {
-    field:    'bg-blue-50 text-blue-700 border-blue-200',
-    evaluasi: 'bg-amber-50 text-amber-700 border-amber-200',
-    ojt:      'bg-violet-50 text-violet-700 border-violet-200',
-    summary:  'bg-teal-50 text-teal-700 border-teal-200',
+    field:                    'bg-blue-50 text-blue-700 border-blue-200',
+    evaluasi:                 'bg-amber-50 text-amber-700 border-amber-200',
+    ojt:                      'bg-violet-50 text-violet-700 border-violet-200',
+    summary:                  'bg-teal-50 text-teal-700 border-teal-200',
+    form_evaluation:          'bg-red-50 text-red-700 border-red-200',
+    form_evaluation_contract: 'bg-orange-50 text-orange-700 border-orange-200',
   }
-  const labels = { field: 'Configurable', evaluasi: 'Evaluasi', ojt: 'OJT', summary: 'Summary' }
+  const labels = {
+    field: 'Configurable', evaluasi: 'Evaluasi', ojt: 'OJT', summary: 'Summary',
+    form_evaluation: 'Evaluation', form_evaluation_contract: 'Eval. Contract',
+  }
   return { cls: map[ft] ?? 'bg-gray-100 text-gray-500 border-gray-200', label: labels[ft] ?? ft }
 }
 
@@ -142,6 +159,119 @@ function OjtEditor({ draft, setDraft }) {
 
 function newTopic() {
   return { id: `t_${Date.now()}_${Math.random().toString(36).slice(2,5)}`, label: '', section: '' }
+}
+
+// ── Evaluation section item editor ────────────────────────────────────────────
+function EvalSectionTable({ title, items, sectionKey, setDraft }) {
+  const add = () => setDraft(d => ({ ...d, [sectionKey]: [...(d[sectionKey] ?? []), newEvalItem()] }))
+  const del = (id) => setDraft(d => ({ ...d, [sectionKey]: d[sectionKey].filter(i => i.id !== id) }))
+  const upd = (id, key, val) => setDraft(d => ({ ...d, [sectionKey]: d[sectionKey].map(i => i.id === id ? { ...i, [key]: val } : i) }))
+
+  return (
+    <div>
+      <div className='flex items-center justify-between mb-2'>
+        <span className='text-sm font-bold text-gray-700'>{title}</span>
+        <button onClick={add} className='text-xs px-3 py-1.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 font-semibold transition'>+ Tambah Baris</button>
+      </div>
+      {items.length === 0 ? (
+        <div className='text-center py-5 text-gray-300 text-xs border-2 border-dashed border-gray-100 rounded-xl'>Belum ada item. Klik "+ Tambah Baris".</div>
+      ) : (
+        <div className='overflow-x-auto rounded-xl border border-gray-200'>
+          <table className='w-full text-xs'>
+            <thead>
+              <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                {['No', 'Aspek Penilaian', 'Key Behaviors / Indikator', ''].map((h, i) => (
+                  <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
+                    style={{ width: i === 0 ? 48 : i === 1 ? 180 : i === 3 ? 32 : undefined }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, idx) => (
+                <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                  <td className='px-2 py-1.5'>
+                    <input value={item.no} onChange={e => upd(item.id, 'no', e.target.value)} placeholder='1'
+                      className='w-10 px-1.5 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 text-center' />
+                  </td>
+                  <td className='px-2 py-1.5'>
+                    <input value={item.aspect} onChange={e => upd(item.id, 'aspect', e.target.value)} placeholder='Nama aspek…'
+                      className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400' />
+                  </td>
+                  <td className='px-2 py-1.5'>
+                    <textarea value={item.keyBehaviors} onChange={e => upd(item.id, 'keyBehaviors', e.target.value)}
+                      placeholder='Deskripsi indikator / key behaviors…' rows={2}
+                      className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 resize-none' />
+                  </td>
+                  <td className='px-2 py-1.5 text-center'>
+                    <button onClick={() => del(item.id)} className='text-red-400 hover:text-red-600 font-bold text-sm'>✕</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Form Evaluation editor ─────────────────────────────────────────────────────
+function EvaluationFormEditor({ draft, setDraft, isContract }) {
+  return (
+    <div className='space-y-8'>
+      <div className={`rounded-xl px-5 py-4 text-sm border ${isContract ? 'bg-orange-50 border-orange-200 text-orange-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+        <p className='font-semibold mb-1'>{isContract ? '📃 Form Evaluation Contract' : '🎯 Form Evaluation'}</p>
+        <p className='text-xs opacity-80'>
+          Isikan aspek penilaian untuk setiap seksi. Saat diisi oleh evaluator, setiap aspek diberi rating 1–4
+          (1=Far Below Expectation, 2=Slightly Below Expectation, 3=Meet Expectation, 4=Exceed Expectation).
+          Skor akhir = Core Values (50%) + Competency Based (50%).
+          {isContract && ' Final decision mencakup opsi perpanjangan kontrak.'}
+        </p>
+      </div>
+
+      <EvalSectionTable
+        title='Core Values (50%)'
+        items={draft.coreValues ?? []}
+        sectionKey='coreValues'
+        setDraft={setDraft}
+      />
+
+      <div>
+        <div className='text-sm font-bold text-gray-700 mb-4'>Competency Based (50%)</div>
+        <div className='space-y-6 pl-4 border-l-2 border-gray-100'>
+          <EvalSectionTable
+            title='A. Core Competency'
+            items={draft.coreCompetency ?? []}
+            sectionKey='coreCompetency'
+            setDraft={setDraft}
+          />
+          <div>
+            <label className='flex items-center gap-2 cursor-pointer mb-3'>
+              <input type='checkbox' checked={!!draft.hasStrategicLeadership}
+                onChange={e => setDraft(d => ({ ...d, hasStrategicLeadership: e.target.checked }))}
+                className='w-4 h-4 accent-red-600' />
+              <span className='text-sm font-semibold text-gray-700'>Tampilkan B. Strategic Leadership</span>
+              <span className='text-xs text-gray-400'>(untuk jabatan PC ≥ 53)</span>
+            </label>
+            {draft.hasStrategicLeadership && (
+              <EvalSectionTable
+                title='B. Strategic Leadership'
+                items={draft.strategicLeadership ?? []}
+                sectionKey='strategicLeadership'
+                setDraft={setDraft}
+              />
+            )}
+          </div>
+          <EvalSectionTable
+            title={draft.hasStrategicLeadership ? 'C. Technical Competency' : 'B. Technical Competency'}
+            items={draft.technicalCompetency ?? []}
+            sectionKey='technicalCompetency'
+            setDraft={setDraft}
+          />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── Field editor (for "field" type) ──────────────────────────────────────────
@@ -399,6 +529,12 @@ export default function MasterFormPage() {
               <p className='text-xs text-teal-600'>Form ini akan otomatis menampilkan ringkasan semua task onboarding yang sudah diselesaikan, lengkap dengan tanggal, materi, mentor, dan status completion.</p>
             </div>
           )}
+          {ft === 'form_evaluation' && (
+            <EvaluationFormEditor draft={draft} setDraft={setDraft} isContract={false} />
+          )}
+          {ft === 'form_evaluation_contract' && (
+            <EvaluationFormEditor draft={draft} setDraft={setDraft} isContract={true} />
+          )}
         </SectionCard>
       </div>
     )
@@ -480,6 +616,15 @@ export default function MasterFormPage() {
                 )}
                 {f.formType === 'summary' && (
                   <p className='text-xs text-gray-400 italic'>Ringkasan otomatis dari data onboarding.</p>
+                )}
+                {(f.formType === 'form_evaluation' || f.formType === 'form_evaluation_contract') && (
+                  <div className='text-xs text-gray-500 space-y-0.5'>
+                    <div>Core Values: <span className='font-semibold text-gray-700'>{(f.coreValues ?? []).length} aspek</span></div>
+                    <div>Core Competency: <span className='font-semibold text-gray-700'>{(f.coreCompetency ?? []).length} aspek</span></div>
+                    {f.hasStrategicLeadership && <div>Strategic Leadership: <span className='font-semibold text-gray-700'>{(f.strategicLeadership ?? []).length} aspek</span></div>}
+                    <div>Technical Competency: <span className='font-semibold text-gray-700'>{(f.technicalCompetency ?? []).length} aspek</span></div>
+                    {f.formType === 'form_evaluation_contract' && <div className='text-orange-500 text-[10px]'>+ Opsi perpanjangan kontrak</div>}
+                  </div>
                 )}
 
                 <div className='flex items-center gap-2 mt-auto pt-1 border-t border-gray-50'>
