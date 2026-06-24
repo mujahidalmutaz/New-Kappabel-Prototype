@@ -144,7 +144,7 @@ function FormPickerPanel({ row, masterForms, onChange }) {
 // ── Row factory helpers ───────────────────────────────────────────────────────
 const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
 const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
-const newR = () => ({ id: Math.random(), agenda: '', type: '', reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
+const newR = () => ({ id: Math.random(), agenda: '', type: '', evaluators: [], reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
 
 const REVIEW_TYPE_LOV = ['Form Evaluation', 'Form Feedback', 'Configurable Form']
 
@@ -266,6 +266,55 @@ function AssigneeSelect({ value, onChange, employees = [] }) {
   )
 }
 
+// ── Evaluator Picker ──────────────────────────────────────────────────────────
+function EvaluatorPicker({ evaluators = [], employees = [], onChange }) {
+  const FIXED = [
+    { id: 'manager', label: 'Direct Manager' },
+    { id: 'self',    label: 'Karyawan Sendiri' },
+  ]
+  const toggle = (opt) => {
+    const exists = evaluators.some(e => e.id === opt.id)
+    onChange(exists ? evaluators.filter(e => e.id !== opt.id) : [...evaluators, opt])
+  }
+  return (
+    <div className='space-y-1 min-w-[180px]'>
+      <div className='flex flex-wrap gap-1'>
+        {FIXED.map(opt => {
+          const sel = evaluators.some(e => e.id === opt.id)
+          return (
+            <button key={opt.id} type='button' onClick={() => toggle(opt)}
+              className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border transition
+                ${sel ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-500 border-gray-200 hover:border-red-300'}`}>
+              {opt.label}
+            </button>
+          )
+        })}
+        <select defaultValue='' onChange={e => {
+          if (!e.target.value) return
+          const emp = employees.find(em => String(em.id) === e.target.value)
+          if (!emp) return
+          const opt = { id: `emp:${emp.id}`, label: emp.name }
+          if (!evaluators.some(x => x.id === opt.id)) onChange([...evaluators, opt])
+          e.target.value = ''
+        }} className='px-1.5 py-0.5 text-[10px] border border-gray-200 rounded outline-none bg-white'>
+          <option value=''>+ Karyawan…</option>
+          {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
+        </select>
+      </div>
+      {evaluators.length > 0 && (
+        <div className='flex flex-wrap gap-1 mt-0.5'>
+          {evaluators.map(e => (
+            <span key={e.id} className='flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] bg-red-50 text-red-700 rounded-full border border-red-100'>
+              {e.label}
+              <button type='button' onClick={() => onChange(evaluators.filter(x => x.id !== e.id))} className='ml-0.5 font-bold text-red-400 hover:text-red-600'>×</button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Review type dropdown ──────────────────────────────────────────────────────
 function RTC({ value, onChange }) {
   return (
@@ -282,10 +331,9 @@ function ReviewHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('Agenda','Agenda'), 'Type',
-          t('Nama Reviewer','Reviewer Name'), t('Posisi Reviewer','Reviewer Position'), ''].map((h, i) => (
+        {['NO', t('Agenda','Agenda'), 'Type', t('Evaluators','Evaluators'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
-            style={{ minWidth: i === 1 ? 220 : i === 2 ? 150 : i === 3 ? 150 : i === 4 ? 150 : i === 0 ? 40 : 36 }}>
+            style={{ minWidth: i === 1 ? 220 : i === 2 ? 150 : i === 3 ? 220 : i === 0 ? 40 : 36 }}>
             {h}
           </th>
         ))}
@@ -779,7 +827,7 @@ export default function MasterOnboardingPage() {
                   <tbody>
                     {form.reviewItems.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className='px-6 py-8 text-center text-gray-400 text-sm'>
+                        <td colSpan={5} className='px-6 py-8 text-center text-gray-400 text-sm'>
                           {t('Belum ada baris. Klik "+ Tambah" untuk menambahkan.','No rows yet. Click "+ Add" to start.')}
                         </td>
                       </tr>
@@ -796,14 +844,11 @@ export default function MasterOnboardingPage() {
                           <td className='px-2 py-1.5'>
                             <RTC value={row.type || ''} onChange={v => patchReview(row.id, { type: v, masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] })} />
                           </td>
-                          <td className='px-2 py-1.5 w-36'>
-                            {idx === 0
-                              ? <span className='text-xs font-semibold text-gray-700 px-1'>Direct Manager</span>
-                              : <span className='text-xs text-gray-300 italic px-1'>—</span>
-                            }
-                          </td>
-                          <td className='px-2 py-1.5 w-32 text-xs text-gray-500'>
-                            <span className='text-gray-300 italic text-xs'>{t('Otomatis','Auto')}</span>
+                          <td className='px-2 py-1.5'>
+                            <EvaluatorPicker
+                              evaluators={row.evaluators ?? (idx === 0 ? [{ id: 'manager', label: 'Direct Manager' }] : [])}
+                              employees={employees}
+                              onChange={v => patchReview(row.id, { evaluators: v })} />
                           </td>
                           <td className='px-2 py-1.5 w-10 text-center'>
                             {idx > 0 && (
@@ -814,7 +859,7 @@ export default function MasterOnboardingPage() {
                         </tr>
                         {row.type === 'Configurable Form' && (
                           <tr>
-                            <td colSpan={6} className='px-2 pb-2'>
+                            <td colSpan={5} className='px-2 pb-2'>
                               <FormPickerPanel row={row} masterForms={masterForms}
                                 onChange={patch => patchReview(row.id, patch)} />
                             </td>

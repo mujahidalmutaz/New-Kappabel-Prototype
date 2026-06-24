@@ -11,8 +11,9 @@ const OBS_OPTS     = ['+', '0', '-']
 const KESIMPULAN   = ['Lulus', 'Mengulang', 'Tidak Lulus']
 const OJT_SCORES   = [{ val: 'A', poin: 4 }, { val: 'B', poin: 3 }, { val: 'C', poin: 2 }, { val: 'D', poin: 1 }]
 
-function FormFillModal({ item, allSections, onSave, onClose }) {
-  const [resp, setResp] = useState(item.formResponse ?? {})
+function FormFillModal({ item, allSections, evaluatorId, evaluatorName, onSave, onClose }) {
+  const existing = (item.formSubmissions ?? []).find(s => s.evaluatorId === evaluatorId)
+  const [resp, setResp] = useState(existing?.response ?? item.formResponse ?? {})
   const schema   = item.formSchema ?? []
   const formType = item.formType ?? 'field'
   const setField = (id, val) => setResp(r => ({ ...r, [id]: val }))
@@ -442,7 +443,7 @@ export default function EssOnboardingPage() {
 
   const [form,       setForm      ] = useState(null)
   const [saved,      setSaved     ] = useState(false)
-  const [fillModal,  setFillModal ] = useState(null) // { msId, item }
+  const [fillModal,  setFillModal ] = useState(null) // { msId, item, evaluatorId, evaluatorName }
 
   useEffect(() => {
     if (myOnboarding) setForm(JSON.parse(JSON.stringify(myOnboarding)))
@@ -538,9 +539,21 @@ export default function EssOnboardingPage() {
         <FormFillModal
           item={fillModal.item}
           allSections={mainSections}
+          evaluatorId={fillModal.evaluatorId}
+          evaluatorName={fillModal.evaluatorName}
           onClose={() => setFillModal(null)}
           onSave={resp => {
-            patchItem(fillModal.msId, fillModal.item.id, { formResponse: resp, completed: true })
+            const submission = {
+              evaluatorId: fillModal.evaluatorId,
+              evaluatorName: fillModal.evaluatorName,
+              submittedAt: new Date().toISOString(),
+              response: resp,
+            }
+            const prev = (fillModal.item.formSubmissions ?? []).filter(s => s.evaluatorId !== fillModal.evaluatorId)
+            const newSubs = [...prev, submission]
+            const evaluators = fillModal.item.evaluators ?? []
+            const allDone = evaluators.length === 0 || newSubs.length >= evaluators.length
+            patchItem(fillModal.msId, fillModal.item.id, { formSubmissions: newSubs, formResponse: resp, completed: allDone })
             setFillModal(null)
           }}
         />
@@ -634,11 +647,29 @@ export default function EssOnboardingPage() {
                           <td className='px-3 py-1.5 text-gray-800'>{item.agenda || item.module || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-gray-600 w-36'>{item.type || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-xs'>
-                            {item.type === 'Configurable Form'
-                              ? <button onClick={() => setFillModal({ msId: ms.id, item })} disabled={isRejected}
-                                  className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
-                                  {item.formResponse ? '✏ Edit' : '📋 Isi Form'}
-                                </button>
+                            {item.type === 'Configurable Form' ? (() => {
+                              const evaluators = item.evaluators ?? []
+                              const myId = `emp:${currentUser?.id}`
+                              const canFill = evaluators.length === 0
+                                || evaluators.some(e => e.id === 'self' || e.id === myId)
+                              const mySubmission = (item.formSubmissions ?? []).find(s => s.evaluatorId === 'self' || s.evaluatorId === myId)
+                              const totalEval = evaluators.length
+                              const doneEval  = (item.formSubmissions ?? []).length
+                              return (
+                                <div className='flex items-center gap-1.5'>
+                                  {canFill && (
+                                    <button onClick={() => setFillModal({ msId: ms.id, item, evaluatorId: evaluators.some(e => e.id === myId) ? myId : 'self', evaluatorName: currentUser?.name ?? 'Saya' })}
+                                      disabled={isRejected}
+                                      className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
+                                      {mySubmission ? '✏ Edit' : '📋 Isi Form'}
+                                    </button>
+                                  )}
+                                  {totalEval > 0 && (
+                                    <span className='text-[10px] text-gray-400'>{doneEval}/{totalEval}</span>
+                                  )}
+                                </div>
+                              )
+                            })()
                               : <span className='text-gray-300'>—</span>
                             }
                           </td>

@@ -125,6 +125,55 @@ function FormPickerPanel({ item, masterForms, onChange }) {
   )
 }
 
+// ── Evaluator Picker ──────────────────────────────────────────────────────────
+function EvaluatorPicker({ evaluators = [], employees = [], onChange }) {
+  const FIXED = [
+    { id: 'manager', label: 'Direct Manager' },
+    { id: 'self',    label: 'Karyawan Sendiri' },
+  ]
+  const toggle = (opt) => {
+    const exists = evaluators.some(e => e.id === opt.id)
+    onChange(exists ? evaluators.filter(e => e.id !== opt.id) : [...evaluators, opt])
+  }
+  return (
+    <div className='space-y-1 min-w-[180px]'>
+      <div className='flex flex-wrap gap-1'>
+        {FIXED.map(opt => {
+          const sel = evaluators.some(e => e.id === opt.id)
+          return (
+            <button key={opt.id} type='button' onClick={() => toggle(opt)}
+              className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border transition
+                ${sel ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-500 border-gray-200 hover:border-red-300'}`}>
+              {opt.label}
+            </button>
+          )
+        })}
+        <select defaultValue='' onChange={e => {
+          if (!e.target.value) return
+          const emp = employees.find(em => String(em.id) === e.target.value)
+          if (!emp) return
+          const opt = { id: `emp:${emp.id}`, label: emp.name }
+          if (!evaluators.some(x => x.id === opt.id)) onChange([...evaluators, opt])
+          e.target.value = ''
+        }} className='px-1.5 py-0.5 text-[10px] border border-gray-200 rounded outline-none bg-white'>
+          <option value=''>+ Karyawan…</option>
+          {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
+        </select>
+      </div>
+      {evaluators.length > 0 && (
+        <div className='flex flex-wrap gap-1 mt-0.5'>
+          {evaluators.map(e => (
+            <span key={e.id} className='flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] bg-red-50 text-red-700 rounded-full border border-red-100'>
+              {e.label}
+              <button type='button' onClick={() => onChange(evaluators.filter(x => x.id !== e.id))} className='ml-0.5 font-bold text-red-400 hover:text-red-600'>×</button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const PROBATION_OPTIONS = ['0', '3', '6', '12']
 const EMPLOYMENT_STATUS = ['New Hire', 'Existing Employee']
 
@@ -860,17 +909,17 @@ export default function OnboardingTrackerPage() {
                   <thead>
                     <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
                       {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), 'Type',
-                        t('Nama Reviewer','Reviewer Name'), t('Posisi Reviewer','Reviewer Position'),
+                        t('Evaluators','Evaluators'),
                         showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                         <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                          style={{ minWidth: i===2?200 : i===6?36 : 70 }}>{h}</th>
+                          style={{ minWidth: i===2?200 : i===5?36 : i===4?200 : 70 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {(form.reviewItems ?? []).length === 0 ? (
                       <tr>
-                        <td colSpan={7} className='px-6 py-6 text-center text-gray-400 text-sm'>
+                        <td colSpan={6} className='px-6 py-6 text-center text-gray-400 text-sm'>
                           {t('Belum ada baris. Klik "+ Tambah" untuk menambahkan.', 'No rows yet. Click "+ Add" to start.')}
                         </td>
                       </tr>
@@ -897,21 +946,28 @@ export default function OnboardingTrackerPage() {
                                 </select>
                             }
                           </td>
-                          <td className='px-2 py-1.5 w-36'>
-                            {isReadOnly
-                              ? <span className='text-xs text-gray-600'>{item.reviewerName || '—'}</span>
-                              : <select value={item.reviewerEmpId || ''} onChange={e => {
-                                  const emp = employees.find(em => em.id === Number(e.target.value))
-                                  const pos = positions.find(p => p.id === emp?.positionId)
-                                  patchReview(item.id, { reviewerEmpId: e.target.value, reviewerName: emp?.name ?? '', reviewerPosition: pos?.name ?? '' })
-                                }}
-                                  className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
-                                  <option value=''>— Pilih Reviewer —</option>
-                                  {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
-                                </select>
-                            }
+                          <td className='px-2 py-1.5'>
+                            {isReadOnly ? (
+                              <div className='flex flex-wrap gap-1'>
+                                {(item.evaluators ?? []).length === 0
+                                  ? <span className='text-xs text-gray-400'>—</span>
+                                  : (item.evaluators ?? []).map(e => (
+                                    <span key={e.id} className='text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full'>{e.label}</span>
+                                  ))
+                                }
+                                {(item.formSubmissions ?? []).length > 0 && (
+                                  <span className='text-[10px] text-green-600 ml-1'>
+                                    ✓ {(item.formSubmissions ?? []).length}/{(item.evaluators ?? []).length || '?'}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <EvaluatorPicker
+                                evaluators={item.evaluators ?? []}
+                                employees={employees}
+                                onChange={v => patchReview(item.id, { evaluators: v })} />
+                            )}
                           </td>
-                          <td className='px-2 py-1.5 w-28 text-gray-600 text-xs'>{item.reviewerPosition || '—'}</td>
                           <td className='px-2 py-1.5 w-9 text-center'>
                             {showCompleted
                               ? <input type='checkbox' checked={!!item.completed} readOnly disabled className='w-4 h-4 accent-red-600 opacity-60 cursor-default' />
@@ -921,7 +977,7 @@ export default function OnboardingTrackerPage() {
                         </tr>
                         {item.type === 'Configurable Form' && !isReadOnly && (
                           <tr>
-                            <td colSpan={7} className='px-2 pb-2'>
+                            <td colSpan={6} className='px-2 pb-2'>
                               <FormPickerPanel item={item} masterForms={masterForms}
                                 onChange={patch => patchReview(item.id, patch)} />
                             </td>
