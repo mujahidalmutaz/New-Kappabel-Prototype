@@ -320,23 +320,6 @@ const HR_GROUPS = [
       { label: 'Gamification Rules',    href: '/hr/learning/gamification',          icon: ic('zap') },
     ]},
   ]},
-  { title: 'Talent Management', icon: '🌟', isParent: true, subGroups: [
-    { title: 'Assessment', items: [
-      { label: 'Key Position',    href: '/hr/talent/key-position',  icon: ic('star') },
-      { label: 'Vacancy Risk',    href: '/hr/talent/vacancy-risk',  icon: ic('shield') },
-      { label: '9-Box Matrix',    href: '/hr/talent/nine-box',      icon: ic('grid') },
-    ]},
-    { title: 'Development', items: [
-      { label: 'IDP Management',      href: '/hr/talent/idp',            icon: ic('target') },
-      { label: 'Talent Review',       href: '/hr/talent/talent-review',  icon: ic('users') },
-      { label: 'Succession Dev Plan', href: '/hr/talent/sdp',            icon: ic('trending') },
-    ]},
-    { title: 'Database', items: [
-      { label: 'Database Talent',    href: '/hr/talent/database-talent',    icon: ic('layers') },
-      { label: 'Database Successor', href: '/hr/talent/database-successor', icon: ic('userCheck') },
-      { label: 'Laporan Talent',     href: '/hr/talent/report',             icon: ic('chart') },
-    ]},
-  ]},
 ]
 
 const SA_GROUPS = [
