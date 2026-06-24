@@ -1,18 +1,15 @@
 'use client'
 import { useState }             from 'react'
-import { useRouter }            from 'next/navigation'
 import { useAuthStore }         from '@/store/authStore'
 import { useEmployeeStore }     from '@/store/employeeStore'
 import { useStructureStore }    from '@/store/structureStore'
 import { useOnboardingStore }   from '@/store/onboardingStore'
 import { useCourseBatchStore }  from '@/store/courseBatchStore'
-import { useFeedbackStore }     from '@/store/feedbackStore'
 import { useT }                 from '@/store/languageStore'
 import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const TYPE_LOV        = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
-const REVIEW_TYPE_LOV = ['Form Evaluation','Configurable Form']
+const TYPE_LOV = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
 
 const BLANK_BUDDY = {
   buddyEmpId: '', buddyName: '', buddyPosition: '',
@@ -215,14 +212,11 @@ function FeedbackModal({ reviewItem, employeeId, employeeName, getFeedback, onCl
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ApproveOnboardingPage() {
   const t                                        = useT()
-  const router                                   = useRouter()
   const { currentUser }                          = useAuthStore()
   const { employees }                            = useEmployeeStore()
   const { positions }                            = useStructureStore()
   const { onboardings, approveStep, rejectStep, updateOnboarding } = useOnboardingStore()
   const { batches }                              = useCourseBatchStore()
-  const { getFeedback }                          = useFeedbackStore()
-
   const [view,                setView              ] = useState('list')
   const [selectedId,          setSelectedId        ] = useState(null)
   const [note,                setNote              ] = useState('')
@@ -234,7 +228,6 @@ export default function ApproveOnboardingPage() {
   const [localHasilChecked,   setLocalHasilChecked ] = useState(false)
   const [hasilError,          setHasilError        ] = useState(false)
   const [localBuddy,          setLocalBuddy        ] = useState({ ...BLANK_BUDDY })
-  const [viewFeedback,        setViewFeedback      ] = useState(null) // { reviewItem }
 
   const submitted = onboardings.filter(o => o.workflowStatus !== 'Draft')
 
@@ -846,28 +839,25 @@ export default function ApproveOnboardingPage() {
               <thead>
                 <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
                   {[
-                    'NO', t('Tanggal','Date'), t('Agenda','Agenda'), 'Type',
-                    t('Nama Reviewer','Reviewer Name'), t('Posisi Reviewer','Reviewer Position'),
-                    'Feedback',
+                    'NO', t('Tanggal','Date'), t('Agenda','Agenda'), t('Form','Form'),
+                    t('Evaluators','Evaluators'),
                     ...(isApproved ? [t('Completed','Completed')] : [])
                   ].map((h, i) => (
                     <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                      style={{ minWidth: i===2?200 : i===0?40 : i===6?80 : 100 }}>{h}</th>
+                      style={{ minWidth: i===2?200 : i===0?40 : i===4?180 : 100 }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {localReviewItems.length === 0 ? (
                   <tr>
-                    <td colSpan={isApproved ? 8 : 7} className='px-6 py-6 text-center text-gray-400 text-sm'>
+                    <td colSpan={isApproved ? 6 : 5} className='px-6 py-6 text-center text-gray-400 text-sm'>
                       {t('Tidak ada data.','No data.')}
                     </td>
                   </tr>
                 ) : localReviewItems.map((item, idx) => {
-                  const isFeedbackType = item.type === 'Form Feedback'
-                  const hasFb = isFeedbackType && item.reviewerEmpId &&
-                    !!(getFeedback(item.reviewerEmpId, selected.employeeId)?.strength ||
-                       getFeedback(item.reviewerEmpId, selected.employeeId)?.areaDevelopment)
+                  const doneEval = (item.formSubmissions ?? []).length
+                  const totalEval = (item.evaluators ?? []).length
                   return (
                     <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
                       <td className='px-2 py-1.5 w-10 text-center text-gray-500 font-medium'>{idx + 1}</td>
@@ -877,48 +867,23 @@ export default function ApproveOnboardingPage() {
                       <td className='px-2 py-1.5'>
                         <IC value={item.agenda || ''} onChange={v => updR(item.id, 'agenda', v)} placeholder={t('Agenda…','Agenda…')} />
                       </td>
-                      <td className='px-2 py-1.5 w-40'>
-                        <select value={item.type || ''} onChange={e => updR(item.id, 'type', e.target.value)}
-                          className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[140px]'>
-                          <option value=''>— Pilih —</option>
-                          {REVIEW_TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
+                      <td className='px-2 py-1.5 w-40 text-xs text-gray-600'>
+                        {item.masterFormName || <span className='text-gray-300 italic'>—</span>}
                       </td>
-                      <td className='px-2 py-1.5 w-36'>
-                        <select value={item.reviewerEmpId || ''} onChange={e => {
-                          const emp = employees.find(em => em.id === Number(e.target.value))
-                          const pos = positions.find(p => p.id === emp?.positionId)
-                          patchR(item.id, { reviewerEmpId: e.target.value, reviewerName: emp?.name ?? '', reviewerPosition: pos?.name ?? '' })
-                        }}
-                          className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
-                          <option value=''>— Pilih Reviewer —</option>
-                          {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
-                        </select>
-                      </td>
-                      <td className='px-2 py-1.5 w-28 text-xs text-gray-500'>
-                        {item.reviewerPosition || <span className='text-gray-300 italic'>{t('Otomatis','Auto')}</span>}
-                      </td>
-                      <td className='px-2 py-1.5 w-20 text-center'>
-                        {isFeedbackType && item.reviewerEmpId ? (
-                          String(item.reviewerEmpId) === String(currentUser?.id) ? (
-                            <button
-                              onClick={() => router.push(`/mss/feedback?empId=${selected.employeeId}`)}
-                              className='px-2 py-1 text-[10px] font-semibold rounded transition bg-red-100 text-red-700 hover:bg-red-200'>
-                              ✏️ {t('Isi','Fill')}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setViewFeedback({ reviewItem: item })}
-                              className={`px-2 py-1 text-[10px] font-semibold rounded transition
-                                ${hasFb
-                                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-                              👁 {t('Lihat','View')}
-                            </button>
-                          )
-                        ) : (
-                          <span className='text-gray-300'>—</span>
-                        )}
+                      <td className='px-2 py-1.5'>
+                        <div className='flex flex-wrap gap-1 items-center'>
+                          {(item.evaluators ?? []).length === 0
+                            ? <span className='text-xs text-gray-400'>—</span>
+                            : (item.evaluators ?? []).map(e => (
+                              <span key={e.id} className='text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full'>{e.label}</span>
+                            ))
+                          }
+                          {totalEval > 0 && (
+                            <span className={`text-[10px] ml-1 font-semibold ${doneEval >= totalEval ? 'text-green-600' : 'text-amber-600'}`}>
+                              {doneEval}/{totalEval}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       {isApproved && (
                         <td className='px-2 py-1.5 w-16 text-center'>
@@ -1261,17 +1226,6 @@ export default function ApproveOnboardingPage() {
         </div>
       )}
 
-      {/* ── Feedback View Modal ── */}
-      {viewFeedback && (
-        <FeedbackModal
-          reviewItem={viewFeedback.reviewItem}
-          employeeId={selected.employeeId}
-          employeeName={selected.employeeName}
-          getFeedback={getFeedback}
-          onClose={() => setViewFeedback(null)}
-          t={t}
-        />
-      )}
     </div>
   )
 }

@@ -144,9 +144,7 @@ function FormPickerPanel({ row, masterForms, onChange }) {
 // ── Row factory helpers ───────────────────────────────────────────────────────
 const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
 const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
-const newR = () => ({ id: Math.random(), agenda: '', type: '', evaluators: [], reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
-
-const REVIEW_TYPE_LOV = ['Form Evaluation', 'Configurable Form']
+const newR = () => ({ id: Math.random(), agenda: '', masterFormId: null, masterFormName: '', formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [], evaluators: [], reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
 
 const TYPE_LOV = [
   'Manual Task',
@@ -315,23 +313,12 @@ function EvaluatorPicker({ evaluators = [], employees = [], onChange }) {
   )
 }
 
-// ── Review type dropdown ──────────────────────────────────────────────────────
-function RTC({ value, onChange }) {
-  return (
-    <select value={value} onChange={e => onChange(e.target.value)}
-      className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white w-full min-w-[140px]'>
-      <option value=''>— Pilih Type…</option>
-      {REVIEW_TYPE_LOV.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-    </select>
-  )
-}
-
 // ── Periodic Review table header ──────────────────────────────────────────────
 function ReviewHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('Agenda','Agenda'), 'Type', t('Evaluators','Evaluators'), ''].map((h, i) => (
+        {['NO', t('Agenda','Agenda'), t('Form','Form'), t('Evaluators','Evaluators'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
             style={{ minWidth: i === 1 ? 220 : i === 2 ? 150 : i === 3 ? 220 : i === 0 ? 40 : 36 }}>
             {h}
@@ -846,7 +833,20 @@ export default function MasterOnboardingPage() {
                               placeholder={t('Agenda…','Agenda…')} wide />
                           </td>
                           <td className='px-2 py-1.5'>
-                            <RTC value={row.type || ''} onChange={v => patchReview(row.id, { type: v, masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] })} />
+                            <select
+                              value={row.masterFormId ?? ''}
+                              onChange={e => {
+                                const mf = masterForms.find(f => f.id === Number(e.target.value))
+                                if (!mf) {
+                                  patchReview(row.id, { masterFormId: null, masterFormName: '', formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] })
+                                } else {
+                                  patchReview(row.id, { masterFormId: mf.id, masterFormName: mf.name, formSchema: mf.fields ?? [], formType: mf.formType ?? 'field', evalMethod: mf.evalMethod ?? 'nilai', evalTopics: mf.evalTopics ?? [], ojtParams: mf.ojtParams ?? [] })
+                                }
+                              }}
+                              className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white w-full min-w-[160px]'>
+                              <option value=''>— Pilih Form —</option>
+                              {masterForms.filter(f => f.active).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                            </select>
                           </td>
                           <td className='px-2 py-1.5'>
                             <EvaluatorPicker
@@ -861,14 +861,6 @@ export default function MasterOnboardingPage() {
                             )}
                           </td>
                         </tr>
-                        {row.type === 'Configurable Form' && (
-                          <tr>
-                            <td colSpan={5} className='px-2 pb-2'>
-                              <FormPickerPanel row={row} masterForms={masterForms}
-                                onChange={patch => patchReview(row.id, patch)} />
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     ))}
                   </tbody>

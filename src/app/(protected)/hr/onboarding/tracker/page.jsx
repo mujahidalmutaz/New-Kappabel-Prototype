@@ -195,8 +195,7 @@ function calcEndDate(startDate, duration, unit) {
   return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10)
 }
 
-const TYPE_LOV        = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
-const REVIEW_TYPE_LOV = ['Form Evaluation', 'Configurable Form']
+const TYPE_LOV = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
 
 const STATUS_BADGE = {
   Draft:       'bg-gray-100 text-gray-600',
@@ -944,7 +943,7 @@ export default function OnboardingTrackerPage() {
                 <table className='w-full text-xs'>
                   <thead>
                     <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                      {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), 'Type',
+                      {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), t('Form','Form'),
                         t('Evaluators','Evaluators'),
                         showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                         <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
@@ -972,13 +971,18 @@ export default function OnboardingTrackerPage() {
                               : <InputCell value={item.agenda || ''} onChange={v => updateReview(item.id, 'agenda', v)} placeholder={t('Agenda…','Agenda…')} />
                             }
                           </td>
-                          <td className='px-2 py-1.5 w-36'>
+                          <td className='px-2 py-1.5 w-44'>
                             {isReadOnly
-                              ? <span className='text-xs text-gray-600'>{item.type || '—'}</span>
-                              : <select value={item.type || ''} onChange={e => patchReview(item.id, { type: e.target.value, masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] })}
-                                  className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[140px]'>
-                                  <option value=''>— Pilih —</option>
-                                  {REVIEW_TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
+                              ? <span className='text-xs text-gray-600'>{item.masterFormName || item.type || '—'}</span>
+                              : <select value={item.masterFormId ?? ''}
+                                  onChange={e => {
+                                    const mf = masterForms.find(f => f.id === Number(e.target.value))
+                                    if (!mf) patchReview(item.id, { masterFormId: null, masterFormName: '', formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] })
+                                    else patchReview(item.id, { masterFormId: mf.id, masterFormName: mf.name, formSchema: mf.fields ?? [], formType: mf.formType ?? 'field', evalMethod: mf.evalMethod ?? 'nilai', evalTopics: mf.evalTopics ?? [], ojtParams: mf.ojtParams ?? [] })
+                                  }}
+                                  className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[160px]'>
+                                  <option value=''>— Pilih Form —</option>
+                                  {masterForms.filter(f => f.active).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                 </select>
                             }
                           </td>
@@ -1011,14 +1015,6 @@ export default function OnboardingTrackerPage() {
                             }
                           </td>
                         </tr>
-                        {item.type === 'Configurable Form' && !isReadOnly && (
-                          <tr>
-                            <td colSpan={6} className='px-2 pb-2'>
-                              <FormPickerPanel item={item} masterForms={masterForms}
-                                onChange={patch => patchReview(item.id, patch)} />
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     ))}
                   </tbody>

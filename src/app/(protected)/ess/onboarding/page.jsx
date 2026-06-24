@@ -397,11 +397,11 @@ function ReviewHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), 'Type', 'Form',
+        {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), t('Form','Form'), 'Action',
           t('Nama Reviewer','Reviewer Name'), t('Posisi Reviewer','Reviewer Position'),
           t('Completed','Completed')].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap text-xs'
-            style={{ minWidth: i===2?200 : i===4?140 : i===7?80 : i===0?40 : 100 }}>{h}</th>
+            style={{ minWidth: i===2?200 : i===3?140 : i===4?100 : i===7?80 : i===0?40 : 100 }}>{h}</th>
         ))}
       </tr>
     </thead>
@@ -651,9 +651,9 @@ export default function EssOnboardingPage() {
                             }
                           </td>
                           <td className='px-3 py-1.5 text-gray-800'>{item.agenda || item.module || <span className='text-gray-300'>—</span>}</td>
-                          <td className='px-3 py-1.5 text-gray-600 w-36'>{item.type || <span className='text-gray-300'>—</span>}</td>
+                          <td className='px-3 py-1.5 text-gray-600 w-36 text-xs'>{item.masterFormName || item.type || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-xs'>
-                            {item.type === 'Configurable Form' ? (() => {
+                            {item.masterFormId ? (() => {
                               const evaluators = item.evaluators ?? []
                               const myId = `emp:${currentUser?.id}`
                               const canFill = evaluators.length === 0
