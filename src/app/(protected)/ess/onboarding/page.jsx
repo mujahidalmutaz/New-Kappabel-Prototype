@@ -411,8 +411,9 @@ function ReviewHead({ t }) {
 // ── Progress bar ──────────────────────────────────────────────────────────────
 function ProgressBar({ mainSections, t }) {
   const allItems = (mainSections ?? []).flatMap(ms => ms.items ?? [])
-  const total  = allItems.length
-  const done   = allItems.filter(i => i.completed).length
+  const selfItems = allItems.filter(i => { const v = i.assignedTo; return !v || v === 'self' || v === 'employee' })
+  const total  = selfItems.length
+  const done   = selfItems.filter(i => i.completed).length
   const pct    = total === 0 ? 0 : Math.round((done / total) * 100)
   return (
     <div className='mb-5'>
@@ -527,11 +528,12 @@ export default function EssOnboardingPage() {
     )
   }
 
-  // Only show tasks assigned to the employee (or unassigned = legacy data)
-  const mainSections = (form.mainSections ?? []).map(ms => ({
-    ...ms,
-    items: (ms.items ?? []).filter(i => { const v = i.assignedTo; return !v || v === 'self' || v === 'employee' }),
-  }))
+  // Show all tasks; manager-assigned tasks are visible but read-only for the employee
+  const mainSections = form.mainSections ?? []
+  const isMgrTask = (item) => {
+    const v = item.assignedTo
+    return v === 'manager' || (typeof v === 'string' && v.startsWith('emp:'))
+  }
 
   return (
     <div className='pb-10'>
@@ -600,10 +602,14 @@ export default function EssOnboardingPage() {
           <div className='grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-3'>
             {[
               [t('Nama','Name'),                         myOnboarding.employeeName],
+              ['NIK',                                      myOnboarding.nik || '—'],
               ['Department',                               myOnboarding.department || '—'],
+              [t('Join Date','Join Date'),                myOnboarding.joinDate ? String(myOnboarding.joinDate).slice(0, 10) : '—'],
               [t('Nama / Posisi Atasan','Supervisor'),    `${myOnboarding.supervisorName || '—'} / ${myOnboarding.supervisorPosition || '—'}`],
               [t('Status Karyawan','Employee Status'),    myOnboarding.employmentStatus],
               [t('Masa Probation/Orientasi','Probation'), `${myOnboarding.probationPeriod ?? '—'} ${t('Bulan','Month(s)')}`],
+              [t('Contract No','Contract No'),            myOnboarding.contractNo || '—'],
+              [t('Probation End Date','Probation End Date'), myOnboarding.probationEndDate || '—'],
             ].map(([label, val]) => (
               <div key={label} className='flex items-center gap-2'>
                 <span className='text-xs text-red-200 w-36 flex-shrink-0'>{label} :</span>
@@ -692,21 +698,26 @@ export default function EssOnboardingPage() {
                     <tbody>
                       {(ms.items ?? []).length === 0 ? (
                         <tr><td colSpan={8} className='px-6 py-6 text-center text-gray-400 text-sm'>{t('Tidak ada data.','No data.')}</td></tr>
-                      ) : (ms.items ?? []).map((item, idx) => (
-                        <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                      ) : (ms.items ?? []).map((item, idx) => {
+                        const mgrOnly = isMgrTask(item)
+                        return (
+                        <tr key={item.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}${mgrOnly ? ' opacity-70' : ''}`}>
                           <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8 text-xs'>{idx + 1}</td>
                           <td className='px-2 py-1.5 w-28'>
-                            {!isRejected
+                            {(!isRejected && !mgrOnly)
                               ? <input type='date' value={toDateInput(item.date || '')}
                                   onChange={e => updItem(ms.id, item.id, 'date', e.target.value)}
                                   className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
                               : <span className='text-xs text-gray-600 px-2'>{item.date || <span className='text-gray-300'>—</span>}</span>
                             }
                           </td>
-                          <td className='px-3 py-1.5 text-gray-800 font-medium text-xs'>{item.module || <span className='text-gray-300'>—</span>}</td>
+                          <td className='px-3 py-1.5 text-gray-800 font-medium text-xs'>
+                            {item.module || <span className='text-gray-300'>—</span>}
+                            {mgrOnly && <span className='ml-1.5 text-[9px] bg-purple-100 text-purple-600 px-1 py-0.5 rounded font-semibold'>Manager</span>}
+                          </td>
                           <td className='px-3 py-1.5 text-gray-600 text-xs w-36'>{item.type || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-xs'>
-                            {item.type === 'Configurable Form'
+                            {(!mgrOnly && item.type === 'Configurable Form')
                               ? <button onClick={() => setFillModal({ msId: ms.id, item })} disabled={isRejected}
                                   className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
                                   {item.formResponse ? '✏ Edit Jawaban' : '📋 Isi Form'}
@@ -720,12 +731,13 @@ export default function EssOnboardingPage() {
                           <td className='px-3 py-1.5 text-gray-600 text-xs w-28'>{item.mentorPosition || <span className='text-gray-300'>—</span>}</td>
                           <td className='px-3 py-1.5 text-center w-16'>
                             <input type='checkbox' checked={!!item.completed}
-                              onChange={e => updItem(ms.id, item.id, 'completed', e.target.checked)}
-                              disabled={isRejected}
+                              onChange={e => !mgrOnly && updItem(ms.id, item.id, 'completed', e.target.checked)}
+                              disabled={isRejected || mgrOnly}
                               className='w-4 h-4 accent-red-600 disabled:cursor-not-allowed disabled:opacity-40' />
                           </td>
                         </tr>
-                      ))}
+                        )
+                      })}
                     </tbody>
                   </table>
                 ) : (
@@ -745,21 +757,26 @@ export default function EssOnboardingPage() {
                           {rows.length === 0 && (
                             <tr><td colSpan={8} className='px-4 py-3 text-center text-gray-300 text-xs italic'>{t('Tidak ada baris.','No rows.')}</td></tr>
                           )}
-                          {rows.map((item, idx) => (
-                            <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                          {rows.map((item, idx) => {
+                            const mgrOnly = isMgrTask(item)
+                            return (
+                            <tr key={item.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}${mgrOnly ? ' opacity-70' : ''}`}>
                               <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8 text-xs'>{idx + 1}</td>
                               <td className='px-2 py-1.5 w-28'>
-                                {!isRejected
+                                {(!isRejected && !mgrOnly)
                                   ? <input type='date' value={toDateInput(item.date || '')}
                                       onChange={e => updItem(ms.id, item.id, 'date', e.target.value)}
                                       className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
                                   : <span className='text-xs text-gray-600 px-2'>{item.date || <span className='text-gray-300'>—</span>}</span>
                                 }
                               </td>
-                              <td className='px-3 py-1.5 text-gray-800 font-medium text-xs'>{item.module || <span className='text-gray-300'>—</span>}</td>
+                              <td className='px-3 py-1.5 text-gray-800 font-medium text-xs'>
+                                {item.module || <span className='text-gray-300'>—</span>}
+                                {mgrOnly && <span className='ml-1.5 text-[9px] bg-purple-100 text-purple-600 px-1 py-0.5 rounded font-semibold'>Manager</span>}
+                              </td>
                               <td className='px-3 py-1.5 text-gray-600 text-xs w-36'>{item.type || <span className='text-gray-300'>—</span>}</td>
                               <td className='px-3 py-1.5 text-xs'>
-                                {item.type === 'Configurable Form'
+                                {(!mgrOnly && item.type === 'Configurable Form')
                                   ? <button onClick={() => setFillModal({ msId: ms.id, item })} disabled={isRejected}
                                       className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
                                       {item.formResponse ? '✏ Edit Jawaban' : '📋 Isi Form'}
@@ -773,12 +790,13 @@ export default function EssOnboardingPage() {
                               <td className='px-3 py-1.5 text-gray-600 text-xs w-28'>{item.mentorPosition || <span className='text-gray-300'>—</span>}</td>
                               <td className='px-3 py-1.5 text-center w-16'>
                                 <input type='checkbox' checked={!!item.completed}
-                                  onChange={e => updItem(ms.id, item.id, 'completed', e.target.checked)}
-                                  disabled={isRejected}
+                                  onChange={e => !mgrOnly && updItem(ms.id, item.id, 'completed', e.target.checked)}
+                                  disabled={isRejected || mgrOnly}
                                   className='w-4 h-4 accent-red-600 disabled:cursor-not-allowed disabled:opacity-40' />
                               </td>
                             </tr>
-                          ))}
+                            )
+                          })}
                         </tbody>
                       </table>
                     )

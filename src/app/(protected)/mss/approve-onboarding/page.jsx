@@ -12,7 +12,7 @@ import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TYPE_LOV        = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
-const REVIEW_TYPE_LOV = ['Form Evaluation','Form Feedback']
+const REVIEW_TYPE_LOV = ['Form Evaluation','Configurable Form']
 
 const BLANK_BUDDY = {
   buddyEmpId: '', buddyName: '', buddyPosition: '',
@@ -548,10 +548,14 @@ export default function ApproveOnboardingPage() {
           <div className='grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-3'>
             {[
               [t('Nama','Name'),                         selected.employeeName],
+              ['NIK',                                      selected.nik || '—'],
               ['Department',                               selected.department || '—'],
+              [t('Join Date','Join Date'),                selected.joinDate ? String(selected.joinDate).slice(0, 10) : '—'],
               [t('Nama / Posisi Atasan','Supervisor'),    `${selected.supervisorName || '—'} / ${selected.supervisorPosition || '—'}`],
               [t('Status Karyawan','Employee Status'),    selected.employmentStatus],
               [t('Masa Probation/Orientasi','Probation'), `${selected.probationPeriod} ${t('Bulan','Month(s)')}`],
+              [t('Contract No','Contract No'),            selected.contractNo || '—'],
+              [t('Probation End Date','Probation End Date'), selected.probationEndDate || '—'],
             ].map(([label, val]) => (
               <div key={label} className='flex items-center gap-2'>
                 <span className='text-xs text-red-200 w-36 flex-shrink-0'>{label} :</span>
@@ -614,6 +618,7 @@ export default function ApproveOnboardingPage() {
                   const cls  = SEC_COLORS[sec.colorIdx % SEC_COLORS.length]
                   const rows = allMsItems.filter(i => i.category === sec.id)
                   const colSpan = 8
+                  const isGeneral = ms.type === 'Onboarding General'
                   return (
                     <table key={sec.id} className='w-full text-xs border-b border-gray-100 last:border-b-0'>
                       <thead>
@@ -630,6 +635,7 @@ export default function ApproveOnboardingPage() {
                           <td colSpan={colSpan} className='px-3 py-2'>
                             <span className={`text-xs font-semibold ${cls.split(' ').filter(c => c.startsWith('text-')).join(' ')}`}>
                               {sec.label || '—'}
+                              {isGeneral && <span className='ml-2 text-[10px] font-normal opacity-60'>(Read Only)</span>}
                             </span>
                           </td>
                         </tr>
@@ -643,10 +649,14 @@ export default function ApproveOnboardingPage() {
                             <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                               <td className='px-2 py-1.5 w-10 text-center text-gray-500 font-medium'>{idx + 1}</td>
                               <td className='px-2 py-1.5 w-28'>
-                                <DateCell value={item.date || ''} onChange={v => updMsItem(ms.id, item.id, 'date', v)} />
+                                {isGeneral
+                                  ? <span className='text-xs text-gray-600'>{item.date ? String(item.date).slice(0, 10) : '—'}</span>
+                                  : <DateCell value={item.date || ''} onChange={v => updMsItem(ms.id, item.id, 'date', v)} />}
                               </td>
                               <td className='px-2 py-1.5'>
-                                <IC value={item.module || ''} onChange={v => updMsItem(ms.id, item.id, 'module', v)} placeholder={t('Nama modul…','Module name…')} />
+                                {isGeneral
+                                  ? <span className='text-xs text-gray-700'>{item.module || '—'}</span>
+                                  : <IC value={item.module || ''} onChange={v => updMsItem(ms.id, item.id, 'module', v)} placeholder={t('Nama modul…','Module name…')} />}
                               </td>
                               <td className='px-2 py-1.5 w-40 text-gray-600 text-xs'>{item.type || '—'}</td>
                               <td className='px-2 py-1.5 w-28 text-gray-600 text-xs'>{item.mentorName || '—'}</td>
@@ -654,9 +664,11 @@ export default function ApproveOnboardingPage() {
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${roleCls}`}>{roleLabel}</span>
                               </td>
                               <td className='px-2 py-1.5 w-16 text-center'>
-                                <input type='checkbox' checked={!!item.completed}
-                                  onChange={e => updMsItem(ms.id, item.id, 'completed', e.target.checked)}
-                                  className='w-4 h-4 accent-red-600' />
+                                {isGeneral
+                                  ? <input type='checkbox' checked={!!item.completed} readOnly className='w-4 h-4 accent-green-600 cursor-default' />
+                                  : <input type='checkbox' checked={!!item.completed}
+                                      onChange={e => updMsItem(ms.id, item.id, 'completed', e.target.checked)}
+                                      className='w-4 h-4 accent-red-600' />}
                               </td>
                               <td className='px-2 py-1.5 w-9' />
                             </tr>

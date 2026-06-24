@@ -146,7 +146,7 @@ const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '',
 const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
 const newR = () => ({ id: Math.random(), agenda: '', type: '', evaluators: [], reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
 
-const REVIEW_TYPE_LOV = ['Form Evaluation', 'Form Feedback', 'Configurable Form']
+const REVIEW_TYPE_LOV = ['Form Evaluation', 'Configurable Form']
 
 const TYPE_LOV = [
   'Manual Task',
@@ -347,10 +347,10 @@ function TableHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
+        {['NO', t('AGENDA [Module]','AGENDA [Module]'), t('Due Date','Due Date'), 'Type', 'Link',
           t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
-            style={{ minWidth: i === 1 ? 200 : i === 2 ? 160 : i === 3 ? 200 : i === 6 ? 130 : i === 0 ? 40 : 110 }}>
+            style={{ minWidth: i === 1 ? 200 : i === 2 ? 100 : i === 3 ? 160 : i === 4 ? 200 : i === 7 ? 130 : i === 0 ? 40 : 110 }}>
             {h}
           </th>
         ))}
@@ -719,7 +719,7 @@ export default function MasterOnboardingPage() {
                         <TableHead t={t} />
                         <tbody>
                           <tr className={colors.rowCls}>
-                            <td colSpan={8} className='px-3 py-2'>
+                            <td colSpan={9} className='px-3 py-2'>
                               <div className='flex items-center justify-between gap-3'>
                                 <input
                                   value={sec.label}
@@ -740,7 +740,7 @@ export default function MasterOnboardingPage() {
                           </tr>
                           {rows.length === 0 && (
                             <tr>
-                              <td colSpan={8} className='px-4 py-3 text-center text-gray-300 text-xs italic'>
+                              <td colSpan={9} className='px-4 py-3 text-center text-gray-300 text-xs italic'>
                                 {t('Belum ada baris di seksi ini.','No rows in this section.')}
                               </td>
                             </tr>
@@ -752,6 +752,10 @@ export default function MasterOnboardingPage() {
                                 <td className='px-2 py-1.5'>
                                   <IC value={row.module} onChange={v => updGeneral(ms.id, row.id, 'module', v)}
                                     placeholder={t('Nama modul…','Module name…')} wide />
+                                </td>
+                                <td className='px-2 py-1.5 w-28'>
+                                  <input type='date' value={row.dueDate || ''} onChange={e => updGeneral(ms.id, row.id, 'dueDate', e.target.value)}
+                                    className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400' />
                                 </td>
                                 <td className='px-2 py-1.5'>
                                   <SC value={row.type || ''} onChange={v => patchGeneral(ms.id, row.id, { type: v, link: '' })} />
@@ -778,7 +782,7 @@ export default function MasterOnboardingPage() {
                               </tr>
                               {row.type === 'Configurable Form' && (
                                 <tr>
-                                  <td colSpan={8} className='px-2 pb-2'>
+                                  <td colSpan={9} className='px-2 pb-2'>
                                     <FormPickerPanel row={row} masterForms={masterForms}
                                       onChange={patch => patchGeneral(ms.id, row.id, patch)} />
                                   </td>

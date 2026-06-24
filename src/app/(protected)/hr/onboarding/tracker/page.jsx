@@ -196,7 +196,7 @@ function calcEndDate(startDate, duration, unit) {
 }
 
 const TYPE_LOV        = ['Manual Task','Video','Document (Attachment)','Report','Application Task','External URL','Electronic Signature','Questionnaire','Configurable Form','Learning Course']
-const REVIEW_TYPE_LOV = ['Form Evaluation', 'Form Feedback', 'Configurable Form']
+const REVIEW_TYPE_LOV = ['Form Evaluation', 'Configurable Form']
 
 const STATUS_BADGE = {
   Draft:       'bg-gray-100 text-gray-600',
@@ -235,6 +235,7 @@ const EMPTY_FORM = {
   employeeId: '', employeeName: '', department: '',
   supervisorName: '', supervisorPosition: '',
   employmentStatus: 'New Hire', probationPeriod: '3',
+  joinDate: '', probationEndDate: '', nik: '', contractNo: '',
   mainSections: [],
   reviewItems: null,
   hasilInductionChecked: false,
@@ -405,6 +406,8 @@ export default function OnboardingTrackerPage() {
         department:         departments.find(d => d.id === emp.departmentId)?.name ?? '',
         supervisorName:     supervisor?.name ?? '',
         supervisorPosition: positions.find(p => p.id === supervisor?.positionId)?.name ?? '',
+        nik:                emp.nik ?? '',
+        joinDate:           emp.joinDate ? String(emp.joinDate).slice(0, 10) : '',
         buddyAssignment:    { ...buddy, programStartDate: startDate, programEndDate: endDate },
         reviewItems:        f.reviewItems !== null ? resolveDirectManager(f.reviewItems, supervisor) : null,
       }
@@ -420,7 +423,7 @@ export default function OnboardingTrackerPage() {
   const addMsItem = (msId, category) =>
     setForm(f => ({ ...f, mainSections: f.mainSections.map(ms => ms.id !== msId ? ms :
       { ...ms, items: [...ms.items, { id: Math.random(), module: '', type: '', link: '',
-          date: '', mentorName: '', mentorPosition: '', mentorEmpId: '', completed: false,
+          date: '', dueDate: '', mentorName: '', mentorPosition: '', mentorEmpId: '', completed: false,
           assignedTo: 'employee', category }] }) }))
   const delMsItem = (msId, itemId) =>
     setForm(f => ({ ...f, mainSections: f.mainSections.map(ms => ms.id !== msId ? ms :
@@ -522,7 +525,7 @@ export default function OnboardingTrackerPage() {
     // The form is only locked when explicitly opened in view-only mode.
     const isReadOnly    = viewOnly
     const showCompleted = viewOnly && savedStatus === 'Approved'
-    const colSpanMain   = 9
+    const colSpanMain   = 10
     const colSpanRev    = 7
 
     const SEC_COLORS = [
@@ -616,7 +619,37 @@ export default function OnboardingTrackerPage() {
                 </select>
               </div>
 
-              {/* Row 3: Atasan (full width) */}
+              {/* Row 3: NIK | Join Date */}
+              <div className='flex items-center gap-2'>
+                <span className='text-xs text-red-200 w-28 flex-shrink-0'>NIK :</span>
+                <input value={form.nik || ''} onChange={e => setField('nik', e.target.value)}
+                  placeholder='NIK karyawan' disabled={isReadOnly}
+                  className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white placeholder-red-300 outline-none focus:border-white disabled:opacity-60' />
+              </div>
+
+              <div className='flex items-center gap-2'>
+                <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Tgl Bergabung', 'Join Date')} :</span>
+                <input type='date' value={form.joinDate || ''} onChange={e => setField('joinDate', e.target.value)}
+                  disabled={isReadOnly}
+                  className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white outline-none focus:border-white disabled:opacity-60' />
+              </div>
+
+              {/* Row 4: Contract No | Probation End */}
+              <div className='flex items-center gap-2'>
+                <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('No. Kontrak', 'Contract No.')} :</span>
+                <input value={form.contractNo || ''} onChange={e => setField('contractNo', e.target.value)}
+                  placeholder='No. kontrak / PKWT' disabled={isReadOnly}
+                  className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white placeholder-red-300 outline-none focus:border-white disabled:opacity-60' />
+              </div>
+
+              <div className='flex items-center gap-2'>
+                <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Akhir Probation', 'Probation End')} :</span>
+                <input type='date' value={form.probationEndDate || ''} onChange={e => setField('probationEndDate', e.target.value)}
+                  disabled={isReadOnly}
+                  className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white outline-none focus:border-white disabled:opacity-60' />
+              </div>
+
+              {/* Row 5: Atasan (full width) */}
               <div className='flex items-center gap-2 md:col-span-2'>
                 <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Nama / Posisi Atasan', 'Supervisor')} :</span>
                 <div className='flex flex-1 gap-3'>
@@ -764,11 +797,11 @@ export default function OnboardingTrackerPage() {
                     <table key={sec.id} className='w-full text-xs border-b border-gray-100 last:border-b-0'>
                       <thead>
                         <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                          {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
+                          {['NO', t('Tanggal','Date'), t('Due Date','Due Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
                             t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'),
                             showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                             <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                              style={{ minWidth: i===2?180 : i===4?160 : i===7?130 : i===8?36 : 70 }}>{h}</th>
+                              style={{ minWidth: i===3?180 : i===5?160 : i===8?130 : i===9?36 : 70 }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -801,6 +834,9 @@ export default function OnboardingTrackerPage() {
                             <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
                             <td className='px-2 py-1.5 w-28'>
                               <InputCell value={item.date || ''} onChange={v => updateMsItem(ms.id, item.id, 'date', v)} type='date' disabled={isReadOnly} />
+                            </td>
+                            <td className='px-2 py-1.5 w-28'>
+                              <InputCell value={item.dueDate || ''} onChange={v => updateMsItem(ms.id, item.id, 'dueDate', v)} type='date' disabled={isReadOnly} />
                             </td>
                             <td className='px-2 py-1.5'>
                               <InputCell value={item.module || ''} onChange={v => updateMsItem(ms.id, item.id, 'module', v)} disabled={isReadOnly} />
@@ -866,7 +902,7 @@ export default function OnboardingTrackerPage() {
                           </tr>
                           {item.type === 'Configurable Form' && !isReadOnly && (
                             <tr>
-                              <td colSpan={9} className='px-2 pb-2'>
+                              <td colSpan={10} className='px-2 pb-2'>
                                 <FormPickerPanel item={item} masterForms={masterForms}
                                   onChange={patch => patchMsItem(ms.id, item.id, patch)} />
                               </td>
