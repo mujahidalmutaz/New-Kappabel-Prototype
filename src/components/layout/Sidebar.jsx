@@ -153,6 +153,8 @@ const ESS_GROUPS = [
     { label: 'Attendance',           href: '/ess/attendance',     icon: ic('clock') },
     { label: 'Payslip',              href: '/ess/payslip',        icon: ic('money') },
     { label: 'My Onboarding',        href: '/ess/onboarding',     icon: ic('checkCircle') },
+    { label: 'My Talent Profile',    href: '/ess/talent/profile', icon: ic('star') },
+    { label: 'My IDP',               href: '/ess/talent/idp',     icon: ic('target') },
   ]},
   { title: 'Performance', icon: '🎯', items: [
     { label: 'Performance Check-In', href: '/ess/check-in',       icon: ic('gauge') },
@@ -168,6 +170,7 @@ const MSS_GROUPS = [
     { label: 'Form Feedback',              href: '/mss/feedback',           icon: ic('edit') },
     { label: 'Congratulation Message',     href: '/mss/congratulation',     icon: ic('smile') },
     { label: 'Onboarding Tim Saya',        href: '/mss/approve-onboarding', icon: ic('userCheck') },
+    { label: 'IDP Review Tim',             href: '/mss/talent/idp-review',  icon: ic('target') },
   ]},
   { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Personnel Action', href: '/mss/personnel-action', icon: ic('list') },
@@ -216,6 +219,17 @@ const LMS_GROUPS = [
 ]
 
 const HR_GROUPS = [
+  { title: 'Talent Management', icon: '🌟', items: [
+    { label: 'Key Position Assessment',  href: '/hr/talent/key-position',      icon: ic('target') },
+    { label: 'Vacancy Risk Assessment',  href: '/hr/talent/vacancy-risk',       icon: ic('shield') },
+    { label: '9-Box Talent Matrix',      href: '/hr/talent/nine-box',           icon: ic('grid') },
+    { label: 'IDP Management',           href: '/hr/talent/idp',                icon: ic('clipboard') },
+    { label: 'Talent Review Meeting',    href: '/hr/talent/talent-review',      icon: ic('users') },
+    { label: 'Succession Dev. Plan',     href: '/hr/talent/sdp',                icon: ic('map') },
+    { label: 'Database Talent',          href: '/hr/talent/database-talent',    icon: ic('archive') },
+    { label: 'Database Successor',       href: '/hr/talent/database-successor', icon: ic('star') },
+    { label: 'Talent Report',            href: '/hr/talent/report',             icon: ic('chart') },
+  ]},
   { title: 'Onboarding', icon: '🎯', items: [
     { label: 'Onboarding Tracker',         href: '/hr/onboarding/tracker',    icon: ic('users') },
     { label: 'Master Onboarding',          href: '/hr/onboarding/master',     icon: ic('clipboard') },
