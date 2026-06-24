@@ -9,6 +9,7 @@ import { FIELD_TYPES, newField } from '@/utils/formBuilderUtils'
 const FORM_TYPES = [
   { value: 'field',    label: '📝 Configurable Field', desc: 'Form isian bebas dengan field Text, Dropdown, Date, dll.' },
   { value: 'evaluasi', label: '📊 Form Evaluasi',      desc: 'Tabel evaluasi per topik dengan nilai dan kesimpulan. Diisi oleh SME/instruktur setelah tiap materi selesai.' },
+  { value: 'ojt',      label: '🏭 Form OJT',           desc: 'On the Job Training — multi-parameter aktivitas dengan penilaian A(4)/B(3)/C(2)/D(1) dan kalkulasi rata-rata otomatis.' },
   { value: 'summary',  label: '📋 Form Summary',       desc: 'Ringkasan otomatis seluruh task onboarding yang sudah diselesaikan. Tidak perlu konfigurasi field.' },
 ]
 
@@ -24,7 +25,8 @@ const EMPTY_FORM = {
   formType: 'field',
   fields: [],
   evalMethod: 'nilai',
-  evalTopics: [],   // for evaluasi type: pre-defined topic rows
+  evalTopics: [],
+  ojtParams: [],    // for ojt type: [{ id, label, activities: [{ id, label }] }]
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -32,10 +34,110 @@ function formTypeBadge(ft) {
   const map = {
     field:    'bg-blue-50 text-blue-700 border-blue-200',
     evaluasi: 'bg-amber-50 text-amber-700 border-amber-200',
+    ojt:      'bg-violet-50 text-violet-700 border-violet-200',
     summary:  'bg-teal-50 text-teal-700 border-teal-200',
   }
-  const labels = { field: 'Configurable', evaluasi: 'Evaluasi', summary: 'Summary' }
+  const labels = { field: 'Configurable', evaluasi: 'Evaluasi', ojt: 'OJT', summary: 'Summary' }
   return { cls: map[ft] ?? 'bg-gray-100 text-gray-500 border-gray-200', label: labels[ft] ?? ft }
+}
+
+function newOjtParam() {
+  return { id: `p_${Date.now()}_${Math.random().toString(36).slice(2,5)}`, label: '', activities: [] }
+}
+function newOjtActivity() {
+  return { id: `a_${Date.now()}_${Math.random().toString(36).slice(2,5)}`, label: '' }
+}
+
+// ── OJT editor ───────────────────────────────────────────────────────────────
+function OjtEditor({ draft, setDraft }) {
+  const params = draft.ojtParams ?? []
+
+  const addParam   = () => setDraft(d => ({ ...d, ojtParams: [...(d.ojtParams ?? []), newOjtParam()] }))
+  const delParam   = (pid) => setDraft(d => ({ ...d, ojtParams: d.ojtParams.filter(p => p.id !== pid) }))
+  const updParam   = (pid, val) => setDraft(d => ({ ...d, ojtParams: d.ojtParams.map(p => p.id === pid ? { ...p, label: val } : p) }))
+  const addAct     = (pid) => setDraft(d => ({ ...d, ojtParams: d.ojtParams.map(p => p.id !== pid ? p : { ...p, activities: [...p.activities, newOjtActivity()] }) }))
+  const delAct     = (pid, aid) => setDraft(d => ({ ...d, ojtParams: d.ojtParams.map(p => p.id !== pid ? p : { ...p, activities: p.activities.filter(a => a.id !== aid) }) }))
+  const updAct     = (pid, aid, val) => setDraft(d => ({ ...d, ojtParams: d.ojtParams.map(p => p.id !== pid ? p : { ...p, activities: p.activities.map(a => a.id === aid ? { ...a, label: val } : a) }) }))
+
+  return (
+    <div className='space-y-4'>
+      <div className='flex items-center justify-between mb-1'>
+        <div>
+          <span className='text-sm font-bold text-gray-700'>Parameter OJT</span>
+          <p className='text-xs text-gray-400 mt-0.5'>Setiap parameter berisi daftar aktivitas yang dinilai A(4) / B(3) / C(2) / D(1).</p>
+        </div>
+        <button onClick={addParam} className='text-xs px-3 py-1.5 rounded-lg border border-violet-300 text-violet-700 hover:bg-violet-50 font-semibold transition'>
+          + Tambah Parameter
+        </button>
+      </div>
+
+      {params.length === 0 ? (
+        <div className='text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl'>
+          Belum ada parameter. Klik "+ Tambah Parameter" untuk mulai.
+        </div>
+      ) : params.map((p, pIdx) => (
+        <div key={p.id} className='rounded-xl border border-violet-200 overflow-hidden'>
+          {/* Parameter header */}
+          <div className='flex items-center gap-2 bg-violet-50 px-3 py-2'>
+            <span className='text-[10px] font-bold text-violet-500 uppercase w-20 flex-shrink-0'>Parameter {String.fromCharCode(65 + pIdx)}</span>
+            <input value={p.label} onChange={e => updParam(p.id, e.target.value)}
+              placeholder='Nama parameter (contoh: GENERAL HYGIENE)…'
+              className='flex-1 px-2 py-1 text-xs border border-violet-200 rounded outline-none focus:border-violet-400 bg-white font-semibold' />
+            <button onClick={() => addAct(p.id)} className='text-xs px-2.5 py-1 rounded border border-violet-300 text-violet-700 hover:bg-violet-100 font-semibold transition flex-shrink-0'>
+              + Aktivitas
+            </button>
+            <button onClick={() => delParam(p.id)} className='text-red-400 hover:text-red-600 text-sm font-bold flex-shrink-0'>✕</button>
+          </div>
+
+          {/* Activities */}
+          {p.activities.length === 0 ? (
+            <div className='px-4 py-3 text-xs text-gray-300 italic text-center'>Belum ada aktivitas.</div>
+          ) : (
+            <table className='w-full text-xs'>
+              <thead>
+                <tr className='bg-gray-50 border-b border-gray-100'>
+                  <th className='px-3 py-1.5 text-left text-gray-500 font-semibold w-8'>No</th>
+                  <th className='px-3 py-1.5 text-left text-gray-500 font-semibold'>Aktivitas</th>
+                  <th className='px-3 py-1.5 text-center text-gray-400 font-semibold w-8'>A</th>
+                  <th className='px-3 py-1.5 text-center text-gray-400 font-semibold w-8'>B</th>
+                  <th className='px-3 py-1.5 text-center text-gray-400 font-semibold w-8'>C</th>
+                  <th className='px-3 py-1.5 text-center text-gray-400 font-semibold w-8'>D</th>
+                  <th className='w-8'></th>
+                </tr>
+              </thead>
+              <tbody>
+                {p.activities.map((a, aIdx) => (
+                  <tr key={a.id} className={aIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                    <td className='px-3 py-1.5 text-center text-gray-400'>{aIdx + 1}</td>
+                    <td className='px-2 py-1.5'>
+                      <input value={a.label} onChange={e => updAct(p.id, a.id, e.target.value)}
+                        placeholder='Nama aktivitas…'
+                        className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-violet-400' />
+                    </td>
+                    <td className='px-1 py-1.5 text-center text-gray-300 text-[10px]'>4</td>
+                    <td className='px-1 py-1.5 text-center text-gray-300 text-[10px]'>3</td>
+                    <td className='px-1 py-1.5 text-center text-gray-300 text-[10px]'>2</td>
+                    <td className='px-1 py-1.5 text-center text-gray-300 text-[10px]'>1</td>
+                    <td className='px-2 py-1.5 text-center'>
+                      <button onClick={() => delAct(p.id, a.id)} className='text-red-400 hover:text-red-600 text-sm font-bold'>✕</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className='bg-violet-50 border-t border-violet-100'>
+                  <td colSpan={2} className='px-3 py-1.5 text-[10px] font-semibold text-violet-700'>
+                    Total Poin Parameter (Y) · Jumlah JT (Z) · Rata-rata Y/Z
+                  </td>
+                  <td colSpan={5} className='px-3 py-1.5 text-[10px] text-violet-400 italic text-right'>dihitung otomatis saat pengisian</td>
+                </tr>
+              </tfoot>
+            </table>
+          )}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function newTopic() {
@@ -288,6 +390,9 @@ export default function MasterFormPage() {
           {ft === 'evaluasi' && (
             <EvaluasiEditor draft={draft} setDraft={setDraft} />
           )}
+          {ft === 'ojt' && (
+            <OjtEditor draft={draft} setDraft={setDraft} />
+          )}
           {ft === 'summary' && (
             <div className='rounded-xl bg-teal-50 border border-teal-200 px-5 py-4 text-sm text-teal-800'>
               <p className='font-semibold mb-1'>📋 Form Summary — Tidak perlu konfigurasi tambahan</p>
@@ -326,7 +431,9 @@ export default function MasterFormPage() {
             const { cls, label: ftLabel } = formTypeBadge(f.formType ?? 'field')
             const fieldCount = f.formType === 'evaluasi'
               ? (f.evalTopics ?? []).length
-              : (f.fields ?? []).length
+              : f.formType === 'ojt'
+                ? (f.ojtParams ?? []).reduce((s, p) => s + (p.activities ?? []).length, 0)
+                : (f.fields ?? []).length
             return (
               <div key={f.id} className='bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition'>
                 <div className='flex items-start justify-between gap-2'>
@@ -359,13 +466,27 @@ export default function MasterFormPage() {
                     {(f.evalTopics ?? []).length === 0 && <span className='ml-2 text-gray-400'>· Topik dari task onboarding</span>}
                   </div>
                 )}
+                {f.formType === 'ojt' && (
+                  <div className='text-xs text-gray-500'>
+                    {(f.ojtParams ?? []).length === 0
+                      ? <span className='italic text-gray-300'>Belum ada parameter</span>
+                      : (f.ojtParams ?? []).map((p, i) => (
+                          <span key={p.id} className='mr-2'>
+                            <span className='font-semibold text-violet-600'>Param {String.fromCharCode(65+i)}:</span> {p.label || '—'} ({(p.activities ?? []).length} aktivitas)
+                          </span>
+                        ))
+                    }
+                  </div>
+                )}
                 {f.formType === 'summary' && (
                   <p className='text-xs text-gray-400 italic'>Ringkasan otomatis dari data onboarding.</p>
                 )}
 
                 <div className='flex items-center gap-2 mt-auto pt-1 border-t border-gray-50'>
                   {f.formType !== 'summary' && (
-                    <span className='text-[10px] text-gray-300'>{fieldCount} {f.formType === 'evaluasi' ? 'topik' : 'field'}{fieldCount !== 1 ? 's' : ''}</span>
+                    <span className='text-[10px] text-gray-300'>
+                      {fieldCount} {f.formType === 'evaluasi' ? 'topik' : f.formType === 'ojt' ? 'aktivitas' : 'field'}
+                    </span>
                   )}
                   <div className='ml-auto flex gap-2'>
                     <button onClick={() => openEdit(f)} className='text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition'>Edit</button>

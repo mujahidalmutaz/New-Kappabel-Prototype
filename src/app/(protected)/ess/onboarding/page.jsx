@@ -9,6 +9,7 @@ import { validateResponse }    from '@/utils/formBuilderUtils'
 const NILAI_OPTS   = ['A', 'B', 'C', 'D', 'E']
 const OBS_OPTS     = ['+', '0', '-']
 const KESIMPULAN   = ['Lulus', 'Mengulang', 'Tidak Lulus']
+const OJT_SCORES   = [{ val: 'A', poin: 4 }, { val: 'B', poin: 3 }, { val: 'C', poin: 2 }, { val: 'D', poin: 1 }]
 
 function FormFillModal({ item, allSections, onSave, onClose }) {
   const [resp, setResp] = useState(item.formResponse ?? {})
@@ -43,12 +44,12 @@ function FormFillModal({ item, allSections, onSave, onClose }) {
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
-      <div className='bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden'>
+      <div className={`bg-white rounded-2xl shadow-2xl w-full mx-4 overflow-hidden ${formType === 'ojt' ? 'max-w-3xl' : 'max-w-2xl'}`}>
         <div style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }} className='px-6 py-4 flex items-center justify-between'>
           <h2 className='text-sm font-bold text-white'>
-            {formType === 'evaluasi' ? '📊' : formType === 'summary' ? '📋' : '📝'} {item.module || 'Form'}
+            {formType === 'evaluasi' ? '📊' : formType === 'ojt' ? '🏭' : formType === 'summary' ? '📋' : '📝'} {item.module || 'Form'}
           </h2>
-          <span className='text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white capitalize'>{formType}</span>
+          <span className='text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white uppercase'>{formType}</span>
         </div>
 
         <div className='px-6 py-5 max-h-[65vh] overflow-y-auto'>
@@ -157,6 +158,100 @@ function FormFillModal({ item, allSections, onSave, onClose }) {
               </div>
             </div>
           )}
+
+          {/* ── OJT type ──────────────────────────────────────────────────── */}
+          {formType === 'ojt' && (() => {
+            const ojtParams = item.ojtParams ?? []
+            if (ojtParams.length === 0) return (
+              <p className='text-sm text-gray-400 text-center py-6'>Belum ada parameter OJT dikonfigurasi.</p>
+            )
+            return (
+              <div className='space-y-5'>
+                {ojtParams.map((p, pIdx) => {
+                  const activities = p.activities ?? []
+                  // compute totals from resp
+                  let totalY = 0, countZ = 0
+                  activities.forEach(a => {
+                    const sc = resp[`ojt_${p.id}_${a.id}`]
+                    const found = OJT_SCORES.find(s => s.val === sc)
+                    if (found) { totalY += found.poin; countZ++ }
+                  })
+                  const avg = countZ > 0 ? (totalY / countZ).toFixed(2) : '—'
+
+                  return (
+                    <div key={p.id} className='rounded-xl border border-violet-200 overflow-hidden'>
+                      <div className='bg-violet-600 px-3 py-2'>
+                        <span className='text-xs font-bold text-white'>
+                          PARAMETER {String.fromCharCode(65 + pIdx)}{p.label ? `. ${p.label.toUpperCase()}` : ''}
+                        </span>
+                      </div>
+                      <table className='w-full text-xs'>
+                        <thead>
+                          <tr className='bg-gray-50 border-b border-gray-100'>
+                            <th className='px-3 py-1.5 text-left font-semibold text-gray-600 w-8'>No</th>
+                            <th className='px-3 py-1.5 text-left font-semibold text-gray-600'>Aktivitas</th>
+                            {OJT_SCORES.map(s => (
+                              <th key={s.val} className='px-2 py-1.5 text-center font-semibold text-gray-600 w-14'>
+                                {s.val}<br /><span className='text-[10px] text-gray-400'>(Poin:{s.poin})</span>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activities.map((a, aIdx) => {
+                            const key = `ojt_${p.id}_${a.id}`
+                            const val = resp[key] ?? ''
+                            return (
+                              <tr key={a.id} className={aIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                                <td className='px-3 py-1.5 text-center text-gray-400'>{aIdx + 1}</td>
+                                <td className='px-3 py-1.5 text-gray-800'>{a.label || '—'}</td>
+                                {OJT_SCORES.map(s => (
+                                  <td key={s.val} className='px-2 py-1.5 text-center'>
+                                    <input type='radio' name={key} value={s.val}
+                                      checked={val === s.val}
+                                      onChange={() => setField(key, s.val)}
+                                      className='w-3.5 h-3.5 accent-violet-600 cursor-pointer' />
+                                  </td>
+                                ))}
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className='bg-violet-50 border-t border-violet-100 font-semibold text-[10px]'>
+                            <td colSpan={2} className='px-3 py-1.5 text-violet-700'>
+                              Total Poin Parameter {String.fromCharCode(65+pIdx)} (Y) = Jumlah nilai kualitatif × poin
+                            </td>
+                            <td colSpan={4} className='px-3 py-1.5 text-right text-violet-600 font-bold'>{totalY}</td>
+                          </tr>
+                          <tr className='bg-violet-50 text-[10px]'>
+                            <td colSpan={2} className='px-3 py-1 text-violet-600'>Jumlah JT yang dilakukan (Z)</td>
+                            <td colSpan={4} className='px-3 py-1 text-right text-violet-600 font-bold'>{countZ}</td>
+                          </tr>
+                          <tr className='bg-violet-50 border-b border-violet-100 text-[10px]'>
+                            <td colSpan={2} className='px-3 py-1.5 text-violet-600'>Rata-rata poin parameter: Total Y/Z</td>
+                            <td colSpan={4} className='px-3 py-1.5 text-right text-violet-700 font-bold'>{avg}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  )
+                })}
+                <div className='flex items-center gap-3 pt-2'>
+                  <label className='text-xs font-semibold text-gray-700'>Kesimpulan:</label>
+                  <div className='flex gap-2'>
+                    {KESIMPULAN.map(k => (
+                      <label key={k} className='flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer'>
+                        <input type='radio' name='ojt_kesimpulan' value={k} checked={resp.kesimpulan === k}
+                          onChange={() => setField('kesimpulan', k)} className='accent-violet-600' />
+                        {k}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* ── Summary type ───────────────────────────────────────────────── */}
           {formType === 'summary' && (

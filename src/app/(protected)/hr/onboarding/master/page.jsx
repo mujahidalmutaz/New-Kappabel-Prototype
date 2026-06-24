@@ -18,13 +18,14 @@ function FormPickerPanel({ row, masterForms, onChange }) {
 
   const pickLibrary = (formId) => {
     const mf = masterForms.find(f => f.id === Number(formId))
-    if (!mf) { onChange({ masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [] }); return }
+    if (!mf) { onChange({ masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] }); return }
     onChange({
       masterFormId: mf.id,
       formSchema: mf.fields ?? [],
       formType: mf.formType ?? 'field',
       evalMethod: mf.evalMethod ?? 'nilai',
       evalTopics: mf.evalTopics ?? [],
+      ojtParams: mf.ojtParams ?? [],
     })
   }
   const addField  = () => onChange({ formSchema: [...(row.formSchema ?? []), newField()] })
@@ -62,7 +63,10 @@ function FormPickerPanel({ row, masterForms, onChange }) {
                 <option value=''>— Pilih Form dari Library —</option>
                 {activeForms.map(f => {
                   const ft = f.formType ?? 'field'
-                  const suffix = ft === 'field' ? `${(f.fields ?? []).length} field` : ft === 'evaluasi' ? `Evaluasi · ${f.evalMethod ?? 'nilai'}` : 'Summary'
+                  const suffix = ft === 'field' ? `${(f.fields ?? []).length} field`
+                    : ft === 'evaluasi' ? `Evaluasi · ${f.evalMethod ?? 'nilai'}`
+                    : ft === 'ojt' ? `OJT · ${(f.ojtParams ?? []).length} param`
+                    : 'Summary'
                   return <option key={f.id} value={f.id}>{f.name} ({suffix})</option>
                 })}
               </select>
@@ -73,6 +77,11 @@ function FormPickerPanel({ row, masterForms, onChange }) {
             if (ft === 'evaluasi') return (
               <p className='mt-1 text-[10px] text-amber-600 italic'>
                 Form Evaluasi · metode: {row.evalMethod ?? 'nilai'} · {(row.evalTopics ?? []).length} topik
+              </p>
+            )
+            if (ft === 'ojt') return (
+              <p className='mt-1 text-[10px] text-violet-600 italic'>
+                Form OJT · {(row.ojtParams ?? []).length} parameter · {(row.ojtParams ?? []).reduce((s, p) => s + (p.activities ?? []).length, 0)} aktivitas
               </p>
             )
             return (
