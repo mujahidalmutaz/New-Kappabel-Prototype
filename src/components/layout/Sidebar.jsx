@@ -172,10 +172,6 @@ const MSS_GROUPS = [
   { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Personnel Action', href: '/mss/personnel-action', icon: ic('list') },
   ]},
-  { title: 'Evaluation', icon: '📋', items: [
-    { label: 'Form Evaluation',            href: '/mss/evaluation',          icon: ic('fileText') },
-    { label: 'Form Evaluation (Contract)', href: '/mss/evaluation-contract', icon: ic('edit') },
-  ]},
 ]
 
 const LMS_GROUPS = [
@@ -224,8 +220,6 @@ const HR_GROUPS = [
     { label: 'Onboarding Tracker',         href: '/hr/onboarding/tracker',    icon: ic('users') },
     { label: 'Master Onboarding',          href: '/hr/onboarding/master',     icon: ic('clipboard') },
     { label: 'Master Form',                href: '/hr/onboarding/forms',      icon: ic('fileText') },
-    { label: 'Form Evaluation',            href: '/hr/evaluation',            icon: ic('fileText') },
-    { label: 'Form Evaluation (Contract)', href: '/hr/evaluation-contract',   icon: ic('edit') },
   ]},
   { title: 'Structure', icon: '🏛️', items: [
     { label: 'Enterprise',       href: '/hr/structure/enterprise',        icon: ic('globe') },
