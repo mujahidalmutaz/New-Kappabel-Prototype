@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useTalentStore } from '@/store/talentStore'
 
 const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
@@ -198,11 +199,34 @@ export default function SDPPage() {
                 <div className='font-semibold text-gray-800'>{sdp.employeeName} → {sdp.targetPosition}</div>
                 {sdp.careerPlan && <div className='text-xs text-gray-400 mt-0.5'>{sdp.careerPlan}</div>}
               </div>
-              <button onClick={() => openAddProg(sdp.id)}
-                className='px-2.5 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
-                + Tambah Program
-              </button>
+              <div className='flex items-center gap-2'>
+                {sdp.status !== 'Completed' && (
+                  <button onClick={() => { updateSdp(sdp.id, { status: 'Completed' }); flash('SDP ditandai selesai.') }}
+                    className='px-2.5 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition'>
+                    Tandai Selesai
+                  </button>
+                )}
+                <button onClick={() => openAddProg(sdp.id)}
+                  className='px-2.5 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
+                  + Tambah Program
+                </button>
+              </div>
             </div>
+            {(sdp.status === 'Completed' || sdp.successorReadiness === 'Short') && (
+              <div className='mx-5 my-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3'>
+                <div className='text-sm font-bold text-green-800 mb-2'>Successor Siap — Tindak Lanjuti</div>
+                <div className='flex flex-wrap gap-2'>
+                  <Link href={`/hr/employee/personnel-action?action=Promotion&employee=${encodeURIComponent(sdp.employeeName)}`}
+                    className='text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition font-semibold'>
+                    Buat Promosi
+                  </Link>
+                  <Link href={`/hr/employee/personnel-action?action=Transfer&employee=${encodeURIComponent(sdp.employeeName)}`}
+                    className='text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition font-semibold'>
+                    Buat Transfer
+                  </Link>
+                </div>
+              </div>
+            )}
             <div className='overflow-x-auto'>
               <table className='w-full text-xs'>
                 <thead>

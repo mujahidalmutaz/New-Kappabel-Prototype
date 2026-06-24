@@ -40,8 +40,10 @@ const EMPTY_FORM = {
 const EMPTY_SUCCESSOR = { employeeId: '', name: '', fitnessLevel: 'Medium', schedule: '' }
 
 export default function TalentReviewPage() {
-  const { keyPositions, talentReviews, addTalentReview, updateTalentReview, deleteTalentReview } = useTalentStore()
+  const { keyPositions, talentReviews, addTalentReview, updateTalentReview, deleteTalentReview,
+    sdpList, addSdp, vacancyRisks, readinessAssessments = [] } = useTalentStore()
   const [showModal, setShowModal] = useState(false)
+  const [sdpConfirm, setSdpConfirm] = useState(null) // { successorName, positionName, keyPositionId, sdpTerm }
   const [editId, setEditId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [successors, setSuccessors] = useState([])
@@ -50,6 +52,22 @@ export default function TalentReviewPage() {
 
   const flash = (text, type = 'success') => {
     setMsg({ text, type }); setTimeout(() => setMsg(null), 3000)
+  }
+
+  const handleCreateSdp = () => {
+    if (!sdpConfirm) return
+    const vr = vacancyRisks.find(v => v.keyPositionId === sdpConfirm.keyPositionId)
+    addSdp({
+      employeeName: sdpConfirm.successorName,
+      targetPosition: sdpConfirm.positionName,
+      vacancyRisk: vr?.riskTerm || 'Mid',
+      successorReadiness: sdpConfirm.sdpTerm,
+      careerPlan: '',
+      programs: [],
+      status: 'Active',
+    })
+    flash(`✓ SDP berhasil dibuat untuk ${sdpConfirm.successorName}`)
+    setSdpConfirm(null)
   }
 
   const keyOnly = keyPositions.filter(k => k.isKeyPosition)
@@ -176,23 +194,39 @@ export default function TalentReviewPage() {
                   <table className='w-full text-xs'>
                     <thead>
                       <tr className='bg-gray-50'>
-                        {['No', 'Nama Successor', 'Fitness Level', 'SDP Term', 'Schedule'].map((h, i) => (
+                        {['No', 'Nama Successor', 'Fitness Level', 'SDP Term', 'Schedule', 'SDP'].map((h, i) => (
                           <th key={i} className='text-left px-4 py-2 text-gray-500 font-semibold'>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {(!rev.successors || rev.successors.length === 0) ? (
-                        <tr><td colSpan={5} className='px-4 py-6 text-center text-gray-400'>Belum ada successor.</td></tr>
-                      ) : rev.successors.map((s, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
-                          <td className='px-4 py-2 text-gray-400'>{idx + 1}</td>
-                          <td className='px-4 py-2 font-semibold text-gray-800'>{s.name}</td>
-                          <td className='px-4 py-2'><FitnessBadge level={s.fitnessLevel} /></td>
-                          <td className='px-4 py-2'><SdpTermBadge term={s.sdpTerm} /></td>
-                          <td className='px-4 py-2 text-gray-600'>{s.schedule}</td>
-                        </tr>
-                      ))}
+                        <tr><td colSpan={6} className='px-4 py-6 text-center text-gray-400'>Belum ada successor.</td></tr>
+                      ) : rev.successors.map((s, idx) => {
+                        const hasSdp = sdpList.some(sp => sp.employeeName === s.name)
+                        return (
+                          <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
+                            <td className='px-4 py-2 text-gray-400'>{idx + 1}</td>
+                            <td className='px-4 py-2 font-semibold text-gray-800'>{s.name}</td>
+                            <td className='px-4 py-2'><FitnessBadge level={s.fitnessLevel} /></td>
+                            <td className='px-4 py-2'><SdpTermBadge term={s.sdpTerm} /></td>
+                            <td className='px-4 py-2 text-gray-600'>{s.schedule}</td>
+                            <td className='px-4 py-2'>
+                              {hasSdp ? (
+                                <span className='inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full'>
+                                  ✓ SDP Ada
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => setSdpConfirm({ successorName: s.name, positionName: rev.positionName, keyPositionId: rev.keyPositionId, sdpTerm: s.sdpTerm })}
+                                  className='px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
+                                  Buat SDP
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -201,6 +235,29 @@ export default function TalentReviewPage() {
           </div>
         ))}
       </div>
+
+      {/* SDP Confirm Dialog */}
+      {sdpConfirm && (
+        <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50' onClick={() => setSdpConfirm(null)}>
+          <div className='bg-white rounded-2xl shadow-2xl p-6 w-80' onClick={e => e.stopPropagation()}>
+            <h3 className='text-base font-bold text-gray-800 mb-2'>Buat Succession Development Plan</h3>
+            <p className='text-sm text-gray-600 mb-5'>
+              Buat Succession Development Plan untuk <strong>{sdpConfirm.successorName}</strong>?
+            </p>
+            <div className='flex gap-3'>
+              <button onClick={handleCreateSdp}
+                className='flex-1 py-2 text-sm font-semibold text-white rounded-xl hover:opacity-90 transition'
+                style={{ background: BRAND }}>
+                Buat SDP
+              </button>
+              <button onClick={() => setSdpConfirm(null)}
+                className='flex-1 py-2 text-sm font-semibold bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition'>
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {showModal && (
@@ -261,7 +318,16 @@ export default function TalentReviewPage() {
                   {successors.map((s, idx) => (
                     <div key={idx} className='bg-gray-50 rounded-xl p-3 space-y-2'>
                       <div className='flex items-start justify-between gap-2'>
-                        <input value={s.name} onChange={e => updateSuccessor(idx, { name: e.target.value })}
+                        <input value={s.name} onChange={e => {
+                          const name = e.target.value
+                          const ra = readinessAssessments.find(r => r.employeeName === name)
+                          if (ra) {
+                            const fl = ra.fitnessLevel || ra.overallReadiness || s.fitnessLevel
+                            updateSuccessor(idx, { name, fitnessLevel: fl, _raDate: ra.assessedAt || ra.date || '' })
+                          } else {
+                            updateSuccessor(idx, { name, _raDate: undefined })
+                          }
+                        }}
                           placeholder='Nama successor…'
                           className='flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-red-400' />
                         <button onClick={() => removeSuccessor(idx)} className='text-red-400 hover:text-red-600 text-sm font-bold'>×</button>
@@ -275,6 +341,11 @@ export default function TalentReviewPage() {
                             <option value='Medium'>Medium</option>
                             <option value='Low'>Low</option>
                           </select>
+                          {s._raDate && (
+                            <span className='mt-1 inline-block text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded'>
+                              dari Readiness Assessment {s._raDate}
+                            </span>
+                          )}
                         </div>
                         <div>
                           <label className='block text-xs text-gray-500 mb-1'>Schedule</label>

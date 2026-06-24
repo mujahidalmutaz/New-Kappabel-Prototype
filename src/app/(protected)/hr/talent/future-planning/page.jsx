@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useTalentStore } from '@/store/talentStore'
+import { useAuthStore } from '@/store/authStore'
 
 const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
 
@@ -21,7 +22,21 @@ const PLAN_EMPTY = { positionName: '', planYear: new Date().getFullYear() + 1, c
 const SUCC_EMPTY = { employeeName: '', readiness: 'Medium', targetDate: '' }
 
 export default function FuturePlanningPage() {
+  const { user } = useAuthStore()
   const { futurePlanning, addFuturePlan, deleteFuturePlan, addSuccessor, removeSuccessor } = useTalentStore()
+
+  const COD_ROLES = ['COD', 'cod', 'superadmin']
+  const isCOD = COD_ROLES.includes(user?.role) || user?.roles?.includes('COD') || user?.isCOD
+
+  if (!isCOD) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-64">
+        <div className="text-4xl mb-3">🔒</div>
+        <h2 className="text-lg font-bold text-gray-800">Akses Terbatas</h2>
+        <p className="text-sm text-gray-500 mt-1">Halaman ini hanya dapat diakses oleh COD (Chief of Division)</p>
+      </div>
+    )
+  }
 
   const [filterYear, setFilterYear] = useState('all')
   const [showModal, setShowModal] = useState(false)

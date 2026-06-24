@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useTalentStore } from '@/store/talentStore'
+import { useEmployeeStore } from '@/store/employeeStore'
+import { useEvaluationStore } from '@/store/evaluationStore'
 
 const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
 
@@ -30,8 +32,11 @@ const EMPTY_FORM = { employeeName: '', performanceScore: '', competencyScore: ''
 
 export default function NineBoxPage() {
   const { talentBoxes, addTalentBox, updateTalentBox, deleteTalentBox } = useTalentStore()
+  const { employees } = useEmployeeStore()
+  const { evaluations } = useEvaluationStore()
   const [yearFilter, setYearFilter] = useState(new Date().getFullYear())
   const [showModal, setShowModal] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editId, setEditId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [selected, setSelected] = useState(null)
@@ -105,6 +110,10 @@ export default function NineBoxPage() {
             className='px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
+          <button onClick={() => setShowImport(true)}
+            className='flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl shadow-sm transition hover:bg-gray-50'>
+            ↓ Import dari Evaluasi
+          </button>
           <button onClick={() => { setEditId(null); setForm({ ...EMPTY_FORM, year: yearFilter }); setShowModal(true) }}
             className='flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-xl shadow-sm transition hover:opacity-90'
             style={{ background: BRAND }}>
@@ -264,8 +273,18 @@ export default function NineBoxPage() {
             <div className='px-6 py-5 space-y-4'>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Karyawan <span className='text-red-400'>*</span></label>
-                <input value={form.employeeName} onChange={e => setForm(f => ({ ...f, employeeName: e.target.value }))}
-                  placeholder='Nama lengkap…' className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                <select
+                  value={employees.find(e => e.name === form.employeeName)?.id || ''}
+                  onChange={e => {
+                    const emp = employees.find(x => x.id === Number(e.target.value))
+                    if (emp) setForm(f => ({ ...f, employeeName: emp.name, employeeId: emp.id }))
+                  }}
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                  <option value=''>— Pilih Karyawan —</option>
+                  {employees.filter(e => e.status === 'Active').map(e => (
+                    <option key={e.id} value={e.id}>{e.name} ({e.nik || ''})</option>
+                  ))}
+                </select>
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div>

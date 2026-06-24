@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useTalentStore } from '@/store/talentStore'
+import { useEmployeeStore } from '@/store/employeeStore'
 
 const PERF_HISTORY = [
   { year: 2023, score: 82, grade: 'B', talentBox: 'Potential Gem' },
@@ -41,13 +42,54 @@ const BOX_COLOR = {
 
 export default function MyTalentProfile() {
   const { user } = useAuthStore()
-  const { talentBoxes, idpList } = useTalentStore()
+  const { talentBoxes, idpList, careerPaths } = useTalentStore()
+  const { employees } = useEmployeeStore()
   const [activeTab, setActiveTab] = useState('overview')
 
-  const myBoxes = talentBoxes.filter(b => b.employeeId === (user?.id || '1'))
-  const latestBox = myBoxes.sort((a, b) => b.year - a.year)[0]
-  const myIdp = idpList.filter(i => i.employeeId === (user?.id || '1'))
-  const latestIdp = myIdp.sort((a, b) => b.year - a.year)[0]
+  // Find current user's employee record
+  const empRecord = employees.find(e =>
+    e.id === user?.id || e.email === user?.email || e.name === user?.name
+  )
+
+  // Talent boxes: match by employeeId (numeric or string) or by name
+  const myBoxes = talentBoxes.filter(b =>
+    b.employeeId === (user?.id || '1') ||
+    String(b.employeeId) === String(user?.id) ||
+    b.employeeName === user?.name
+  )
+  const latestBox = [...myBoxes].sort((a, b) => b.year - a.year)[0]
+
+  // IDP: match by employeeId or name
+  const myIdp = idpList.filter(i =>
+    i.employeeId === (user?.id || '1') ||
+    String(i.employeeId) === String(user?.id) ||
+    i.employeeName === user?.name
+  )
+  const latestIdp = [...myIdp].sort((a, b) => b.year - a.year)[0]
+
+  // Career paths for current user
+  const myCareerPath = careerPaths.find(cp =>
+    cp.employeeId === (user?.id || '1') ||
+    String(cp.employeeId) === String(user?.id) ||
+    cp.employeeName === user?.name
+  )
+
+  // Build career history from employee record's history or fallback
+  const internalHistory = empRecord?.history?.length
+    ? empRecord.history.map((h, i, arr) => ({
+        period: i < arr.length - 1
+          ? `${h.effectiveDate?.slice(0,4)} – ${arr[i+1].effectiveDate?.slice(0,4)}`
+          : `${h.effectiveDate?.slice(0,4)} – Sekarang`,
+        position: h.positionId ? `Position #${h.positionId}` : 'Staff',
+        company: 'PT Dexa Group',
+        type: 'internal',
+      }))
+    : CAREER_HISTORY
+
+  // Derived employee info from record
+  const empPosition = empRecord?.position || user?.position || 'Staff'
+  const empDept = empRecord?.dept || user?.dept || '—'
+  const empGrade = empRecord?.gradeId || '—'
 
   const tabs = [
     { key: 'overview', label: 'Overview' },

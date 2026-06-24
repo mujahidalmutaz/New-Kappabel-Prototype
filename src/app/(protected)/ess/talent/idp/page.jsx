@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import { useTalentStore } from '@/store/talentStore'
 
@@ -154,7 +155,14 @@ export default function MyIDP() {
                       <td className="px-3 py-2 text-center font-bold">{g > 0 ? `+${g}` : g}</td>
                       <td className="px-3 py-2"><span className={`text-xs px-2 py-0.5 rounded-full ${c.cls}`}>{c.label}</span></td>
                       <td className="px-3 py-2 text-gray-600 max-w-xs truncate">{item.specificGoal || '—'}</td>
-                      <td className="px-3 py-2 text-gray-600 max-w-xs truncate">{item.courseRecommendation || '—'}</td>
+                      <td className="px-3 py-2 text-gray-600 max-w-xs">
+                        {item.lmsLink
+                          ? <a href={item.lmsLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block max-w-xs">{item.courseRecommendation || item.lmsLink}</a>
+                          : item.courseRecommendation
+                            ? <span>{item.courseRecommendation} <Link href="/ess/learning/catalog" className="text-xs text-red-600 hover:underline whitespace-nowrap">Cari di Katalog →</Link></span>
+                            : '—'
+                        }
+                      </td>
                       <td className="px-3 py-2 text-gray-600 max-w-xs truncate">{item.ojt || '—'}</td>
                       <td className="px-3 py-2 whitespace-nowrap text-gray-600">{item.timeline || '—'}</td>
                       <td className="px-3 py-2">
@@ -233,6 +241,18 @@ export default function MyIDP() {
                 <label className="text-xs text-gray-500 block mb-1">Rekomendasi Course</label>
                 <input value={newItemDraft.courseRecommendation}
                   onChange={e => setNewItemDraft(d => ({ ...d, courseRecommendation: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                {newItemDraft.courseRecommendation && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    <Link href="/ess/learning/catalog" className="text-red-600 hover:underline">Temukan di Learning Catalog →</Link>
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Link LMS / Course</label>
+                <input value={newItemDraft.lmsLink}
+                  onChange={e => setNewItemDraft(d => ({ ...d, lmsLink: e.target.value }))}
+                  placeholder="https://..."
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>

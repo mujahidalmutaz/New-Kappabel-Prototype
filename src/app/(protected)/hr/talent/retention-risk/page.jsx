@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useTalentStore } from '@/store/talentStore'
 
 const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
@@ -353,6 +354,23 @@ export default function RetentionRiskPage() {
                 {liveRisk.actionBy && (
                   <p className='text-xs text-gray-400 mt-1'>Action oleh: <strong>{liveRisk.actionBy}</strong></p>
                 )}
+                <div className="border-t border-gray-100 pt-3 mt-3">
+                  <div className="text-xs font-semibold text-gray-600 mb-2">Tindak Lanjut Cepat</div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href={`/hr/employee/personnel-action?employee=${encodeURIComponent(liveRisk.employeeName)}&action=Salary Change`}
+                      className="text-xs border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-50 flex items-center gap-1">
+                      💰 Salary Review
+                    </Link>
+                    <Link href={`/hr/employee/personnel-action?employee=${encodeURIComponent(liveRisk.employeeName)}&action=Data Change`}
+                      className="text-xs border border-green-200 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-50 flex items-center gap-1">
+                      📋 Perpanjang Kontrak
+                    </Link>
+                    <Link href={`/hr/talent/career-path`}
+                      className="text-xs border border-purple-200 text-purple-700 px-3 py-1.5 rounded-lg hover:bg-purple-50 flex items-center gap-1">
+                      🗺️ Career Discussion
+                    </Link>
+                  </div>
+                </div>
               </div>
 
               {/* Status & Actions */}

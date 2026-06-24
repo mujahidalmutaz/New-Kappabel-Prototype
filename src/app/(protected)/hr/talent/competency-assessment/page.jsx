@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useTalentStore } from '@/store/talentStore'
+import { useEmployeeStore } from '@/store/employeeStore'
+import { useStructureStore } from '@/store/structureStore'
 
 const COMP_TYPES = ['Soft Competency', 'Core Competency', 'Technical Competency', 'Strategic Competency']
 const DEPTS = ['Human Resources', 'Finance', 'Operations', 'IT', 'Marketing', 'Legal', 'Supply Chain']
@@ -24,14 +26,17 @@ const boxFromScore = (score) =>
 
 export default function CompetencyAssessment() {
   const { competencyAssessments = [], addCompetencyAssessment, updateCompetencyAssessment, deleteCompetencyAssessment } = useTalentStore()
+  const { employees } = useEmployeeStore()
+  const { positions, departments } = useStructureStore()
 
   const [filterStatus, setFilterStatus] = useState('All')
   const [filterDept, setFilterDept] = useState('All')
   const [selected, setSelected] = useState(null)
   const [showNew, setShowNew] = useState(false)
   const [showAddItem, setShowAddItem] = useState(false)
+  const [syncMsg, setSyncMsg] = useState(null)
 
-  const [draft, setDraft] = useState({ employeeName: '', position: '', department: DEPTS[0], year: new Date().getFullYear(), assessedBy: '' })
+  const [draft, setDraft] = useState({ employeeId: null, employeeName: '', position: '', department: DEPTS[0], year: new Date().getFullYear(), assessedBy: '' })
   const [itemDraft, setItemDraft] = useState({ competencyType: COMP_TYPES[0], competencyName: '', target: 4, actual: 0 })
 
   const filtered = competencyAssessments.filter(a =>
@@ -82,6 +87,57 @@ export default function CompetencyAssessment() {
       competencyAssessments: s.competencyAssessments.map(a => a.id === selected.id ? updated : a)
     }))
     setSelected(updated)
+
+    // Sync competency score to talentBoxes (GAP 2)
+    const items = selected.items || []
+    if (items.length > 0) {
+      const avgActual = items.reduce((s, i) => s + (i.actual || 0), 0) / items.length
+      const avgTarget = items.reduce((s, i) => s + (i.target || 5), 0) / items.length
+      const competencyScore = Math.max(1, Math.min(5, Math.round((avgActual / avgTarget) * 5)))
+      const boxRow = competencyScore <= 2 ? 1 : competencyScore <= 3 ? 2 : 3
+      const year = selected.year || new Date().getFullYear()
+      const employeeId = selected.employeeId || selected.employeeName
+
+      useTalentStore.setState(s => {
+        const existing = s.talentBoxes.find(t =>
+          (t.employeeId === employeeId || t.employeeName === selected.employeeName) && t.year === year
+        )
+        if (existing) {
+          // Recalculate boxCol from existing performanceScore
+          const perf = existing.performanceScore || 0
+          const boxCol = perf <= 2.5 ? 1 : perf <= 3.5 ? 2 : 3
+          const BOX_LABEL_MAP = {
+            '3-3': 'Star', '3-2': 'High Potential', '3-1': 'Latent Talent',
+            '2-3': 'High Performer', '2-2': 'Core Player', '2-1': 'Solid Contributor',
+            '1-3': 'Inconsistent', '1-2': 'Under Achiever', '1-1': 'Underperformer',
+          }
+          const boxLabel = BOX_LABEL_MAP[`${boxRow}-${boxCol}`] || existing.boxLabel
+          return {
+            talentBoxes: s.talentBoxes.map(t =>
+              t.id === existing.id ? { ...t, competencyScore, boxRow, boxCol, boxLabel } : t
+            )
+          }
+        } else {
+          return {
+            talentBoxes: [...s.talentBoxes, {
+              id: Date.now(),
+              employeeId,
+              employeeName: selected.employeeName,
+              year,
+              performanceScore: 0,
+              competencyScore,
+              boxRow,
+              boxCol: 1,
+              boxLabel: boxRow === 3 ? 'Latent Talent' : boxRow === 2 ? 'Solid Contributor' : 'Underperformer',
+              notes: `Dari Competency Assessment ${year}`,
+            }]
+          }
+        }
+      })
+
+      setSyncMsg('✓ Data telah disinkronkan ke 9-Box Matrix')
+      setTimeout(() => setSyncMsg(null), 4000)
+    }
   }
 
   const selScore = selected ? calcScore(selected.items) : 0
@@ -89,6 +145,11 @@ export default function CompetencyAssessment() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {syncMsg && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold bg-green-600 text-white">
+          {syncMsg}
+        </div>
+      )}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Competency Assessment</h1>
@@ -260,8 +321,32 @@ export default function CompetencyAssessment() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Buat Assessment Baru</h2>
             <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Nama Karyawan</label>
+                <select
+                  value={draft.employeeId || ''}
+                  onChange={e => {
+                    const emp = employees.find(x => x.id === Number(e.target.value))
+                    if (emp) {
+                      const pos = positions?.find(p => p.id === emp.positionId)
+                      const dept = departments?.find(d => d.id === emp.departmentId)
+                      setDraft(d => ({
+                        ...d,
+                        employeeId: emp.id,
+                        employeeName: emp.name,
+                        position: pos?.name || d.position,
+                        department: dept?.name || d.department,
+                      }))
+                    }
+                  }}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
+                  <option value=''>— Pilih Karyawan —</option>
+                  {employees.filter(e => e.status === 'Active').map(e => (
+                    <option key={e.id} value={e.id}>{e.name} ({e.nik || ''})</option>
+                  ))}
+                </select>
+              </div>
               {[
-                { label: 'Nama Karyawan', key: 'employeeName', type: 'text' },
                 { label: 'Posisi', key: 'position', type: 'text' },
                 { label: 'Assessor', key: 'assessedBy', type: 'text' },
               ].map(f => (

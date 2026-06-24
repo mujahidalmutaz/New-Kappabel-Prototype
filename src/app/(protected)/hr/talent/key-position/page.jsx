@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useTalentStore } from '@/store/talentStore'
+import { useEmployeeStore } from '@/store/employeeStore'
+import { useStructureStore } from '@/store/structureStore'
 
 const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
 
@@ -20,6 +22,8 @@ const EMPTY = {
 
 export default function KeyPositionPage() {
   const { keyPositions, addKeyPosition, updateKeyPosition, deleteKeyPosition } = useTalentStore()
+  const { employees } = useEmployeeStore()
+  const { positions } = useStructureStore()
   const [filter, setFilter] = useState('all')
   const [showModal, setShowModal] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -174,9 +178,26 @@ export default function KeyPositionPage() {
               </div>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Nama Incumbent <span className='text-red-400'>*</span></label>
-                <input value={form.employeeName} onChange={e => setForm(f => ({ ...f, employeeName: e.target.value }))}
-                  placeholder='Nama karyawan pemegang posisi…'
-                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                <select
+                  value={employees.filter(e => e.status === 'Active').find(e => e.name === form.employeeName)?.id || ''}
+                  onChange={e => {
+                    const emp = employees.find(x => x.id === Number(e.target.value))
+                    if (emp) {
+                      const pos = positions?.find(p => p.id === emp.positionId)
+                      setForm(f => ({
+                        ...f,
+                        employeeName: emp.name,
+                        employeeId: emp.id,
+                        positionName: f.positionName || pos?.name || '',
+                      }))
+                    }
+                  }}
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                  <option value=''>— Pilih Karyawan —</option>
+                  {employees.filter(e => e.status === 'Active').map(e => (
+                    <option key={e.id} value={e.id}>{e.name} ({e.nik || ''})</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>PC Level <span className='text-red-400'>*</span></label>
