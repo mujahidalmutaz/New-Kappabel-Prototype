@@ -144,7 +144,13 @@ function FormPickerPanel({ row, masterForms, onChange }) {
 // ── Row factory helpers ───────────────────────────────────────────────────────
 const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
 const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
-const newR = () => ({ id: Math.random(), agenda: '', masterFormId: null, masterFormName: '', formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [], evaluators: [], reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
+const newR = () => ({ id: Math.random(), agenda: '', evaluationType: '', masterFormId: null, masterFormName: '', formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [], evaluators: [], reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
+
+const EVAL_TYPE_LOV = [
+  'Hire / Probation / Orientation',
+  'Contract',
+  'Promote / Adjustment / Transfer',
+]
 
 const TYPE_LOV = [
   'Manual Task',
@@ -318,9 +324,9 @@ function ReviewHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('Agenda','Agenda'), t('Form','Form'), t('Evaluators','Evaluators'), ''].map((h, i) => (
+        {['NO', t('Agenda','Agenda'), t('Evaluation Type','Evaluation Type'), t('Form','Form'), t('Evaluators','Evaluators'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
-            style={{ minWidth: i === 1 ? 220 : i === 2 ? 150 : i === 3 ? 220 : i === 0 ? 40 : 36 }}>
+            style={{ minWidth: i === 1 ? 220 : i === 2 ? 200 : i === 3 ? 150 : i === 4 ? 220 : i === 0 ? 40 : 36 }}>
             {h}
           </th>
         ))}
@@ -831,6 +837,22 @@ export default function MasterOnboardingPage() {
                           <td className='px-2 py-1.5'>
                             <IC value={row.agenda} onChange={v => updReview(row.id, 'agenda', v)}
                               placeholder={t('Agenda…','Agenda…')} wide />
+                          </td>
+                          <td className='px-2 py-1.5'>
+                            <select
+                              value={row.evaluationType ?? ''}
+                              onChange={e => patchReview(row.id, { evaluationType: e.target.value })}
+                              className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white w-full min-w-[180px]'>
+                              <option value=''>— {t('Pilih Tipe','Select Type')} —</option>
+                              {EVAL_TYPE_LOV.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                              <optgroup label={`── ${t('Dari Configurable Form','From Configurable Form')} ──`}>
+                                {masterForms.filter(f => f.active).map(f => (
+                                  <option key={`form-${f.id}`} value={`form:${f.id}:${f.name}`}>{f.name}</option>
+                                ))}
+                              </optgroup>
+                            </select>
                           </td>
                           <td className='px-2 py-1.5'>
                             <select
