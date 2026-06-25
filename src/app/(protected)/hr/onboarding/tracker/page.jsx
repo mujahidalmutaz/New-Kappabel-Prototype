@@ -567,7 +567,7 @@ export default function OnboardingTrackerPage() {
     // The form is only locked when explicitly opened in view-only mode.
     const isReadOnly    = viewOnly
     const showCompleted = viewOnly && savedStatus === 'Approved'
-    const colSpanMain   = 10
+    const colSpanMain   = 9
     const colSpanRev    = 7
 
     const SEC_COLORS = [
@@ -839,11 +839,11 @@ export default function OnboardingTrackerPage() {
                     <table key={sec.id} className='w-full text-xs border-b border-gray-100 last:border-b-0'>
                       <thead>
                         <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                          {['NO', t('H+ / Tanggal','H+ / Date'), t('Due Date','Due Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
+                          {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
                             t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'),
                             showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                             <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                              style={{ minWidth: i===3?180 : i===5?160 : i===8?130 : i===9?36 : i===1?100 : 70 }}>{h}</th>
+                              style={{ minWidth: i===2?180 : i===4?160 : i===7?130 : i===8?36 : i===1?110 : 70 }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -874,11 +874,8 @@ export default function OnboardingTrackerPage() {
                           <React.Fragment key={item.id}>
                           <tr className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
                             <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
-                            <td className='px-2 py-1.5'>
-                              <HplusCell joinDate={form.joinDate} date={item.date || ''} onChange={v => updateMsItem(ms.id, item.id, 'date', v)} disabled={isReadOnly} />
-                            </td>
-                            <td className='px-2 py-1.5 w-28'>
-                              <InputCell value={item.dueDate || ''} onChange={v => updateMsItem(ms.id, item.id, 'dueDate', v)} type='date' disabled={isReadOnly} />
+                            <td className='px-2 py-1.5 w-32'>
+                              <InputCell value={item.date || ''} onChange={v => updateMsItem(ms.id, item.id, 'date', v)} type='date' disabled={isReadOnly} />
                             </td>
                             <td className='px-2 py-1.5'>
                               <InputCell value={item.module || ''} onChange={v => updateMsItem(ms.id, item.id, 'module', v)} disabled={isReadOnly} />
@@ -986,11 +983,11 @@ export default function OnboardingTrackerPage() {
                 <table className='w-full text-xs'>
                   <thead>
                     <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                      {['NO', t('H+ / Tanggal','H+ / Date'), t('Agenda','Agenda'), t('Form','Form'),
+                      {['NO', t('Tanggal','Date'), t('Agenda','Agenda'), t('Form','Form'),
                         t('Evaluators','Evaluators'),
                         showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                         <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                          style={{ minWidth: i===2?200 : i===5?36 : i===4?200 : i===1?100 : 70 }}>{h}</th>
+                          style={{ minWidth: i===2?200 : i===5?36 : i===4?200 : i===1?110 : 70 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -1005,8 +1002,8 @@ export default function OnboardingTrackerPage() {
                       <React.Fragment key={item.id}>
                         <tr className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
                           <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
-                          <td className='px-2 py-1.5'>
-                            <HplusCell joinDate={form.joinDate} date={item.date || ''} onChange={v => updateReview(item.id, 'date', v)} disabled={isReadOnly} />
+                          <td className='px-2 py-1.5 w-32'>
+                            <InputCell value={item.date || ''} onChange={v => updateReview(item.id, 'date', v)} type='date' disabled={isReadOnly} />
                           </td>
                           <td className='px-2 py-1.5'>
                             {isReadOnly
