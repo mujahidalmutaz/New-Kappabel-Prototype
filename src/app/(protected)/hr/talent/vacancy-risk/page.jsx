@@ -146,14 +146,14 @@ export default function VacancyRiskPage() {
               {keyOnly.map((kp, idx) => {
                 const risk = getExisting(kp.id)
                 return (
-                  <tr key={kp.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                    <td className='px-4 py-3 text-gray-500 text-xs'>{idx + 1}</td>
-                    <td className='px-4 py-3 font-semibold text-gray-800'>{kp.positionName}</td>
-                    <td className='px-4 py-3 text-gray-700'>{kp.employeeName}</td>
-                    <td className='px-4 py-3 text-gray-700'>{risk ? risk.gapToRetirement : '—'}</td>
-                    <td className='px-4 py-3 text-gray-500 text-xs'>{risk ? risk.endOfContract : '—'}</td>
-                    <td className='px-4 py-3 text-gray-600 text-xs max-w-xs'>
-                      <span className='line-clamp-2'>{risk ? risk.careerPlan : '—'}</span>
+                  <tr key={kp.id} className={`align-middle ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                    <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{idx + 1}</td>
+                    <td className='px-4 py-3 font-semibold text-gray-800 max-w-[180px] truncate' title={kp.positionName}>{kp.positionName}</td>
+                    <td className='px-4 py-3 text-gray-700 whitespace-nowrap'>{kp.employeeName}</td>
+                    <td className='px-4 py-3 text-gray-700 text-xs whitespace-nowrap'>{risk ? risk.gapToRetirement : '—'}</td>
+                    <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{risk ? risk.endOfContract : '—'}</td>
+                    <td className='px-4 py-3 text-gray-600 text-xs max-w-[160px]'>
+                      <span className='line-clamp-1' title={risk?.careerPlan}>{risk ? risk.careerPlan : '—'}</span>
                     </td>
                     <td className='px-4 py-3'>
                       {risk ? <HealthBadge status={risk.healthStatus} /> : <span className='text-gray-300'>—</span>}
@@ -161,7 +161,7 @@ export default function VacancyRiskPage() {
                     <td className='px-4 py-3'>
                       {risk ? <RiskBadge term={risk.riskTerm} /> : <span className='text-gray-300'>—</span>}
                     </td>
-                    <td className='px-4 py-3'>
+                    <td className='px-4 py-3 whitespace-nowrap'>
                       <button onClick={() => openAssess(kp)}
                         className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
                         {risk ? 'Edit Asesmen' : 'Asesmen'}

@@ -204,40 +204,40 @@ export default function DatabaseTalentPage() {
                 <tr><td colSpan={12} className='px-4 py-10 text-center text-gray-400'>Belum ada data talent.</td></tr>
               )}
               {filtered.map((d, idx) => (
-                <tr key={d.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} ${selected.has(d.id) ? 'ring-1 ring-inset ring-red-200 bg-red-50/20' : ''}`}>
+                <tr key={d.id} className={`align-middle ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} ${selected.has(d.id) ? 'ring-1 ring-inset ring-red-200 bg-red-50/20' : ''}`}>
                   <td className='px-4 py-3'>
                     <input type='checkbox' checked={selected.has(d.id)} onChange={() => toggleSelect(d.id)} className='rounded' />
                   </td>
-                  <td className='px-4 py-3 text-gray-500 text-xs'>{idx + 1}</td>
-                  <td className='px-4 py-3 font-semibold text-gray-800'>{d.employeeName}</td>
-                  <td className='px-4 py-3 text-gray-700 text-xs'>{d.position || '—'}</td>
-                  <td className='px-4 py-3 text-gray-700 text-xs'>{d.department || '—'}</td>
+                  <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{idx + 1}</td>
+                  <td className='px-4 py-3 font-semibold text-gray-800 whitespace-nowrap'>{d.employeeName}</td>
+                  <td className='px-4 py-3 text-gray-600 text-xs max-w-[140px] truncate' title={d.position}>{d.position || '—'}</td>
+                  <td className='px-4 py-3 text-gray-600 text-xs whitespace-nowrap'>{d.department || '—'}</td>
                   <td className='px-4 py-3'>
                     {d.talentBoxLabel ? (
-                      <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${BOX_COLOR[d.talentBoxLabel] || 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${BOX_COLOR[d.talentBoxLabel] || 'bg-gray-100 text-gray-600'}`}>
                         {d.talentBoxLabel}
                       </span>
-                    ) : '—'}
+                    ) : <span className='text-gray-400'>—</span>}
                   </td>
                   <td className='px-4 py-3'>
                     {d.readinessLevel ? (
-                      <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${READINESS_COLOR[d.readinessLevel] || 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${READINESS_COLOR[d.readinessLevel] || 'bg-gray-100 text-gray-500'}`}>
                         {d.readinessLevel}
                       </span>
-                    ) : '—'}
+                    ) : <span className='text-gray-400'>—</span>}
                   </td>
                   <td className='px-4 py-3'>
                     {d.flightRisk ? (
-                      <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${FLIGHT_RISK_COLOR[d.flightRisk] || 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${FLIGHT_RISK_COLOR[d.flightRisk] || 'bg-gray-100 text-gray-500'}`}>
                         {d.flightRisk}
                       </span>
-                    ) : '—'}
+                    ) : <span className='text-gray-400'>—</span>}
                   </td>
-                  <td className='px-4 py-3 text-gray-500 text-xs'>{d.lastAssessmentDate || '—'}</td>
-                  <td className='px-4 py-3 text-gray-600 text-xs max-w-[140px] truncate' title={d.skills}>{d.skills || '—'}</td>
-                  <td className='px-4 py-3 text-gray-700'>{d.year}</td>
+                  <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{d.lastAssessmentDate || '—'}</td>
+                  <td className='px-4 py-3 text-gray-600 text-xs max-w-[160px] truncate' title={d.skills}>{d.skills || '—'}</td>
+                  <td className='px-4 py-3 text-gray-700 text-xs whitespace-nowrap'>{d.year}</td>
                   <td className='px-4 py-3'>
-                    <div className='flex gap-1.5'>
+                    <div className='flex gap-1.5 whitespace-nowrap'>
                       <button onClick={() => openEdit(d)}
                         className='px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
                         Edit

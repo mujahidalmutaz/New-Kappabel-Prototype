@@ -220,34 +220,34 @@ export default function IDPPage() {
                       </thead>
                       <tbody>
                         {idp.items.map((item, idx) => (
-                          <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
-                            <td className='px-3 py-2 text-gray-400'>{idx + 1}</td>
-                            <td className='px-3 py-2'>{item.competencyType || '—'}</td>
-                            <td className='px-3 py-2 font-semibold text-gray-800'>{item.competencyName}</td>
-                            <td className='px-3 py-2'>{item.target}</td>
-                            <td className='px-3 py-2'>{item.actual}</td>
-                            <td className='px-3 py-2'>{item.gap !== null && item.gap !== undefined ? item.gap.toFixed(1) : '—'}</td>
-                            <td className='px-3 py-2'><ConditionBadge gap={item.gap} /></td>
+                          <tr key={item.id} className={`align-middle ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                            <td className='px-3 py-2 text-gray-400 whitespace-nowrap'>{idx + 1}</td>
+                            <td className='px-3 py-2 whitespace-nowrap'>{item.competencyType || '—'}</td>
+                            <td className='px-3 py-2 font-semibold text-gray-800 max-w-[160px] truncate' title={item.competencyName}>{item.competencyName}</td>
+                            <td className='px-3 py-2 whitespace-nowrap text-center'>{item.target}</td>
+                            <td className='px-3 py-2 whitespace-nowrap text-center'>{item.actual}</td>
+                            <td className='px-3 py-2 whitespace-nowrap text-center'>{item.gap !== null && item.gap !== undefined ? item.gap.toFixed(1) : '—'}</td>
+                            <td className='px-3 py-2 whitespace-nowrap'><ConditionBadge gap={item.gap} /></td>
                             <td className='px-3 py-2'>
                               {item.progressPercent !== undefined ? (
-                                <div className='flex items-center gap-1.5'>
-                                  <div className='w-16 bg-gray-100 rounded-full h-1.5'>
+                                <div className='flex items-center gap-1.5 whitespace-nowrap'>
+                                  <div className='w-14 bg-gray-100 rounded-full h-1.5 flex-shrink-0'>
                                     <div className='h-1.5 rounded-full bg-red-500' style={{ width: `${item.progressPercent}%` }} />
                                   </div>
                                   <span className='text-xs text-gray-600'>{item.progressPercent}%</span>
                                 </div>
                               ) : '—'}
                             </td>
-                            <td className='px-3 py-2 text-xs text-gray-600'>{item.coach || '—'}</td>
-                            <td className='px-3 py-2 whitespace-nowrap'>{item.timeline || '—'}</td>
+                            <td className='px-3 py-2 text-xs text-gray-600 max-w-[100px] truncate' title={item.coach}>{item.coach || '—'}</td>
+                            <td className='px-3 py-2 whitespace-nowrap text-xs text-gray-600'>{item.timeline || '—'}</td>
                             <td className='px-3 py-2'>
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap
                                 ${item.idpStatus === 'Completed' ? 'bg-green-100 text-green-700' : item.idpStatus === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                                {item.idpStatus}
+                                {item.idpStatus || '—'}
                               </span>
                             </td>
                             <td className='px-3 py-2'>
-                              <div className='flex gap-1'>
+                              <div className='flex gap-1 whitespace-nowrap'>
                                 <button onClick={() => openEditItem(idp.id, item)} className='text-red-500 hover:text-red-700 font-bold text-xs'>Edit</button>
                                 <button onClick={() => deleteItem(idp.id, item.id)} className='text-gray-400 hover:text-red-500 font-bold text-xs ml-1'>✕</button>
                               </div>

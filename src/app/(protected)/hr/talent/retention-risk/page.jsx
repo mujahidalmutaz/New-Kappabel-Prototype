@@ -252,11 +252,11 @@ export default function RetentionRiskPage() {
                     <Badge tone={RISK_TONE[r.riskLevel]}>{r.riskLevel}</Badge>
                   </td>
                   <td className='px-4 py-3'>
-                    <div className='flex flex-wrap gap-1'>
+                    <div className='flex flex-col gap-0.5'>
                       {r.factors.map((f, fi) => {
                         const tag = RISK_FACTOR_TAGS[f.factor]
                         return tag ? (
-                          <span key={fi} className={`px-1.5 py-0.5 text-xs font-medium rounded-md
+                          <span key={fi} className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded whitespace-nowrap
                             ${tag.tone === 'red' ? 'bg-red-50 text-red-600' : tag.tone === 'amber' ? 'bg-amber-50 text-amber-600' : 'bg-yellow-50 text-yellow-600'}`}>
                             {tag.label}
                           </span>
@@ -264,8 +264,8 @@ export default function RetentionRiskPage() {
                       })}
                     </div>
                   </td>
-                  <td className='px-4 py-3 text-gray-500 text-xs max-w-xs'>
-                    <span className='line-clamp-2'>{r.action || '—'}</span>
+                  <td className='px-4 py-3 text-gray-500 text-xs max-w-[180px]'>
+                    <span className='line-clamp-1' title={r.action}>{r.action || '—'}</span>
                   </td>
                   <td className='px-4 py-3 text-center'>
                     {r.resolved

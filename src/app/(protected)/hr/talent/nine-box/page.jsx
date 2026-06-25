@@ -194,21 +194,21 @@ export default function NineBoxPage() {
                 const key = getBoxKey(t.boxRow, t.boxCol)
                 const cfg = BOX_CONFIG[key] || {}
                 return (
-                  <tr key={t.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                    <td className='px-4 py-3 text-gray-500 text-xs'>{idx + 1}</td>
-                    <td className='px-4 py-3 font-semibold text-gray-800'>{t.employeeName}</td>
-                    <td className='px-4 py-3 text-gray-700'>{t.performanceScore}</td>
-                    <td className='px-4 py-3 text-gray-700'>{t.competencyScore}</td>
+                  <tr key={t.id} className={`align-middle ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                    <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{idx + 1}</td>
+                    <td className='px-4 py-3 font-semibold text-gray-800 whitespace-nowrap'>{t.employeeName}</td>
+                    <td className='px-4 py-3 text-gray-700 text-xs whitespace-nowrap text-center'>{t.performanceScore}</td>
+                    <td className='px-4 py-3 text-gray-700 text-xs whitespace-nowrap text-center'>{t.competencyScore}</td>
                     <td className='px-4 py-3'>
-                      <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full text-white ${cfg.color}`}>
+                      <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap text-white ${cfg.color}`}>
                         {cfg.label}
                       </span>
                     </td>
-                    <td className='px-4 py-3 text-gray-500 text-xs max-w-xs'>
-                      <span className='line-clamp-1'>{t.notes || '—'}</span>
+                    <td className='px-4 py-3 text-gray-500 text-xs max-w-[180px]'>
+                      <span className='line-clamp-1' title={t.notes}>{t.notes || '—'}</span>
                     </td>
                     <td className='px-4 py-3'>
-                      <div className='flex gap-2'>
+                      <div className='flex gap-2 whitespace-nowrap'>
                         <button onClick={() => openEdit(t)}
                           className='px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>Edit</button>
                         <button onClick={() => { deleteTalentBox(t.id); flash('Data dihapus.') }}

@@ -152,22 +152,22 @@ export default function CareerPathPage() {
                 const total = cp.steps.length
                 const pct = total === 0 ? 0 : Math.round((done / total) * 100)
                 return (
-                  <tr key={cp.id} className={`cursor-pointer hover:bg-red-50/30 transition ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
+                  <tr key={cp.id} className={`align-middle cursor-pointer hover:bg-red-50/30 transition ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
                     onClick={() => setSelectedPath(cp)}>
-                    <td className='px-4 py-3 text-gray-500 text-xs'>{idx + 1}</td>
-                    <td className='px-4 py-3 font-semibold text-gray-800'>{cp.employeeName}</td>
-                    <td className='px-4 py-3 text-gray-700'>{cp.currentPosition}</td>
-                    <td className='px-4 py-3 text-gray-700'>{cp.currentPCLevel}</td>
-                    <td className='px-4 py-3 text-gray-700'>{total} step</td>
+                    <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{idx + 1}</td>
+                    <td className='px-4 py-3 font-semibold text-gray-800 whitespace-nowrap'>{cp.employeeName}</td>
+                    <td className='px-4 py-3 text-gray-700 text-sm max-w-[180px] truncate' title={cp.currentPosition}>{cp.currentPosition}</td>
+                    <td className='px-4 py-3 text-gray-700 text-xs whitespace-nowrap text-center'>{cp.currentPCLevel}</td>
+                    <td className='px-4 py-3 text-gray-700 text-xs whitespace-nowrap'>{total} step</td>
                     <td className='px-4 py-3'>
                       <div className='flex items-center gap-2'>
-                        <div className='flex-1 bg-gray-100 rounded-full h-2 min-w-[60px]'>
+                        <div className='w-20 bg-gray-100 rounded-full h-2 flex-shrink-0'>
                           <div className='bg-green-500 h-2 rounded-full transition-all' style={{ width: `${pct}%` }} />
                         </div>
                         <span className='text-xs text-gray-500 whitespace-nowrap'>{done}/{total}</span>
                       </div>
                     </td>
-                    <td className='px-4 py-3' onClick={e => e.stopPropagation()}>
+                    <td className='px-4 py-3 whitespace-nowrap' onClick={e => e.stopPropagation()}>
                       <button onClick={() => setDelId(cp.id)}
                         className='px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition'>
                         Hapus

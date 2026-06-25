@@ -135,33 +135,35 @@ export default function KeyPositionPage() {
                 <tr><td colSpan={10} className='px-4 py-10 text-center text-gray-400'>Belum ada data.</td></tr>
               )}
               {filtered.map((kp, idx) => (
-                <tr key={kp.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                  <td className='px-4 py-3 text-gray-500 text-xs'>{idx + 1}</td>
-                  <td className='px-4 py-3 font-semibold text-gray-800'>
-                    <div>{kp.positionName}</div>
-                    {kp.businessImpact && <div className='text-xs text-gray-400 mt-0.5 max-w-[180px] truncate' title={kp.businessImpact}>{kp.businessImpact}</div>}
+                <tr key={kp.id} className={`align-middle ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                  <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{idx + 1}</td>
+                  <td className='px-4 py-3 max-w-[200px]'>
+                    <div className='font-semibold text-gray-800 truncate' title={kp.positionName}>{kp.positionName}</div>
+                    {kp.businessImpact && <div className='text-xs text-gray-400 mt-0.5 truncate' title={kp.businessImpact}>{kp.businessImpact}</div>}
                   </td>
-                  <td className='px-4 py-3 text-gray-700'>{kp.pcLevel}</td>
-                  <td className='px-4 py-3 text-gray-700'>{kp.employeeName}</td>
+                  <td className='px-4 py-3 text-gray-700 text-xs whitespace-nowrap'>{kp.pcLevel}</td>
+                  <td className='px-4 py-3 text-gray-700 text-sm whitespace-nowrap'>{kp.employeeName}</td>
                   <td className='px-4 py-3'>
-                    <Badge tone={kp.assessedBy === 'Corporate Organization Development' ? 'blue' : 'gray'}>{kp.assessedBy}</Badge>
+                    <Badge tone={kp.assessedBy === 'Corporate Organization Development' ? 'blue' : 'gray'}>
+                      <span className='whitespace-nowrap'>{kp.assessedBy === 'Corporate Organization Development' ? 'COD' : 'HR PT'}</span>
+                    </Badge>
                   </td>
                   <td className='px-4 py-3'>
                     {kp.criticalityScore ? (
-                      <div className='flex gap-0.5'>
+                      <div className='flex gap-0.5 items-center'>
                         {[1,2,3,4,5].map(n => (
-                          <div key={n} className={`w-2.5 h-2.5 rounded-sm ${n <= kp.criticalityScore ? 'bg-red-500' : 'bg-gray-200'}`} />
+                          <div key={n} className={`w-2.5 h-2.5 rounded-sm flex-shrink-0 ${n <= kp.criticalityScore ? 'bg-red-500' : 'bg-gray-200'}`} />
                         ))}
                       </div>
-                    ) : '—'}
+                    ) : <span className='text-gray-400'>—</span>}
                   </td>
-                  <td className='px-4 py-3 text-gray-500 text-xs'>{kp.estimatedVacancyDate || '—'}</td>
-                  <td className='px-4 py-3 text-center text-gray-700'>{kp.requiredSuccessors ?? '—'}</td>
+                  <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{kp.estimatedVacancyDate || '—'}</td>
+                  <td className='px-4 py-3 text-center text-gray-700 text-xs whitespace-nowrap'>{kp.requiredSuccessors ?? '—'}</td>
                   <td className='px-4 py-3'>
-                    <Badge tone={kp.isKeyPosition ? 'green' : 'gray'}>{kp.status}</Badge>
+                    <Badge tone={kp.isKeyPosition ? 'green' : 'gray'}><span className='whitespace-nowrap'>{kp.status}</span></Badge>
                   </td>
                   <td className='px-4 py-3'>
-                    <div className='flex gap-2'>
+                    <div className='flex gap-2 whitespace-nowrap'>
                       <button onClick={() => openEdit(kp)}
                         className='px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
                         Edit

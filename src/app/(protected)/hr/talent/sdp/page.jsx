@@ -155,18 +155,18 @@ export default function SDPPage() {
                 <tr><td colSpan={8} className='px-4 py-10 text-center text-gray-400'>Belum ada SDP.</td></tr>
               )}
               {sdpList.map((sdp, idx) => (
-                <tr key={sdp.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                  <td className='px-4 py-3 text-gray-500 text-xs'>{idx + 1}</td>
-                  <td className='px-4 py-3 font-semibold text-gray-800'>{sdp.employeeName}</td>
-                  <td className='px-4 py-3 text-gray-700'>{sdp.targetPosition}</td>
-                  <td className='px-4 py-3'><ReadinessBadge term={sdp.vacancyRisk} /></td>
-                  <td className='px-4 py-3'><ReadinessBadge term={sdp.successorReadiness} /></td>
-                  <td className='px-4 py-3'>
-                    <span className='text-gray-700'>{(sdp.programs || []).length} program</span>
+                <tr key={sdp.id} className={`align-middle ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                  <td className='px-4 py-3 text-gray-500 text-xs whitespace-nowrap'>{idx + 1}</td>
+                  <td className='px-4 py-3 font-semibold text-gray-800 whitespace-nowrap'>{sdp.employeeName}</td>
+                  <td className='px-4 py-3 text-gray-700 text-sm max-w-[180px] truncate' title={sdp.targetPosition}>{sdp.targetPosition}</td>
+                  <td className='px-4 py-3 whitespace-nowrap'><ReadinessBadge term={sdp.vacancyRisk} /></td>
+                  <td className='px-4 py-3 whitespace-nowrap'><ReadinessBadge term={sdp.successorReadiness} /></td>
+                  <td className='px-4 py-3 whitespace-nowrap'>
+                    <span className='text-gray-700 text-xs'>{(sdp.programs || []).length} program</span>
                   </td>
-                  <td className='px-4 py-3'><StatusBadge status={sdp.status} /></td>
+                  <td className='px-4 py-3 whitespace-nowrap'><StatusBadge status={sdp.status} /></td>
                   <td className='px-4 py-3'>
-                    <div className='flex gap-2'>
+                    <div className='flex gap-2 whitespace-nowrap'>
                       <button onClick={() => setExpanded(expanded === sdp.id ? null : sdp.id)}
                         className='px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition'>
                         {expanded === sdp.id ? 'Tutup' : 'Detail'}
