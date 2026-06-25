@@ -7,12 +7,9 @@ import { FIELD_TYPES, newField } from '@/utils/formBuilderUtils'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const FORM_TYPES = [
-  { value: 'field',                    label: '📝 Configurable Field',        desc: 'Form isian bebas dengan field Text, Dropdown, Date, dll.' },
-  { value: 'evaluasi',                 label: '📊 Form Evaluasi',             desc: 'Tabel evaluasi per topik dengan nilai dan kesimpulan. Diisi oleh SME/instruktur setelah tiap materi selesai.' },
-  { value: 'ojt',                      label: '🏭 Form OJT',                  desc: 'On the Job Training — multi-parameter aktivitas dengan penilaian A(4)/B(3)/C(2)/D(1) dan kalkulasi rata-rata otomatis.' },
-  { value: 'summary',                  label: '📋 Form Summary',              desc: 'Ringkasan otomatis seluruh task onboarding yang sudah diselesaikan. Tidak perlu konfigurasi field.' },
-  { value: 'form_evaluation',          label: '🎯 Form Evaluation',           desc: 'Evaluasi masa probasi karyawan tetap: Core Values (50%) + Competency Based (50%) dengan rating 1–4. Final decision: Lulus / Tidak Lulus.' },
-  { value: 'form_evaluation_contract', label: '📃 Form Evaluation Contract',  desc: 'Evaluasi masa kontrak: sama dengan Form Evaluation dengan opsi perpanjangan kontrak dan final decision yang sesuai.' },
+  { value: 'field',    label: '📝 Configurable Field', desc: 'Form isian bebas dengan field Text, Dropdown, Date, dll.' },
+  { value: 'evaluasi', label: '📊 Form Evaluasi',      desc: 'Tabel evaluasi per topik dengan nilai dan kesimpulan. Diisi oleh SME/instruktur setelah tiap materi selesai.' },
+  { value: 'ojt',      label: '🏭 Form OJT',           desc: 'On the Job Training — multi-parameter aktivitas dengan penilaian A(4)/B(3)/C(2)/D(1) dan kalkulasi rata-rata otomatis.' },
 ]
 
 const EVAL_METHODS = [
