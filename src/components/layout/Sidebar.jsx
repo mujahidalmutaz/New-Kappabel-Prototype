@@ -301,6 +301,7 @@ const HR_GROUPS = [
   { title: 'Talent Management', icon: '🌟', isParent: true, subGroups: [
     { title: 'Overview', items: [
       { label: 'Talent Dashboard',              href: '/hr/talent/dashboard',              icon: ic('grid') },
+      { label: 'Talent Profile',                href: '/hr/talent/talent-profile',         icon: ic('user') },
     ]},
     { title: 'Assessment & Planning', items: [
       { label: 'Key Position Assessment',      href: '/hr/talent/key-position',          icon: ic('target') },
