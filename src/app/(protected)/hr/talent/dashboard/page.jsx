@@ -3,16 +3,29 @@ import { useTalentStore } from '@/store/talentStore'
 
 const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
 
+// Flow urutan ideal: Identify → Assess → Classify → Review → Plan → Develop → Monitor
 const STAGE_STEPS = [
-  { key: 'key',      label: 'Key Position',      path: '/hr/talent/key-position' },
-  { key: 'vacancy',  label: 'Vacancy Risk',       path: '/hr/talent/vacancy-risk' },
-  { key: 'review',   label: 'Talent Review',      path: '/hr/talent/talent-review' },
-  { key: 'ninebox',  label: '9-Box Matrix',       path: '/hr/talent/nine-box' },
-  { key: 'database', label: 'Database Talent',    path: '/hr/talent/database-talent' },
-  { key: 'idp',      label: 'IDP',                path: '/hr/talent/idp' },
-  { key: 'sdp',      label: 'SDP',                path: '/hr/talent/sdp' },
-  { key: 'career',   label: 'Career Path',        path: '/hr/talent/career-path' },
+  { key: 'key',        label: 'Key Position',      path: '/hr/talent/key-position',        phase: 'Identify' },
+  { key: 'ninebox',    label: '9-Box Matrix',       path: '/hr/talent/nine-box',             phase: 'Assess' },
+  { key: 'calibration',label: 'Kalibrasi',          path: '/hr/talent/calibration',          phase: 'Assess' },
+  { key: 'review',     label: 'Talent Review',      path: '/hr/talent/talent-review',        phase: 'Review' },
+  { key: 'database',   label: 'Database Talent',    path: '/hr/talent/database-talent',      phase: 'Plan' },
+  { key: 'successor',  label: 'Database Successor', path: '/hr/talent/database-successor',   phase: 'Plan' },
+  { key: 'idp',        label: 'IDP',                path: '/hr/talent/idp',                  phase: 'Develop' },
+  { key: 'sdp',        label: 'SDP',                path: '/hr/talent/sdp',                  phase: 'Develop' },
+  { key: 'career',     label: 'Career Path',        path: '/hr/talent/career-path',          phase: 'Develop' },
+  { key: 'vacancy',    label: 'Vacancy Risk',        path: '/hr/talent/vacancy-risk',         phase: 'Monitor' },
+  { key: 'retention',  label: 'Retention Risk',     path: '/hr/talent/retention-risk',       phase: 'Monitor' },
 ]
+
+const PHASE_COLOR = {
+  Identify: 'bg-purple-500',
+  Assess:   'bg-blue-500',
+  Review:   'bg-cyan-500',
+  Plan:     'bg-orange-500',
+  Develop:  'bg-green-500',
+  Monitor:  'bg-red-500',
+}
 
 function StatCard({ label, value, sub, color = 'text-red-600', border = 'border-red-500' }) {
   return (
@@ -67,20 +80,30 @@ export default function TalentDashboardPage() {
 
       {/* Lifecycle flow bar */}
       <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5 mb-6'>
-        <p className='text-xs font-bold text-gray-500 uppercase tracking-wider mb-4'>Talent Lifecycle Flow</p>
-        <div className='flex items-center gap-0 overflow-x-auto pb-1'>
+        <div className='flex items-center justify-between mb-4'>
+          <p className='text-xs font-bold text-gray-500 uppercase tracking-wider'>Talent Lifecycle Flow</p>
+          <div className='flex items-center gap-3'>
+            {Object.entries(PHASE_COLOR).map(([phase, color]) => (
+              <div key={phase} className='flex items-center gap-1'>
+                <div className={`w-2 h-2 rounded-full ${color}`} />
+                <span className='text-[10px] text-gray-500 font-medium'>{phase}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className='flex items-center gap-0 overflow-x-auto pb-2'>
           {STAGE_STEPS.map((step, i) => (
             <div key={step.key} className='flex items-center flex-shrink-0'>
               <a href={step.path}
-                className='flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-red-50 transition group'>
-                <div className='w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm group-hover:shadow-md transition'
-                  style={{ background: BRAND }}>
+                className='flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-gray-50 transition group'>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm group-hover:shadow-md transition ${PHASE_COLOR[step.phase]}`}>
                   {i + 1}
                 </div>
-                <span className='text-[10px] font-semibold text-gray-600 group-hover:text-red-700 whitespace-nowrap'>{step.label}</span>
+                <span className='text-[10px] font-semibold text-gray-600 group-hover:text-gray-900 whitespace-nowrap'>{step.label}</span>
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white ${PHASE_COLOR[step.phase]}`}>{step.phase}</span>
               </a>
               {i < STAGE_STEPS.length - 1 && (
-                <svg className='text-gray-300 flex-shrink-0 mx-0.5' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className='text-gray-300 flex-shrink-0 mx-0.5' width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               )}
