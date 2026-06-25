@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter }           from 'next/navigation'
 import { useAuthStore }        from '@/store/authStore'
 import { useBrandingStore }    from '@/store/brandingStore'
+import { TALENT_ONLY_ROLES }  from '@/constants/roles'
 
 export default function LoginPage() {
   const [username, setUsername]   = useState('')
@@ -28,7 +29,8 @@ export default function LoginPage() {
     const ok = login(username, password)
     if (ok) {
       document.cookie = 'hcm-auth=1; path=/; max-age=86400'
-      router.push('/dashboard')
+      const role = useAuthStore.getState().currentUser?.role
+      router.push(TALENT_ONLY_ROLES.includes(role) ? '/hr/talent/key-position' : '/dashboard')
     } else {
       setError('Username atau password salah.')
       setLoading(false)
@@ -138,6 +140,7 @@ export default function LoginPage() {
                   ['hrmanager','pass123','HR Manager'],
                   ['odofficer','pass123','OD Officer'],
                   ['odmanager','pass123','OD Manager'],
+                  ['talent','pass123','Talent Management'],
                 ].map(([u,p,r]) => (
                   <><span key={u} className='text-gray-700 font-mono cursor-pointer hover:text-red-600' onClick={() => setUsername(u)}>{u}</span>
                   <span className='text-gray-500 font-mono'>{p}</span>

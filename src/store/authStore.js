@@ -65,6 +65,7 @@ const SEED_USERS = [
   { id:52, username:'hrmanager', password:'pass123', name:'Bambang Wijaya',   role:'hr_manager', dept:'HR Operations',  position:'HR Manager',                          email:'bambang.hrm@company.com' },
   { id:53, username:'odofficer', password:'pass123', name:'Citra Lestari',    role:'od_officer', dept:'HR Operations',  position:'Organization Development Officer',     email:'citra.odo@company.com'  },
   { id:54, username:'odmanager', password:'pass123', name:'Surya Hidayat',    role:'od_manager', dept:'HR Operations',  position:'Organization Development Manager',     email:'surya.odm@company.com'  },
+  { id:55, username:'talent',    password:'pass123', name:'Talent User',      role:'talent',     dept:'HR Operations',  position:'Talent Management Specialist',          email:'talent@company.com'     },
 ]
 
 export const useAuthStore = create(

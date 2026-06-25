@@ -4,7 +4,7 @@ import Link                             from 'next/link'
 import { usePathname, useRouter }       from 'next/navigation'
 import { useAuthStore }                 from '@/store/authStore'
 import { useEmployeeStore }             from '@/store/employeeStore'
-import { HR_ROLES }                     from '@/constants/roles'
+import { HR_ROLES, TALENT_ONLY_ROLES }  from '@/constants/roles'
 
 // ─── Strip icons (icon strip left) ────────────────────────────────────────────
 const IcHome   = () => <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -375,15 +375,19 @@ export default function Sidebar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [openId])
 
-  const lmsGroups = canMgr ? LMS_GROUPS : LMS_GROUPS.filter(g => g.title !== 'Team Learning (MSS)')
+  const isTalentOnly = TALENT_ONLY_ROLES.includes(r)
+  const lmsGroups  = canMgr ? LMS_GROUPS : LMS_GROUPS.filter(g => g.title !== 'Team Learning (MSS)')
+  const hrGroups   = isTalentOnly
+    ? HR_GROUPS.filter(g => g.title === 'Talent Management')
+    : HR_GROUPS
 
   const sections = [
-    { id: 'dashboard', icon: IcHome,   label: 'Dashboard',           href: '/dashboard', groups: null },
-    { id: 'ess',       icon: IcPerson, label: 'Employee (ESS)',       href: null, groups: ESS_GROUPS },
-    canMgr && { id: 'mss',     icon: IcTeam,   label: 'Manager (MSS)',      href: null, groups: MSS_GROUPS },
-    { id: 'lms',       icon: IcLMS,    label: 'Learning (LMS)',       href: null, groups: lmsGroups },
-    canHR  && { id: 'hr',      icon: IcHR,     label: 'HR Administration',  href: null, groups: HR_GROUPS },
-    canSA  && { id: 'sysadmin',icon: IcSA,     label: 'System Admin',       href: null, groups: SA_GROUPS },
+    !isTalentOnly && { id: 'dashboard', icon: IcHome,   label: 'Dashboard',           href: '/dashboard', groups: null },
+    !isTalentOnly && { id: 'ess',       icon: IcPerson, label: 'Employee (ESS)',       href: null, groups: ESS_GROUPS },
+    !isTalentOnly && canMgr && { id: 'mss', icon: IcTeam, label: 'Manager (MSS)',      href: null, groups: MSS_GROUPS },
+    !isTalentOnly && { id: 'lms',       icon: IcLMS,    label: 'Learning (LMS)',       href: null, groups: lmsGroups },
+    canHR  && { id: 'hr',      icon: IcHR,     label: 'HR Administration',  href: null, groups: hrGroups },
+    !isTalentOnly && canSA && { id: 'sysadmin', icon: IcSA, label: 'System Admin',    href: null, groups: SA_GROUPS },
   ].filter(Boolean)
 
   const activeSec = sections.find(s => s.id === openId)
