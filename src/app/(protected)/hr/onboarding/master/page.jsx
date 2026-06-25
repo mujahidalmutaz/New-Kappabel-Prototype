@@ -10,6 +10,7 @@ import { EMP_TYPES }                from '@/utils/constants'
 import { PageHeader, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
 import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 import { FIELD_TYPES, newField } from '@/utils/formBuilderUtils'
+import { reconcileAutoAssign, templateMatchesEmployee } from '@/store/onboardingAutoAssign'
 
 // ── Form Picker Panel (for rows with type = Configurable Form) ────────────────
 function FormPickerPanel({ row, masterForms, onChange }) {
@@ -361,11 +362,13 @@ export default function MasterOnboardingPage() {
   const { batches }    = useCourseBatchStore()
 
   const [view,   setView  ] = useState('list')   // 'list' | 'form'
+  const [listTab, setListTab] = useState('templates') // 'templates' | 'rules'
   const [editId,         setEditId        ] = useState(null)
   const [form,           setForm          ] = useState(EMPTY_FORM)
   const [msg,            setMsg           ] = useState(null)
   const [delId,          setDelId         ] = useState(null)
   const [newSectionType, setNewSectionType] = useState('')
+  const [reconcileResult, setReconcileResult] = useState(null)
 
   const flash = (text, type = 'success') => {
     setMsg({ text, type }); setTimeout(() => setMsg(null), 3000)
@@ -520,6 +523,16 @@ export default function MasterOnboardingPage() {
   const confirmDelete = () => {
     deleteTemplate(delId); setDelId(null)
     flash(t('Template dihapus.','Template deleted.'))
+  }
+
+  const handleReconcile = () => {
+    const count = reconcileAutoAssign(employees)
+    setReconcileResult({ count, at: new Date().toLocaleString('id-ID') })
+    flash(
+      count > 0
+        ? t(`${count} onboarding baru dibuat via Auto Assign.`, `${count} new onboarding records created via Auto Assign.`)
+        : t('Tidak ada karyawan baru yang perlu di-assign.', 'No new employees needed assignment.')
+    )
   }
 
   // ── FORM VIEW ─────────────────────────────────────────────────────────────
@@ -909,7 +922,157 @@ export default function MasterOnboardingPage() {
         }
       />
 
-      {templates.length === 0 ? (
+      {/* Tab bar */}
+      <div className='flex gap-1 mb-5 bg-gray-100 p-1 rounded-xl w-fit'>
+        {[
+          { id:'templates', icon:'🗂️', labelID:'Template', labelEN:'Templates' },
+          { id:'rules',     icon:'⚡', labelID:'Auto Assign Rules', labelEN:'Auto Assign Rules' },
+        ].map(tab => (
+          <button key={tab.id} type='button' onClick={() => setListTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition
+              ${listTab === tab.id ? 'bg-white text-red-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            <span>{tab.icon}</span>{t(tab.labelID, tab.labelEN)}
+            {tab.id === 'rules' && (
+              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold
+                ${templates.filter(tpl => tpl.autoAssign && tpl.active).length > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-500'}`}>
+                {templates.filter(tpl => tpl.autoAssign && tpl.active).length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ── RULES TAB ─────────────────────────────────────────────────────── */}
+      {listTab === 'rules' && (() => {
+        const ruleTemplates = templates.filter(tpl => tpl.autoAssign)
+        const activeRules   = ruleTemplates.filter(tpl => tpl.active)
+        const matchCounts   = ruleTemplates.map(tpl => ({
+          id: tpl.id,
+          count: employees.filter(emp => emp.status === 'Active' && templateMatchesEmployee(tpl, emp)).length,
+        }))
+        return (
+          <div className='space-y-5'>
+            {/* Summary + Reconcile */}
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div className='p-4 bg-red-50 rounded-xl flex items-center gap-3'>
+                <span className='text-2xl'>⚡</span>
+                <div>
+                  <p className='text-xs text-red-600 font-semibold uppercase tracking-wide'>{t('Rules Aktif','Active Rules')}</p>
+                  <p className='text-2xl font-bold text-red-700'>{activeRules.length}</p>
+                </div>
+              </div>
+              <div className='p-4 bg-blue-50 rounded-xl flex items-center gap-3'>
+                <span className='text-2xl'>👥</span>
+                <div>
+                  <p className='text-xs text-blue-600 font-semibold uppercase tracking-wide'>{t('Total Karyawan Aktif','Total Active Employees')}</p>
+                  <p className='text-2xl font-bold text-blue-700'>{employees.filter(e => e.status === 'Active').length}</p>
+                </div>
+              </div>
+              <div className='p-4 bg-green-50 rounded-xl flex items-center gap-3 md:col-span-1'>
+                <div className='flex-1'>
+                  <p className='text-xs text-green-700 font-semibold mb-1'>{t('Reconcile Manual','Manual Reconcile')}</p>
+                  <p className='text-[10px] text-green-600 mb-2'>
+                    {t('Scan semua karyawan aktif dan assign onboarding yang belum ada.','Scan all active employees and assign missing onboarding records.')}
+                  </p>
+                  <button onClick={handleReconcile}
+                    className='flex items-center gap-2 px-4 py-2 text-xs font-bold text-white rounded-lg hover:opacity-90 transition'
+                    style={{ background: BRAND_GRADIENT }}>
+                    ▶ {t('Jalankan Reconcile','Run Reconcile')}
+                  </button>
+                  {reconcileResult && (
+                    <p className='text-[10px] text-green-700 mt-2 font-semibold'>
+                      ✓ {reconcileResult.count} {t('record dibuat','records created')} — {reconcileResult.at}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Rules table */}
+            {ruleTemplates.length === 0 ? (
+              <div className='py-14 text-center'>
+                <p className='text-3xl mb-3'>⚡</p>
+                <p className='text-sm font-semibold text-gray-500 mb-1'>{t('Belum ada Auto Assign Rule','No Auto Assign Rules yet')}</p>
+                <p className='text-xs text-gray-400 mb-4'>
+                  {t('Buka form edit template dan aktifkan toggle "Auto-Assign Rule".','Open a template edit form and enable the "Auto-Assign Rule" toggle.')}
+                </p>
+                <button onClick={() => setListTab('templates')}
+                  className='text-xs text-red-500 font-bold hover:underline'>
+                  ← {t('Lihat daftar template','View template list')}
+                </button>
+              </div>
+            ) : (
+              <DataTable
+                columns={[
+                  { label: t('Template','Template') },
+                  { label: 'Status' },
+                  { label: t('Seksi','Sections') },
+                  { label: t('Kriteria','Criteria') },
+                  { label: t('Cocok','Matches') },
+                  { label: t('Aksi','Action'), align: 'right' },
+                ]}
+              >
+                {ruleTemplates.map(tpl => {
+                  const mc = matchCounts.find(m => m.id === tpl.id)
+                  const c  = tpl.criteria ?? {}
+                  const criteriaLines = [
+                    c.employmentTypes?.length && `${t('Tipe','Type')}: ${c.employmentTypes.join(', ')}`,
+                    c.companyIds?.length      && `Company: ${c.companyIds.map(id => companies.find(x => x.id === id)?.name || id).join(', ')}`,
+                    c.departmentIds?.length   && `Dept: ${c.departmentIds.map(id => departments.find(x => x.id === id)?.name || id).join(', ')}`,
+                    c.positionIds?.length     && `${t('Posisi','Position')}: ${c.positionIds.map(id => positions.find(x => x.id === id)?.name || id).join(', ')}`,
+                  ].filter(Boolean)
+                  return (
+                    <Tr key={tpl.id}>
+                      <Td className='font-semibold text-gray-800'>{tpl.name}</Td>
+                      <Td>
+                        <StatusBadge tone={tpl.active ? 'success' : 'neutral'}>
+                          {tpl.active ? t('Aktif','Active') : t('Nonaktif','Inactive')}
+                        </StatusBadge>
+                      </Td>
+                      <Td>
+                        <div className='flex flex-wrap gap-1'>
+                          {(tpl.mainSections ?? []).filter(ms => ms.type).map(ms => (
+                            <span key={ms.id} className='text-[10px] bg-red-50 text-red-700 font-semibold px-1.5 py-0.5 rounded-full'>{ms.type}</span>
+                          ))}
+                          {(tpl.reviewItems ?? []).length > 0 && (
+                            <span className='text-[10px] bg-orange-50 text-orange-700 font-semibold px-1.5 py-0.5 rounded-full'>Periodic Review</span>
+                          )}
+                        </div>
+                      </Td>
+                      <Td>
+                        {criteriaLines.length === 0
+                          ? <span className='text-xs text-gray-400 italic'>{t('Semua karyawan','All employees')}</span>
+                          : (
+                            <div className='space-y-0.5'>
+                              {criteriaLines.map((line, i) => (
+                                <p key={i} className='text-xs text-gray-600'>{line}</p>
+                              ))}
+                            </div>
+                          )}
+                      </Td>
+                      <Td>
+                        <span className={`text-sm font-bold ${mc?.count > 0 ? 'text-green-700' : 'text-gray-400'}`}>
+                          {mc?.count ?? 0}
+                        </span>
+                        <span className='text-xs text-gray-400 ml-1'>{t('karyawan','employees')}</span>
+                      </Td>
+                      <Td align='right'>
+                        <button onClick={() => openEdit(tpl)}
+                          className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
+                          ✏️ {t('Edit Rule','Edit Rule')}
+                        </button>
+                      </Td>
+                    </Tr>
+                  )
+                })}
+              </DataTable>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* ── TEMPLATES TAB ─────────────────────────────────────────────────── */}
+      {listTab === 'templates' && (templates.length === 0 ? (
         <EmptyState
           icon='🗂️'
           title={t('Belum ada template.', 'No templates yet.')}
@@ -955,7 +1118,9 @@ export default function MasterOnboardingPage() {
                   <StatusBadge tone={tpl.active ? 'success' : 'neutral'}>
                     {tpl.active ? t('Aktif','Active') : t('Nonaktif','Inactive')}
                   </StatusBadge>
-
+                  {tpl.autoAssign && (
+                    <span className='text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 font-bold rounded-full w-fit'>⚡ Auto Assign</span>
+                  )}
                 </div>
               </Td>
               <Td className='text-gray-400 text-xs'>
@@ -976,7 +1141,7 @@ export default function MasterOnboardingPage() {
             </Tr>
           ))}
         </DataTable>
-      )}
+      ))}
 
       {/* Delete modal */}
       {delId && (
