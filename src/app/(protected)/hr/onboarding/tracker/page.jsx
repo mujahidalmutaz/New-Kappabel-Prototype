@@ -12,6 +12,7 @@ import { useCourseBatchStore }   from '@/store/courseBatchStore'
 import { useT }                  from '@/store/languageStore'
 import { PageHeader, StatCard, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
 import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
+import { exportCsv } from '@/utils/exportCsv'
 import { FIELD_TYPES, newField } from '@/utils/formBuilderUtils'
 
 // ── Form Picker Panel (library + custom) ──────────────────────────────────────
@@ -1245,6 +1246,16 @@ export default function OnboardingTrackerPage() {
           ${msg.type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
           <span>{msg.type === 'error' ? '⚠️' : '✅'}</span>
           <span>{msg.text}</span>
+        </div>
+      )}
+
+      {onboardings.length > 0 && (
+        <div className='flex justify-end mb-3'>
+          <button
+            onClick={() => exportCsv('onboarding-tracker', ['Employee','Department','Employment Status','Probation (mo)','Supervisor','Workflow Status','Source','Created'], onboardings.map(ob => [ob.employeeName || '', ob.department || '', ob.employmentStatus || '', ob.probationPeriod || '', ob.supervisorName || '', ob.workflowStatus || '', ob.createdVia === 'auto-assign' ? 'Auto' : 'Manual', ob.createdAt ? ob.createdAt.slice(0, 10) : '']))}
+            className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white rounded-lg ring-1 ring-gray-200 hover:bg-gray-50 transition'>
+            ↓ {t('Export CSV', 'Export CSV')}
+          </button>
         </div>
       )}
 

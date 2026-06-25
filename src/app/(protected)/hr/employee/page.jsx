@@ -5,6 +5,7 @@ import { useEmployeeStore } from '@/store/employeeStore'
 import { useStructureStore } from '@/store/structureStore'
 import { useT } from '@/store/languageStore'
 import { tenure, daysUntil } from '@/utils/dateUtils'
+import { exportCsv } from '@/utils/exportCsv'
 import { EMPTY_EMP, EMP_TYPES } from '@/utils/constants'
 import TabEmployment  from '@/components/employee/TabEmployment'
 import TabBio         from '@/components/employee/TabBio'
@@ -100,6 +101,7 @@ export default function EmployeeDataPage() {
     setSelectedId(null); setIsNew(false); setInlineQ(''); setSearchMode(false)
   }
   const handleNew    = () => { setForm(EMPTY_EMP); setIsNew(true); setSelectedId(null); setTab('Employment'); setConfirmDelete(false) }
+  const handleExportCsv = () => exportCsv('employee-data', ['NIK','Name','Status','Employment Type','Department','Position','Join Date'], list.map(e => [e.nik, e.name, e.status, e.employmentType || '', structure.departments.find(d => d.id === e.departmentId)?.name || '', structure.positions.find(p => p.id === +e.positionId)?.name || '', e.joinDate || '']))
   const handleSelect = (id) => { setSelectedId(id); setIsNew(false); setTab('Employment'); setConfirmDelete(false) }
 
   const handleSaveNew = () => {
@@ -250,6 +252,10 @@ export default function EmployeeDataPage() {
           <button onClick={() => { setDraftFilters({ ...activeFilters }); setSearchMode(true) }}
             className='px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition'>
             🔍 {t('Ubah Filter', 'Change Filter')}
+          </button>
+          <button onClick={handleExportCsv}
+            className='px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition'>
+            ↓ CSV
           </button>
           <button onClick={handleNew}
             className='px-3 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition'
