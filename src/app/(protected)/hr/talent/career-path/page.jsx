@@ -24,7 +24,7 @@ const stepStatusStyle = {
   Planned: 'border-gray-300 bg-white',
 }
 
-const STEP_EMPTY = { targetPosition: '', targetPCLevel: '', direction: 'vertical', estimatedYears: '', requirements: '', status: 'Planned' }
+const STEP_EMPTY = { targetPosition: '', targetPCLevel: '', direction: 'vertical', estimatedYears: '', requirements: '', status: 'Planned', prerequisiteSkills: '', sponsor: '' }
 const PATH_EMPTY = { employeeName: '', currentPosition: '', currentPCLevel: '' }
 
 export default function CareerPathPage() {
@@ -293,6 +293,18 @@ export default function CareerPathPage() {
                       <textarea value={stepForm.requirements} onChange={e => setStepForm(f => ({ ...f, requirements: e.target.value }))}
                         rows={2} placeholder='Persyaratan untuk mencapai posisi ini…'
                         className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />
+                    </div>
+                    <div>
+                      <label className='block text-xs font-semibold text-gray-600 mb-1'>Prerequisite Skills</label>
+                      <input value={stepForm.prerequisiteSkills} onChange={e => setStepForm(f => ({ ...f, prerequisiteSkills: e.target.value }))}
+                        placeholder='Skill yang wajib dimiliki sebelum step ini…'
+                        className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                    </div>
+                    <div>
+                      <label className='block text-xs font-semibold text-gray-600 mb-1'>Sponsor</label>
+                      <input value={stepForm.sponsor} onChange={e => setStepForm(f => ({ ...f, sponsor: e.target.value }))}
+                        placeholder='Nama manager / mentor yang mensupport…'
+                        className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
                     </div>
                   </div>
                   <div className='flex gap-2'>

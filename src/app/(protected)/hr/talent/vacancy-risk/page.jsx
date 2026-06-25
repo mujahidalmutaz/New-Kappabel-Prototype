@@ -22,7 +22,8 @@ function HealthBadge({ status }) {
   return <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${cls}`}>{status}</span>
 }
 
-const EMPTY_FORM = { gapToRetirement: '', endOfContract: '', careerPlan: '', healthStatus: 'Good', notes: '' }
+const EMPTY_FORM = { gapToRetirement: '', endOfContract: '', careerPlan: '', healthStatus: 'Good', notes: '',
+  businessImpactSeverity: 'Medium', mitigationActions: '', knowledgeTransferStatus: 'Not Started' }
 
 export default function VacancyRiskPage() {
   const { keyPositions, vacancyRisks, addVacancyRisk, updateVacancyRisk } = useTalentStore()
@@ -51,6 +52,9 @@ export default function VacancyRiskPage() {
         careerPlan: existing.careerPlan,
         healthStatus: existing.healthStatus,
         notes: existing.notes,
+        businessImpactSeverity: existing.businessImpactSeverity || 'Medium',
+        mitigationActions: existing.mitigationActions || '',
+        knowledgeTransferStatus: existing.knowledgeTransferStatus || 'Not Started',
       })
     } else {
       setEditId(null)
@@ -218,6 +222,32 @@ export default function VacancyRiskPage() {
                   <option value='Fair'>Fair</option>
                   <option value='Poor'>Poor</option>
                 </select>
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Tingkat Dampak Bisnis</label>
+                <select value={form.businessImpactSeverity} onChange={e => setForm(f => ({ ...f, businessImpactSeverity: e.target.value }))}
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                  <option value='Critical'>Critical</option>
+                  <option value='High'>High</option>
+                  <option value='Medium'>Medium</option>
+                  <option value='Low'>Low</option>
+                </select>
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Status Knowledge Transfer</label>
+                <select value={form.knowledgeTransferStatus} onChange={e => setForm(f => ({ ...f, knowledgeTransferStatus: e.target.value }))}
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                  <option value='Not Started'>Not Started</option>
+                  <option value='In Progress'>In Progress</option>
+                  <option value='Completed'>Completed</option>
+                </select>
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Mitigation Actions</label>
+                <textarea value={form.mitigationActions}
+                  onChange={e => setForm(f => ({ ...f, mitigationActions: e.target.value }))}
+                  rows={2} placeholder='Langkah mitigasi yang telah atau akan diambil…'
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />
               </div>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Catatan</label>

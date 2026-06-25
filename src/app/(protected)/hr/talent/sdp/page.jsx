@@ -23,7 +23,7 @@ function StatusBadge({ status }) {
   return <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${cls}`}>{status}</span>
 }
 
-const EMPTY_SDP = { employeeName: '', targetPosition: '', vacancyRisk: 'Mid', successorReadiness: 'Mid', careerPlan: '' }
+const EMPTY_SDP = { employeeName: '', targetPosition: '', vacancyRisk: 'Mid', successorReadiness: 'Mid', careerPlan: '', executiveSponsor: '', budget: '', successCriteria: '' }
 const EMPTY_PROG = { type: 'Course', name: '', timeline: '', status: 'Planned' }
 
 export default function SDPPage() {
@@ -54,6 +54,9 @@ export default function SDPPage() {
       vacancyRisk: sdp.vacancyRisk,
       successorReadiness: sdp.successorReadiness,
       careerPlan: sdp.careerPlan,
+      executiveSponsor: sdp.executiveSponsor || '',
+      budget: sdp.budget || '',
+      successCriteria: sdp.successCriteria || '',
     })
     setShowModal(true)
   }
@@ -315,6 +318,26 @@ export default function SDPPage() {
                 <textarea value={form.careerPlan} onChange={e => setForm(f => ({ ...f, careerPlan: e.target.value }))}
                   rows={2} placeholder='Target karir karyawan…'
                   className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Executive Sponsor</label>
+                <input value={form.executiveSponsor} onChange={e => setForm(f => ({ ...f, executiveSponsor: e.target.value }))}
+                  placeholder='Nama Direktur / SVP yang menjadi sponsor…'
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+              </div>
+              <div className='grid grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Budget (Rp)</label>
+                  <input type='number' value={form.budget} onChange={e => setForm(f => ({ ...f, budget: e.target.value }))}
+                    placeholder='Total anggaran pengembangan…'
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Success Criteria</label>
+                  <input value={form.successCriteria} onChange={e => setForm(f => ({ ...f, successCriteria: e.target.value }))}
+                    placeholder='Indikator keberhasilan SDP…'
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
               </div>
             </div>
             <div className='px-6 pb-5 flex gap-3'>

@@ -35,6 +35,7 @@ const fitnessToSdp = { High: 'Short', Medium: 'Mid', Low: 'Long' }
 
 const EMPTY_FORM = {
   keyPositionId: '', meetingDate: '', attendees: '', decision: 'Internal', notes: '',
+  rationale: '', expectedPromotionTimeline: '',
 }
 
 const EMPTY_SUCCESSOR = { employeeId: '', name: '', fitnessLevel: 'Medium', schedule: '' }
@@ -87,6 +88,8 @@ export default function TalentReviewPage() {
       attendees: rev.attendees,
       decision: rev.decision,
       notes: rev.notes,
+      rationale: rev.rationale || '',
+      expectedPromotionTimeline: rev.expectedPromotionTimeline || '',
     })
     setSuccessors(rev.successors || [])
     setShowModal(true)
@@ -296,6 +299,18 @@ export default function TalentReviewPage() {
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Peserta Meeting</label>
                 <input value={form.attendees} onChange={e => setForm(f => ({ ...f, attendees: e.target.value }))}
                   placeholder='Corporate Organization Development, HR Director, Division Head…'
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Rationale Keputusan</label>
+                <textarea value={form.rationale} onChange={e => setForm(f => ({ ...f, rationale: e.target.value }))}
+                  rows={2} placeholder='Alasan di balik keputusan succession…'
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Expected Promotion Timeline</label>
+                <input value={form.expectedPromotionTimeline} onChange={e => setForm(f => ({ ...f, expectedPromotionTimeline: e.target.value }))}
+                  placeholder='Contoh: Q2 2026 / 1-2 tahun ke depan…'
                   className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
               </div>
               <div>

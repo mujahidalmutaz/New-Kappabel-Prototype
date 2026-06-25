@@ -26,6 +26,7 @@ const EMPTY_ITEM = {
   competencyType: '', competencyName: '', target: '', actual: '', specificGoal: '',
   courseRecommendation: '', lmsLink: '', ojt: '', timeline: '', idpStatus: 'Planned',
   targetCompletionDate: '', budget: '', progressPercent: 0, coach: '',
+  priority: 'Medium', successCriteria: '',
 }
 
 export default function IDPPage() {
@@ -403,6 +404,21 @@ export default function IDPPage() {
                     <option value='Completed'>Completed</option>
                   </select>
                 </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Prioritas</label>
+                  <select value={itemForm.priority} onChange={e => setItemForm(f => ({ ...f, priority: e.target.value }))}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                    <option value='High'>High</option>
+                    <option value='Medium'>Medium</option>
+                    <option value='Low'>Low</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Success Criteria</label>
+                <textarea value={itemForm.successCriteria} onChange={e => setItemForm(f => ({ ...f, successCriteria: e.target.value }))}
+                  rows={2} placeholder='Indikator keberhasilan yang terukur…'
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />
               </div>
             </div>
             <div className='px-6 pb-5 flex gap-3'>

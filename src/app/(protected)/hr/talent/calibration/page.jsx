@@ -50,7 +50,7 @@ export default function CalibrationSession() {
 
   const [selected, setSelected] = useState(null)
   const [showNew, setShowNew] = useState(false)
-  const [newDraft, setNewDraft] = useState({ sessionName: '', year: new Date().getFullYear(), facilitator: '', scheduledDate: '', notes: '' })
+  const [newDraft, setNewDraft] = useState({ sessionName: '', year: new Date().getFullYear(), facilitator: '', scheduledDate: '', notes: '', approvedBy: '', followUpActions: '', nextReviewDate: '' })
   const [newParticipant, setNewParticipant] = useState({ employeeName: '', role: 'HR' })
   const [finalizeMsg, setFinalizeMsg] = useState(null)
 
@@ -308,6 +308,25 @@ export default function CalibrationSession() {
                 <div>
                   <label className="text-xs text-gray-500 block mb-1">Tanggal</label>
                   <input type="date" value={newDraft.scheduledDate} onChange={e => setNewDraft(d => ({ ...d, scheduledDate: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Disetujui Oleh</label>
+                <input value={newDraft.approvedBy} onChange={e => setNewDraft(d => ({ ...d, approvedBy: e.target.value }))}
+                  placeholder="HR Director / CHRO…"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Next Review Date</label>
+                  <input type="date" value={newDraft.nextReviewDate} onChange={e => setNewDraft(d => ({ ...d, nextReviewDate: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Follow-up Actions</label>
+                  <input value={newDraft.followUpActions} onChange={e => setNewDraft(d => ({ ...d, followUpActions: e.target.value }))}
+                    placeholder="Tindak lanjut setelah kalibrasi…"
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
                 </div>
               </div>

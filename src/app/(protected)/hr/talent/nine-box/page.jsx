@@ -28,7 +28,7 @@ function calcBox(perf, comp) {
   return { col, row }
 }
 
-const EMPTY_FORM = { employeeName: '', performanceScore: '', competencyScore: '', notes: '', year: new Date().getFullYear() }
+const EMPTY_FORM = { employeeName: '', performanceScore: '', competencyScore: '', notes: '', year: new Date().getFullYear(), potentialRating: '', careerAspiration: '', previousBoxLabel: '' }
 
 export default function NineBoxPage() {
   const { talentBoxes, addTalentBox, updateTalentBox, deleteTalentBox } = useTalentStore()
@@ -75,7 +75,7 @@ export default function NineBoxPage() {
 
   const openEdit = (t) => {
     setEditId(t.id)
-    setForm({ employeeName: t.employeeName, employeeId: t.employeeId, performanceScore: t.performanceScore, competencyScore: t.competencyScore, notes: t.notes, year: t.year })
+    setForm({ employeeName: t.employeeName, employeeId: t.employeeId, performanceScore: t.performanceScore, competencyScore: t.competencyScore, notes: t.notes, year: t.year, potentialRating: t.potentialRating || '', careerAspiration: t.careerAspiration || '', previousBoxLabel: t.previousBoxLabel || '' })
     setShowModal(true)
   }
 
@@ -396,6 +396,27 @@ export default function NineBoxPage() {
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Tahun</label>
                 <input type='number' value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))}
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Potential Rating (1-5)</label>
+                <input type='number' min='1' max='5' step='0.1' value={form.potentialRating}
+                  onChange={e => setForm(f => ({ ...f, potentialRating: e.target.value }))}
+                  placeholder='Contoh: 4.0' className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                <p className='text-xs text-gray-400 mt-1'>Potential dinilai terpisah dari kompetensi teknis</p>
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Box Tahun Lalu</label>
+                <select value={form.previousBoxLabel} onChange={e => setForm(f => ({ ...f, previousBoxLabel: e.target.value }))}
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                  <option value=''>— Pilih Box Sebelumnya —</option>
+                  {Object.values(BOX_CONFIG).map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Career Aspiration</label>
+                <input value={form.careerAspiration} onChange={e => setForm(f => ({ ...f, careerAspiration: e.target.value }))}
+                  placeholder='Cita-cita karir karyawan…'
                   className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
               </div>
               <div>

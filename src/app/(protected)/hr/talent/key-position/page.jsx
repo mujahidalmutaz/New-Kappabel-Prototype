@@ -19,6 +19,7 @@ function Badge({ children, tone }) {
 const EMPTY = {
   positionName: '', employeeName: '', pcLevel: '', q1: false, q2: false, q3: false,
   criticalityScore: '', businessImpact: '', estimatedVacancyDate: '', requiredSuccessors: '',
+  department: '', incumbentExitDate: '', knowledgeTransferPlan: '', interimCoverage: '',
 }
 
 export default function KeyPositionPage() {
@@ -53,6 +54,10 @@ export default function KeyPositionPage() {
       businessImpact: kp.businessImpact || '',
       estimatedVacancyDate: kp.estimatedVacancyDate || '',
       requiredSuccessors: kp.requiredSuccessors || '',
+      department: kp.department || '',
+      incumbentExitDate: kp.incumbentExitDate || '',
+      knowledgeTransferPlan: kp.knowledgeTransferPlan || '',
+      interimCoverage: kp.interimCoverage || '',
     })
     setShowModal(true)
   }
@@ -251,6 +256,13 @@ export default function KeyPositionPage() {
                 )}
               </div>
 
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Departemen / Divisi</label>
+                <input value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
+                  placeholder='Contoh: Finance, Operations…'
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+              </div>
+
               <div className='grid grid-cols-2 gap-3'>
                 <div>
                   <label className='block text-xs font-semibold text-gray-600 mb-1'>Criticality Score (1-5)</label>
@@ -277,10 +289,27 @@ export default function KeyPositionPage() {
                     placeholder='Dampak bisnis jika posisi kosong…'
                     className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
                 </div>
-                <div className='col-span-2'>
+                <div>
                   <label className='block text-xs font-semibold text-gray-600 mb-1'>Estimated Vacancy Date</label>
                   <input type='date' value={form.estimatedVacancyDate} onChange={e => setForm(f => ({ ...f, estimatedVacancyDate: e.target.value }))}
                     className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Incumbent Exit Date</label>
+                  <input type='date' value={form.incumbentExitDate} onChange={e => setForm(f => ({ ...f, incumbentExitDate: e.target.value }))}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div className='col-span-2'>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Interim / Backup Coverage</label>
+                  <input value={form.interimCoverage} onChange={e => setForm(f => ({ ...f, interimCoverage: e.target.value }))}
+                    placeholder='Nama PIC interim jika posisi kosong…'
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div className='col-span-2'>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Knowledge Transfer Plan</label>
+                  <textarea value={form.knowledgeTransferPlan} onChange={e => setForm(f => ({ ...f, knowledgeTransferPlan: e.target.value }))}
+                    rows={2} placeholder='Rencana transfer knowledge dari incumbent…'
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />
                 </div>
               </div>
 

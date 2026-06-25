@@ -34,7 +34,8 @@ const RISK_FACTOR_TAGS = {
   'Career Plan Pindah/Resign': { label: '🚪 Risk Resign', tone: 'red' },
 }
 
-const FLAG_EMPTY = { employeeName: '', position: '', department: '', action: '', selectedFactors: [] }
+const FLAG_EMPTY = { employeeName: '', position: '', department: '', action: '', selectedFactors: [],
+  engagementScore: '', retentionOfferProposed: false, managerRiskFactor: false, competitorThreat: '' }
 
 function RiskScoreBar({ score }) {
   const pct = Math.min(100, Math.max(0, score))
@@ -488,6 +489,36 @@ export default function RetentionRiskPage() {
                 )}
               </div>
 
+              <div className='grid grid-cols-2 gap-3'>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Engagement Score (1-10)</label>
+                  <input type='number' min='1' max='10' step='0.1' value={flagForm.engagementScore}
+                    onChange={e => setFlagForm(f => ({ ...f, engagementScore: e.target.value }))}
+                    placeholder='Contoh: 6.5'
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Competitor Threat</label>
+                  <input value={flagForm.competitorThreat}
+                    onChange={e => setFlagForm(f => ({ ...f, competitorThreat: e.target.value }))}
+                    placeholder='Nama kompetitor / info poaching…'
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+              </div>
+              <div className='flex gap-4'>
+                <label className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
+                  <input type='checkbox' checked={flagForm.retentionOfferProposed}
+                    onChange={e => setFlagForm(f => ({ ...f, retentionOfferProposed: e.target.checked }))}
+                    className='accent-red-600' />
+                  Retention offer sudah diusulkan
+                </label>
+                <label className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
+                  <input type='checkbox' checked={flagForm.managerRiskFactor}
+                    onChange={e => setFlagForm(f => ({ ...f, managerRiskFactor: e.target.checked }))}
+                    className='accent-red-600' />
+                  Manager sebagai faktor risiko
+                </label>
+              </div>
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Action / Catatan</label>
                 <textarea value={flagForm.action} onChange={e => setFlagForm(f => ({ ...f, action: e.target.value }))}

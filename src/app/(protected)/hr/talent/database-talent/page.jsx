@@ -8,6 +8,7 @@ const BRAND = 'linear-gradient(135deg,#8B1A1A,#D7252B)'
 const EMPTY_FORM = {
   employeeName: '', position: '', department: '', talentBoxLabel: '', year: new Date().getFullYear(),
   readinessLevel: '', flightRisk: '', lastAssessmentDate: '', skills: '',
+  performanceTrend: '', mentor: '',
 }
 
 const READINESS_OPTS = ['Ready Now', '1-2 Year', '3-5 Year', 'Not Ready']
@@ -64,7 +65,8 @@ export default function DatabaseTalentPage() {
     setEditId(d.id)
     setForm({ employeeName: d.employeeName, position: d.position || '', department: d.department || '',
       talentBoxLabel: d.talentBoxLabel || '', year: d.year, readinessLevel: d.readinessLevel || '',
-      flightRisk: d.flightRisk || '', lastAssessmentDate: d.lastAssessmentDate || '', skills: d.skills || '' })
+      flightRisk: d.flightRisk || '', lastAssessmentDate: d.lastAssessmentDate || '', skills: d.skills || '',
+      performanceTrend: d.performanceTrend || '', mentor: d.mentor || '' })
     setShowModal(true)
   }
 
@@ -314,6 +316,22 @@ export default function DatabaseTalentPage() {
                 <div>
                   <label className='block text-xs font-semibold text-gray-600 mb-1'>Last Assessment Date</label>
                   <input type='date' value={form.lastAssessmentDate} onChange={e => setForm(f => ({ ...f, lastAssessmentDate: e.target.value }))}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Performance Trend</label>
+                  <select value={form.performanceTrend} onChange={e => setForm(f => ({ ...f, performanceTrend: e.target.value }))}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                    <option value=''>— Pilih —</option>
+                    <option value='Improving'>↑ Improving</option>
+                    <option value='Stable'>→ Stable</option>
+                    <option value='Declining'>↓ Declining</option>
+                  </select>
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Mentor / Coach</label>
+                  <input value={form.mentor} onChange={e => setForm(f => ({ ...f, mentor: e.target.value }))}
+                    placeholder='Nama mentor atau coach…'
                     className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
                 </div>
                 <div className='col-span-2'>

@@ -24,6 +24,7 @@ function SdpTermBadge({ term }) {
 
 const EMPTY_FORM = {
   employeeName: '', targetPositionName: '', fitnessLevel: 'Medium', sdpTerm: 'Mid',
+  currentPosition: '', department: '', skillsGap: '', expectedReadinessDate: '', willingness: 'High',
 }
 
 export default function DatabaseSuccessorPage() {
@@ -54,7 +55,9 @@ export default function DatabaseSuccessorPage() {
 
   const openEdit = (d) => {
     setEditId(d.id)
-    setForm({ employeeName: d.employeeName, targetPositionName: d.targetPositionName, fitnessLevel: d.fitnessLevel, sdpTerm: d.sdpTerm })
+    setForm({ employeeName: d.employeeName, targetPositionName: d.targetPositionName, fitnessLevel: d.fitnessLevel, sdpTerm: d.sdpTerm,
+      currentPosition: d.currentPosition || '', department: d.department || '', skillsGap: d.skillsGap || '',
+      expectedReadinessDate: d.expectedReadinessDate || '', willingness: d.willingness || 'High' })
     setShowModal(true)
   }
 
@@ -193,6 +196,40 @@ export default function DatabaseSuccessorPage() {
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Target Posisi <span className='text-red-400'>*</span></label>
                 <input value={form.targetPositionName} onChange={e => setForm(f => ({ ...f, targetPositionName: e.target.value }))}
                   placeholder='Posisi yang dituju…' className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+              </div>
+              <div className='grid grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Posisi Saat Ini</label>
+                  <input value={form.currentPosition} onChange={e => setForm(f => ({ ...f, currentPosition: e.target.value }))}
+                    placeholder='Jabatan saat ini…' className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Departemen</label>
+                  <input value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
+                    placeholder='Departemen…' className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+              </div>
+              <div>
+                <label className='block text-xs font-semibold text-gray-600 mb-1'>Skills Gap</label>
+                <textarea value={form.skillsGap} onChange={e => setForm(f => ({ ...f, skillsGap: e.target.value }))}
+                  rows={2} placeholder='Kompetensi yang masih perlu dikembangkan…'
+                  className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 resize-none' />
+              </div>
+              <div className='grid grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Expected Readiness Date</label>
+                  <input type='date' value={form.expectedReadinessDate} onChange={e => setForm(f => ({ ...f, expectedReadinessDate: e.target.value }))}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Willingness</label>
+                  <select value={form.willingness} onChange={e => setForm(f => ({ ...f, willingness: e.target.value }))}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
+                    <option value='High'>High</option>
+                    <option value='Medium'>Medium</option>
+                    <option value='Low'>Low</option>
+                  </select>
+                </div>
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div>
