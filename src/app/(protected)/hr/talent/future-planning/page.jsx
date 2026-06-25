@@ -22,7 +22,7 @@ const PLAN_EMPTY = { positionName: '', planYear: new Date().getFullYear() + 1, c
 const SUCC_EMPTY = { employeeName: '', readiness: 'Medium', targetDate: '' }
 
 export default function FuturePlanningPage() {
-  const { user } = useAuthStore()
+  const { currentUser: user } = useAuthStore()
   const { futurePlanning, addFuturePlan, deleteFuturePlan, addSuccessor, removeSuccessor } = useTalentStore()
 
   const COD_ROLES = ['COD', 'cod', 'superadmin', 'talent', 'od_manager', 'Talent Management', 'talent_management']
