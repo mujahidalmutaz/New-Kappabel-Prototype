@@ -25,8 +25,8 @@ export default function FuturePlanningPage() {
   const { user } = useAuthStore()
   const { futurePlanning, addFuturePlan, deleteFuturePlan, addSuccessor, removeSuccessor } = useTalentStore()
 
-  const COD_ROLES = ['COD', 'cod', 'superadmin', 'talent', 'od_manager']
-  const isCOD = COD_ROLES.includes(user?.role) || user?.roles?.includes('COD') || user?.isCOD
+  const COD_ROLES = ['COD', 'cod', 'superadmin', 'talent', 'od_manager', 'Talent Management', 'talent_management']
+  const isCOD = COD_ROLES.includes(user?.role) || COD_ROLES.includes(user?.position) || user?.roles?.includes('COD') || user?.isCOD
 
   if (!isCOD) {
     return (
