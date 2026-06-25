@@ -295,7 +295,7 @@ export default function TalentReviewPage() {
               <div>
                 <label className='block text-xs font-semibold text-gray-600 mb-1'>Peserta Meeting</label>
                 <input value={form.attendees} onChange={e => setForm(f => ({ ...f, attendees: e.target.value }))}
-                  placeholder='COD, HR Director, Division Head…'
+                  placeholder='Corporate Organization Development, HR Director, Division Head…'
                   className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
               </div>
               <div>

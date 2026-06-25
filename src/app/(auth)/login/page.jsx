@@ -30,7 +30,7 @@ export default function LoginPage() {
     if (ok) {
       document.cookie = 'hcm-auth=1; path=/; max-age=86400'
       const role = useAuthStore.getState().currentUser?.role
-      router.push(TALENT_ONLY_ROLES.includes(role) ? '/hr/talent/key-position' : '/dashboard')
+      router.push(TALENT_ONLY_ROLES.includes(role) ? '/hr/talent/dashboard' : '/dashboard')
     } else {
       setError('Username atau password salah.')
       setLoading(false)

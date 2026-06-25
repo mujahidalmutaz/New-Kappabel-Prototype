@@ -299,6 +299,9 @@ const HR_GROUPS = [
     ]},
   ]},
   { title: 'Talent Management', icon: '🌟', isParent: true, subGroups: [
+    { title: 'Overview', items: [
+      { label: 'Talent Dashboard',              href: '/hr/talent/dashboard',              icon: ic('grid') },
+    ]},
     { title: 'Assessment & Planning', items: [
       { label: 'Key Position Assessment',      href: '/hr/talent/key-position',          icon: ic('target') },
       { label: 'Vacancy Risk Assessment',      href: '/hr/talent/vacancy-risk',           icon: ic('shield') },
@@ -381,13 +384,14 @@ export default function Sidebar() {
     ? HR_GROUPS.filter(g => g.title === 'Talent Management')
     : HR_GROUPS
 
+  const canHRAccess = canHR || isTalentOnly
   const sections = [
     !isTalentOnly && { id: 'dashboard', icon: IcHome,   label: 'Dashboard',           href: '/dashboard', groups: null },
     !isTalentOnly && { id: 'ess',       icon: IcPerson, label: 'Employee (ESS)',       href: null, groups: ESS_GROUPS },
-    !isTalentOnly && canMgr && { id: 'mss', icon: IcTeam, label: 'Manager (MSS)',      href: null, groups: MSS_GROUPS },
+    !isTalentOnly && canMgr && { id: 'mss', icon: IcTeam, label: 'Manager (MSS)', href: null, groups: MSS_GROUPS },
     !isTalentOnly && { id: 'lms',       icon: IcLMS,    label: 'Learning (LMS)',       href: null, groups: lmsGroups },
-    canHR  && { id: 'hr',      icon: IcHR,     label: 'HR Administration',  href: null, groups: hrGroups },
-    !isTalentOnly && canSA && { id: 'sysadmin', icon: IcSA, label: 'System Admin',    href: null, groups: SA_GROUPS },
+    canHRAccess && { id: 'hr',          icon: IcHR,     label: 'HR Administration',    href: null, groups: hrGroups },
+    !isTalentOnly && canSA && { id: 'sysadmin', icon: IcSA, label: 'System Admin', href: null, groups: SA_GROUPS },
   ].filter(Boolean)
 
   const activeSec = sections.find(s => s.id === openId)

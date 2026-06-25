@@ -44,7 +44,7 @@ const ALL_BOX_OPTIONS = BOX_LABELS.flat()
 export default function CalibrationSession() {
   const { talentBoxes = [], calibrationSessions = [] } = useTalentStore()
   const [sessions, setSessions] = useState(calibrationSessions.length ? calibrationSessions : [
-    { id: 1, sessionName: 'Kalibrasi Q1 2025', year: 2025, facilitator: 'HR Director', participants: [{employeeId:'1',employeeName:'Budi Santoso',role:'COD'},{employeeId:'2',employeeName:'Siti Rahma',role:'HR Manager'}], status: 'Scheduled', scheduledDate: '2025-03-15', completedDate: null, adjustments: [], notes: '' },
+    { id: 1, sessionName: 'Kalibrasi Q1 2025', year: 2025, facilitator: 'HR Director', participants: [{employeeId:'1',employeeName:'Budi Santoso',role:'Corporate Organization Development'},{employeeId:'2',employeeName:'Siti Rahma',role:'HR Manager'}], status: 'Scheduled', scheduledDate: '2025-03-15', completedDate: null, adjustments: [], notes: '' },
     { id: 2, sessionName: 'Kalibrasi Tahunan 2024', year: 2024, facilitator: 'HR Manager', participants: [{employeeId:'3',employeeName:'Ahmad Fauzi',role:'HR'}], status: 'Completed', scheduledDate: '2024-12-10', completedDate: '2024-12-10', adjustments: [], notes: 'Selesai tanpa perubahan signifikan' },
   ])
 

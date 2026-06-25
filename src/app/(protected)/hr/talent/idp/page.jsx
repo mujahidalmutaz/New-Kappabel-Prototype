@@ -25,6 +25,7 @@ const EMPTY_IDP = { employeeName: '', year: new Date().getFullYear() }
 const EMPTY_ITEM = {
   competencyType: '', competencyName: '', target: '', actual: '', specificGoal: '',
   courseRecommendation: '', lmsLink: '', ojt: '', timeline: '', idpStatus: 'Planned',
+  targetCompletionDate: '', budget: '', progressPercent: 0, coach: '',
 }
 
 export default function IDPPage() {
@@ -212,7 +213,7 @@ export default function IDPPage() {
                     <table className='w-full text-xs'>
                       <thead>
                         <tr className='bg-gray-50'>
-                          {['No', 'Tipe', 'Nama Kompetensi', 'Target', 'Aktual', 'Gap', 'Kondisi', 'Specific Goal', 'Rekomendasi Kursus', 'OJT', 'Timeline', 'Status', ''].map((h, i) => (
+                          {['No', 'Tipe', 'Nama Kompetensi', 'Target', 'Aktual', 'Gap', 'Kondisi', 'Progress', 'Coach', 'Timeline', 'Status', ''].map((h, i) => (
                             <th key={i} className='text-left px-3 py-2 text-gray-500 font-semibold whitespace-nowrap'>{h}</th>
                           ))}
                         </tr>
@@ -227,9 +228,17 @@ export default function IDPPage() {
                             <td className='px-3 py-2'>{item.actual}</td>
                             <td className='px-3 py-2'>{item.gap !== null && item.gap !== undefined ? item.gap.toFixed(1) : '—'}</td>
                             <td className='px-3 py-2'><ConditionBadge gap={item.gap} /></td>
-                            <td className='px-3 py-2 max-w-[150px]'><span className='line-clamp-2'>{item.specificGoal || '—'}</span></td>
-                            <td className='px-3 py-2 max-w-[150px]'><span className='line-clamp-2'>{item.courseRecommendation || '—'}</span></td>
-                            <td className='px-3 py-2 max-w-[120px]'><span className='line-clamp-1'>{item.ojt || '—'}</span></td>
+                            <td className='px-3 py-2'>
+                              {item.progressPercent !== undefined ? (
+                                <div className='flex items-center gap-1.5'>
+                                  <div className='w-16 bg-gray-100 rounded-full h-1.5'>
+                                    <div className='h-1.5 rounded-full bg-red-500' style={{ width: `${item.progressPercent}%` }} />
+                                  </div>
+                                  <span className='text-xs text-gray-600'>{item.progressPercent}%</span>
+                                </div>
+                              ) : '—'}
+                            </td>
+                            <td className='px-3 py-2 text-xs text-gray-600'>{item.coach || '—'}</td>
                             <td className='px-3 py-2 whitespace-nowrap'>{item.timeline || '—'}</td>
                             <td className='px-3 py-2'>
                               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold
@@ -360,6 +369,30 @@ export default function IDPPage() {
                   <label className='block text-xs font-semibold text-gray-600 mb-1'>Timeline</label>
                   <input value={itemForm.timeline} onChange={e => setItemForm(f => ({ ...f, timeline: e.target.value }))}
                     placeholder='Contoh: Q2 2024' className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Target Completion Date</label>
+                  <input type='date' value={itemForm.targetCompletionDate} onChange={e => setItemForm(f => ({ ...f, targetCompletionDate: e.target.value }))}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Coach / Mentor</label>
+                  <input value={itemForm.coach} onChange={e => setItemForm(f => ({ ...f, coach: e.target.value }))}
+                    placeholder='Nama coach…' className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Budget (Rp)</label>
+                  <input type='number' value={itemForm.budget} onChange={e => setItemForm(f => ({ ...f, budget: e.target.value }))}
+                    placeholder='Contoh: 5000000' className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Progress % ({itemForm.progressPercent}%)</label>
+                  <input type='range' min='0' max='100' value={itemForm.progressPercent}
+                    onChange={e => setItemForm(f => ({ ...f, progressPercent: Number(e.target.value) }))}
+                    className='w-full accent-red-600' />
+                  <div className='w-full bg-gray-100 rounded-full h-1.5 mt-1'>
+                    <div className='h-1.5 rounded-full bg-red-500' style={{ width: `${itemForm.progressPercent}%` }} />
+                  </div>
                 </div>
                 <div>
                   <label className='block text-xs font-semibold text-gray-600 mb-1'>Status IDP Item</label>

@@ -25,7 +25,7 @@ export default function FuturePlanningPage() {
   const { user } = useAuthStore()
   const { futurePlanning, addFuturePlan, deleteFuturePlan, addSuccessor, removeSuccessor } = useTalentStore()
 
-  const COD_ROLES = ['COD', 'cod', 'superadmin']
+  const COD_ROLES = ['COD', 'cod', 'superadmin', 'talent', 'hr_manager', 'od_manager']
   const isCOD = COD_ROLES.includes(user?.role) || user?.roles?.includes('COD') || user?.isCOD
 
   if (!isCOD) {
@@ -33,7 +33,7 @@ export default function FuturePlanningPage() {
       <div className="p-8 flex flex-col items-center justify-center min-h-64">
         <div className="text-4xl mb-3">🔒</div>
         <h2 className="text-lg font-bold text-gray-800">Akses Terbatas</h2>
-        <p className="text-sm text-gray-500 mt-1">Halaman ini hanya dapat diakses oleh COD (Chief of Division)</p>
+        <p className="text-sm text-gray-500 mt-1">Halaman ini hanya dapat diakses oleh Corporate Organization Development</p>
       </div>
     )
   }
@@ -95,7 +95,7 @@ export default function FuturePlanningPage() {
           <line x1="12" y1="9" x2="12" y2="13"/>
           <line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
-        <p className='text-sm font-semibold'>Data ini bersifat <strong>RAHASIA</strong>. Hanya untuk COD (Chief of Division).</p>
+        <p className='text-sm font-semibold'>Data ini bersifat <strong>RAHASIA</strong>. Hanya untuk Corporate Organization Development.</p>
       </div>
 
       {/* Header */}
@@ -111,7 +111,7 @@ export default function FuturePlanningPage() {
           </div>
           <div>
             <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Future Position Planning</h1>
-            <p className='mt-1 text-sm text-gray-500'>⚠️ Confidential — Hanya dapat diakses oleh COD</p>
+            <p className='mt-1 text-sm text-gray-500'>⚠️ Confidential — Hanya dapat diakses oleh Corporate Organization Development</p>
           </div>
         </div>
         <button onClick={() => { setForm(PLAN_EMPTY); setShowModal(true) }}
@@ -308,7 +308,7 @@ export default function FuturePlanningPage() {
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
-                Data ini bersifat RAHASIA — hanya untuk COD
+                Data ini bersifat RAHASIA — hanya untuk Corporate Organization Development
               </div>
             </div>
           </div>

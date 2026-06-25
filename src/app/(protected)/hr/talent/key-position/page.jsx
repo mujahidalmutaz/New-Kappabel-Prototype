@@ -18,6 +18,7 @@ function Badge({ children, tone }) {
 
 const EMPTY = {
   positionName: '', employeeName: '', pcLevel: '', q1: false, q2: false, q3: false,
+  criticalityScore: '', businessImpact: '', estimatedVacancyDate: '', requiredSuccessors: '',
 }
 
 export default function KeyPositionPage() {
@@ -48,6 +49,10 @@ export default function KeyPositionPage() {
       q1: kp.q1,
       q2: kp.q2,
       q3: kp.q3,
+      criticalityScore: kp.criticalityScore || '',
+      businessImpact: kp.businessImpact || '',
+      estimatedVacancyDate: kp.estimatedVacancyDate || '',
+      requiredSuccessors: kp.requiredSuccessors || '',
     })
     setShowModal(true)
   }
@@ -69,7 +74,7 @@ export default function KeyPositionPage() {
   const filtered = filter === 'all' ? keyPositions
     : keyPositions.filter(k => k.status === filter)
 
-  const assessedBy = (pcLevel) => Number(pcLevel) >= 64 ? 'COD' : 'HR PT'
+  const assessedBy = (pcLevel) => Number(pcLevel) >= 64 ? 'Corporate Organization Development' : 'HR PT'
   const isKey = (f) => f.q1 || f.q2 || f.q3
 
   return (
@@ -120,25 +125,38 @@ export default function KeyPositionPage() {
           <table className='w-full text-sm'>
             <thead>
               <tr style={{ background: BRAND }}>
-                {['No', 'Nama Posisi', 'PC Level', 'Incumbent', 'Dinilai Oleh', 'Tanggal Asesmen', 'Status', 'Aksi'].map((h, i) => (
+                {['No', 'Nama Posisi', 'PC Level', 'Incumbent', 'Dinilai Oleh', 'Criticality', 'Est. Vacancy', 'Succ. Req.', 'Status', 'Aksi'].map((h, i) => (
                   <th key={i} className='text-left px-4 py-3 text-white font-semibold text-xs whitespace-nowrap'>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className='px-4 py-10 text-center text-gray-400'>Belum ada data.</td></tr>
+                <tr><td colSpan={10} className='px-4 py-10 text-center text-gray-400'>Belum ada data.</td></tr>
               )}
               {filtered.map((kp, idx) => (
                 <tr key={kp.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                   <td className='px-4 py-3 text-gray-500 text-xs'>{idx + 1}</td>
-                  <td className='px-4 py-3 font-semibold text-gray-800'>{kp.positionName}</td>
+                  <td className='px-4 py-3 font-semibold text-gray-800'>
+                    <div>{kp.positionName}</div>
+                    {kp.businessImpact && <div className='text-xs text-gray-400 mt-0.5 max-w-[180px] truncate' title={kp.businessImpact}>{kp.businessImpact}</div>}
+                  </td>
                   <td className='px-4 py-3 text-gray-700'>{kp.pcLevel}</td>
                   <td className='px-4 py-3 text-gray-700'>{kp.employeeName}</td>
                   <td className='px-4 py-3'>
-                    <Badge tone={kp.assessedBy === 'COD' ? 'blue' : 'gray'}>{kp.assessedBy}</Badge>
+                    <Badge tone={kp.assessedBy === 'Corporate Organization Development' ? 'blue' : 'gray'}>{kp.assessedBy}</Badge>
                   </td>
-                  <td className='px-4 py-3 text-gray-500 text-xs'>{kp.assessedAt}</td>
+                  <td className='px-4 py-3'>
+                    {kp.criticalityScore ? (
+                      <div className='flex gap-0.5'>
+                        {[1,2,3,4,5].map(n => (
+                          <div key={n} className={`w-2.5 h-2.5 rounded-sm ${n <= kp.criticalityScore ? 'bg-red-500' : 'bg-gray-200'}`} />
+                        ))}
+                      </div>
+                    ) : '—'}
+                  </td>
+                  <td className='px-4 py-3 text-gray-500 text-xs'>{kp.estimatedVacancyDate || '—'}</td>
+                  <td className='px-4 py-3 text-center text-gray-700'>{kp.requiredSuccessors ?? '—'}</td>
                   <td className='px-4 py-3'>
                     <Badge tone={kp.isKeyPosition ? 'green' : 'gray'}>{kp.status}</Badge>
                   </td>
@@ -226,9 +244,42 @@ export default function KeyPositionPage() {
                 {form.pcLevel && (
                   <p className='text-xs text-gray-400 mt-1'>
                     Dinilai oleh: <strong>{assessedBy(form.pcLevel)}</strong>
-                    {Number(form.pcLevel) >= 64 ? ' (PC ≥ 64 → COD)' : ' (PC 53-63 → HR PT)'}
+                    {Number(form.pcLevel) >= 64 ? ' (PC ≥ 64 → Corporate Organization Development)' : ' (PC 53-63 → HR PT)'}
                   </p>
                 )}
+              </div>
+
+              <div className='grid grid-cols-2 gap-3'>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Criticality Score (1-5)</label>
+                  <div className='flex gap-2 pt-1'>
+                    {[1,2,3,4,5].map(n => (
+                      <button key={n} type='button' onClick={() => setForm(f => ({ ...f, criticalityScore: n }))}
+                        className={`w-8 h-8 rounded-lg text-xs font-bold border transition
+                          ${form.criticalityScore >= n ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-400 border-gray-200 hover:border-red-300'}`}>
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Required Successors</label>
+                  <input type='number' min='0' value={form.requiredSuccessors}
+                    onChange={e => setForm(f => ({ ...f, requiredSuccessors: Number(e.target.value) }))}
+                    placeholder='Jumlah suksesor…'
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div className='col-span-2'>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Business Impact</label>
+                  <input value={form.businessImpact} onChange={e => setForm(f => ({ ...f, businessImpact: e.target.value }))}
+                    placeholder='Dampak bisnis jika posisi kosong…'
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
+                <div className='col-span-2'>
+                  <label className='block text-xs font-semibold text-gray-600 mb-1'>Estimated Vacancy Date</label>
+                  <input type='date' value={form.estimatedVacancyDate} onChange={e => setForm(f => ({ ...f, estimatedVacancyDate: e.target.value }))}
+                    className='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                </div>
               </div>
 
               <div className='bg-red-50/60 rounded-xl p-4 space-y-3'>

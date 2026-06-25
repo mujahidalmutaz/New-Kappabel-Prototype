@@ -13,20 +13,25 @@ export const useTalentStore = create(
         {
           id: 1, positionId: 'POS-001', positionName: 'General Manager Operations',
           employeeId: 'EMP-001', employeeName: 'Budi Santoso', pcLevel: 65,
-          assessedBy: 'COD', assessedAt: '2024-01-15',
+          assessedBy: 'Corporate Organization Development', assessedAt: '2024-01-15',
           q1: true, q2: true, q3: true, isKeyPosition: true, status: 'Key Position',
+          criticalityScore: 5, businessImpact: 'Mengkoordinasi seluruh operasional bisnis, berdampak langsung pada revenue',
+          estimatedVacancyDate: '2025-06-30', requiredSuccessors: 2,
         },
         {
           id: 2, positionId: 'POS-002', positionName: 'Head of Finance',
           employeeId: 'EMP-002', employeeName: 'Siti Rahma', pcLevel: 63,
           assessedBy: 'HR PT', assessedAt: '2024-01-20',
           q1: true, q2: false, q3: true, isKeyPosition: true, status: 'Key Position',
+          criticalityScore: 4, businessImpact: 'Mengelola laporan keuangan korporat dan compliance regulasi',
+          estimatedVacancyDate: '2026-12-31', requiredSuccessors: 1,
         },
         {
           id: 3, positionId: 'POS-003', positionName: 'Staff Administrasi',
           employeeId: 'EMP-003', employeeName: 'Ahmad Fauzi', pcLevel: 52,
           assessedBy: 'HR PT', assessedAt: '2024-02-01',
           q1: false, q2: false, q3: false, isKeyPosition: false, status: 'General',
+          criticalityScore: 2, businessImpact: '', estimatedVacancyDate: '', requiredSuccessors: 0,
         },
       ],
 
@@ -39,7 +44,7 @@ export const useTalentStore = create(
             assessedAt: new Date().toISOString().split('T')[0],
             isKeyPosition: isKey,
             status: isKey ? 'Key Position' : 'General',
-            assessedBy: data.pcLevel >= 64 ? 'COD' : 'HR PT',
+            assessedBy: data.pcLevel >= 64 ? 'Corporate Organization Development' : 'HR PT',
           }
           return { keyPositions: [...s.keyPositions, newRec] }
         }),
@@ -54,7 +59,7 @@ export const useTalentStore = create(
               ...merged,
               isKeyPosition: isKey,
               status: isKey ? 'Key Position' : 'General',
-              assessedBy: merged.pcLevel >= 64 ? 'COD' : 'HR PT',
+              assessedBy: merged.pcLevel >= 64 ? 'Corporate Organization Development' : 'HR PT',
             }
           })
           return { keyPositions: updated }
@@ -208,7 +213,7 @@ export const useTalentStore = create(
       talentReviews: [
         {
           id: 1, keyPositionId: 1, positionName: 'General Manager Operations',
-          meetingDate: '2024-03-10', attendees: 'COD, HR Director, Div Head',
+          meetingDate: '2024-03-10', attendees: 'Corporate Organization Development, HR Director, Div Head',
           successors: [
             { employeeId: 'EMP-004', name: 'Dewi Lestari', fitnessLevel: 'High', sdpTerm: 'Short', schedule: 'Q2 2024' },
             { employeeId: 'EMP-005', name: 'Rudi Hartono', fitnessLevel: 'Medium', sdpTerm: 'Mid', schedule: 'Q4 2024' },
@@ -217,7 +222,7 @@ export const useTalentStore = create(
         },
         {
           id: 2, keyPositionId: 2, positionName: 'Head of Finance',
-          meetingDate: '2024-03-15', attendees: 'COD, HR Director',
+          meetingDate: '2024-03-15', attendees: 'Corporate Organization Development, HR Director',
           successors: [
             { employeeId: 'EMP-006', name: 'Rina Wulandari', fitnessLevel: 'Low', sdpTerm: 'Long', schedule: '2025' },
           ],
@@ -291,12 +296,16 @@ export const useTalentStore = create(
           position: 'Senior Manager Operations', department: 'Operations',
           talentBoxLabel: 'Star', year: 2024, inTalentPool: true,
           addedAt: '2024-03-20',
+          readinessLevel: 'Ready Now', flightRisk: 'Low', lastAssessmentDate: '2024-03-20',
+          skills: 'Leadership, Strategic Planning, Operations',
         },
         {
           id: 2, employeeId: 'EMP-005', employeeName: 'Rudi Hartono',
           position: 'Finance Analyst', department: 'Finance',
           talentBoxLabel: 'High Performer', year: 2024, inTalentPool: true,
           addedAt: '2024-03-20',
+          readinessLevel: '1-2 Year', flightRisk: 'Medium', lastAssessmentDate: '2024-03-20',
+          skills: 'Data Analysis, Finance, Excel',
         },
       ],
 
@@ -312,6 +321,9 @@ export const useTalentStore = create(
 
       removeFromTalentDatabase: (id) =>
         set(s => ({ databaseTalent: s.databaseTalent.filter(d => d.id !== id) })),
+
+      updateTalentDatabase: (id, patch) =>
+        set(s => ({ databaseTalent: s.databaseTalent.map(d => d.id === id ? { ...d, ...patch } : d) })),
 
       // ── Database Successor ───────────────────────────────────────────────────
       databaseSuccessor: [
@@ -432,7 +444,7 @@ export const useTalentStore = create(
       futurePlanning: [
         {
           id: 1, positionId: 'POS-001', positionName: 'General Manager Operations',
-          planYear: 2025, createdBy: 'COD', notes: 'Persiapan pergantian GM Ops yang akan pensiun dini Q2 2025.',
+          planYear: 2025, createdBy: 'Corporate Organization Development', notes: 'Persiapan pergantian GM Ops yang akan pensiun dini Q2 2025.',
           successors: [
             { employeeId: 'EMP-004', employeeName: 'Dewi Lestari', readiness: 'High', targetDate: '2025-06-30' },
             { employeeId: 'EMP-005', employeeName: 'Rudi Hartono', readiness: 'Medium', targetDate: '2025-12-31' },
@@ -441,7 +453,7 @@ export const useTalentStore = create(
         },
         {
           id: 2, positionId: 'POS-002', positionName: 'Head of Finance',
-          planYear: 2026, createdBy: 'COD', notes: 'Siti Rahma berencana pindah ke anak perusahaan. Perlu kader pengganti.',
+          planYear: 2026, createdBy: 'Corporate Organization Development', notes: 'Siti Rahma berencana pindah ke anak perusahaan. Perlu kader pengganti.',
           successors: [
             { employeeId: 'EMP-006', employeeName: 'Rina Wulandari', readiness: 'Low', targetDate: '2026-06-30' },
           ],
@@ -449,7 +461,7 @@ export const useTalentStore = create(
         },
         {
           id: 3, positionId: 'POS-003', positionName: 'VP Human Capital',
-          planYear: 2025, createdBy: 'COD', notes: 'Posisi baru hasil restrukturisasi organisasi.',
+          planYear: 2025, createdBy: 'Corporate Organization Development', notes: 'Posisi baru hasil restrukturisasi organisasi.',
           successors: [],
           confidential: true, createdAt: '2024-02-01',
         },
@@ -499,7 +511,7 @@ export const useTalentStore = create(
             { factor: 'Kontrak Habis', value: '< 6 bulan', weight: 30, contribution: 30 },
             { factor: 'Career Plan Pindah/Resign', value: 'Pensiun dini', weight: 25, contribution: 15 },
           ],
-          flaggedAt: '2024-01-16', action: 'Sudah dibicarakan oleh COD, sedang cari pengganti.', actionBy: 'HR Director',
+          flaggedAt: '2024-01-16', action: 'Sudah dibicarakan oleh Corporate Organization Development, sedang cari pengganti.', actionBy: 'HR Director',
           resolved: false,
         },
         {
