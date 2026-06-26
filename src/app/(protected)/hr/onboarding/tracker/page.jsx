@@ -1236,12 +1236,6 @@ export default function OnboardingTrackerPage() {
         }
       />
 
-      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
-        <StatCard label={t('Total', 'Total')} value={kpis.total} icon='📋' tone='brand' />
-        <StatCard label={t('Persiapan', 'Preparation')} value={kpis.preparation} icon='🔧' tone='gray' />
-        <StatCard label={t('Aktif', 'Active')} value={kpis.active} icon='🚀' tone='orange' />
-        <StatCard label={t('Draft', 'Draft')} value={kpis.draft} icon='📝' tone='gray' />
-      </div>
 
       {msg && (
         <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold
