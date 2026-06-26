@@ -80,7 +80,7 @@ export default function WorkSchedulePage() {
                 <Td>{patternName(s.patternId)}</Td>
                 <Td>{s.effectiveDate}</Td>
                 <Td align='right'>
-                  <button onClick={() => deleteSchedule(s.id)}
+                  <button onClick={() => { deleteSchedule(s.id); flash(t('Schedule dihapus.', 'Schedule deleted.')) }}
                     className='px-3 py-1.5 text-xs font-semibold rounded-xl bg-red-50 text-red-600 hover:bg-red-100'>
                     {t('Hapus', 'Delete')}
                   </button>

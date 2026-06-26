@@ -119,7 +119,7 @@ export default function CompanyPage() {
                 <Td align='right'>
                   <div className='flex justify-end gap-2'>
                     <ActionButton size='sm' variant='secondary' onClick={()=>handleEdit(x)}>Edit</ActionButton>
-                    <ActionButton size='sm' variant='danger' onClick={()=>deleteCompany(x.id)}>{t('Hapus','Delete')}</ActionButton>
+                    <ActionButton size='sm' variant='danger' onClick={()=>{deleteCompany(x.id);flash(t('Company dihapus.','Company deleted.'))}}>{t('Hapus','Delete')}</ActionButton>
                   </div>
                 </Td>
               </Tr>

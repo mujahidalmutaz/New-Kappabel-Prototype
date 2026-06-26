@@ -94,7 +94,7 @@ export default function DepartmentPage() {
                 <Td align='right'>
                   <div className='flex justify-end gap-2'>
                     <ActionButton size='sm' variant='secondary' onClick={()=>handleEdit(x)}>Edit</ActionButton>
-                    <ActionButton size='sm' variant='danger' onClick={()=>deleteDepartment(x.id)}>{t('Hapus','Delete')}</ActionButton>
+                    <ActionButton size='sm' variant='danger' onClick={()=>{deleteDepartment(x.id);flash(t('Department dihapus.','Department deleted.'))}}>{t('Hapus','Delete')}</ActionButton>
                   </div>
                 </Td>
               </Tr>

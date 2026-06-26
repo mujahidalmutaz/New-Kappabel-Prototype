@@ -498,6 +498,7 @@ export default function MasterOnboardingPage() {
     if (!form.name.trim()) return flash(t('Nama template wajib diisi.','Template name is required.'), 'error')
     if (editId) updateTemplate(editId, form)
     else addTemplate(form)
+    flash(t('Template berhasil disimpan.','Template saved.'))
     setView('list')
   }
 

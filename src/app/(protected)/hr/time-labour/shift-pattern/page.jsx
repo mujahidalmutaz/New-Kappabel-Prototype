@@ -79,7 +79,7 @@ export default function ShiftPatternPage() {
                 key={p.id}
                 title={p.name}
                 actions={
-                  <button onClick={() => deletePattern(p.id)}
+                  <button onClick={() => { deletePattern(p.id); flash(t('Pattern dihapus.', 'Pattern deleted.')) }}
                     className='px-3 py-1.5 text-xs font-semibold rounded-xl bg-red-50 text-red-600 hover:bg-red-100'>
                     {t('Hapus', 'Delete')}
                   </button>

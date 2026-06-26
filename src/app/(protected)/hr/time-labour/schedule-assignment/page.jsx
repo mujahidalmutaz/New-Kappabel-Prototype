@@ -86,7 +86,7 @@ export default function ScheduleAssignmentPage() {
                 <Td>{scheduleName(a.scheduleId)}</Td>
                 <Td>{a.startDate}</Td>
                 <Td align='right'>
-                  <button onClick={() => deleteAssignment(a.id)}
+                  <button onClick={() => { deleteAssignment(a.id); flash(t('Assignment dihapus.', 'Assignment deleted.')) }}
                     className='px-3 py-1.5 text-xs font-semibold rounded-xl bg-red-50 text-red-600 hover:bg-red-100'>
                     {t('Hapus', 'Delete')}
                   </button>

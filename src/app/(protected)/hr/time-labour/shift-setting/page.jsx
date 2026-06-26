@@ -110,7 +110,7 @@ export default function ShiftSettingPage() {
                     <ActionButton size='sm' variant='secondary' onClick={() => handleEdit(s)}>
                       {t('Edit', 'Edit')}
                     </ActionButton>
-                    <button onClick={() => deleteShift(s.id)}
+                    <button onClick={() => { deleteShift(s.id); flash(t('Shift dihapus.', 'Shift deleted.')) }}
                       className='px-3 py-1.5 text-xs font-semibold rounded-xl bg-red-50 text-red-600 hover:bg-red-100'>
                       {t('Hapus', 'Delete')}
                     </button>
