@@ -1225,10 +1225,9 @@ export default function OnboardingTrackerPage() {
         subtitle={t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
         actions={
           <div className='flex gap-2'>
-            <button onClick={() => router.push('/hr/onboarding/auto-assign')}
-              className='px-4 py-2 text-sm font-semibold rounded-xl border border-violet-300 text-violet-700 hover:bg-violet-50 transition'>
-              ⚡ {t('Auto Assign', 'Auto Assign')}
-            </button>
+            <ActionButton variant='secondary' onClick={() => router.push('/hr/onboarding/auto-assign')}>
+              {t('Auto Assign', 'Auto Assign')}
+            </ActionButton>
             <ActionButton icon='+' onClick={openNew}>
               {t('Onboarding Manual', 'Manual Onboarding')}
             </ActionButton>
