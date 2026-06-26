@@ -677,8 +677,29 @@ export default function EssOnboardingPage() {
     <div>
       <h1 className='text-2xl font-bold text-gray-800 mb-1'>{t('Onboarding Saya','My Onboarding')}</h1>
       <p className='text-gray-500 text-sm mb-6'>{t('Formulir induksi / onboarding karyawan.','Employee induction / onboarding form.')}</p>
-      <div className='bg-white rounded-xl shadow-sm px-8 py-16 text-center text-gray-400 text-sm'>
-        {t('Belum ada data onboarding untuk akun Anda.','No onboarding record found for your account.')}
+      <div className='flex flex-col items-center justify-center py-20 text-center'>
+        <div className='w-20 h-20 rounded-full flex items-center justify-center mb-4'
+          style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}>
+          <span className='text-3xl'>🎯</span>
+        </div>
+        <h2 className='text-xl font-bold text-gray-800 mb-2'>
+          {t('Selamat Datang!', 'Welcome!')}
+        </h2>
+        <p className='text-sm text-gray-500 max-w-sm mb-6'>
+          {t(
+            'Program onboarding Anda belum tersedia. HR akan segera menyiapkan program onboarding sesuai posisi Anda.',
+            'Your onboarding program is not yet available. HR will prepare your onboarding program according to your position.'
+          )}
+        </p>
+        <div className='bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-sm text-left'>
+          <p className='text-xs font-bold text-blue-700 mb-2'>💡 {t('Yang perlu disiapkan:', 'What to prepare:')}</p>
+          <ul className='text-xs text-blue-600 space-y-1'>
+            <li>• {t('Dokumen identitas (KTP, KK, NPWP)', 'Identity documents (ID card, family card, tax ID)')}</li>
+            <li>• {t('Foto formal terbaru', 'Recent formal photo')}</li>
+            <li>• {t('Rekening bank aktif', 'Active bank account')}</li>
+            <li>• {t('Hubungi HR jika ada pertanyaan', 'Contact HR if you have questions')}</li>
+          </ul>
+        </div>
       </div>
     </div>
   )
@@ -720,37 +741,60 @@ export default function EssOnboardingPage() {
     t,
   })
 
-  const renderRow = (item, idx, ms) => {
+  const renderCardItem = (item, ms) => {
     const mgrOnly = isMgrTask(item)
     return (
-      <tr key={item.id} className={`${idx%2===0?'bg-white':'bg-gray-50/50'}${mgrOnly?' opacity-70':''}`}>
-        <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8 text-xs'>{idx+1}</td>
-        <td className='px-2 py-1.5 w-28'>
-          {(!isRejected && !mgrOnly)
-            ? <input type='date' value={toDateInput(item.date||'')} onChange={e=>updItem(ms.id,item.id,'date',e.target.value)}
-                className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
-            : <span className={`text-xs px-2 ${isOverdue(item) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>{item.date||<span className='text-gray-300'>—</span>}</span>}
-          {isOverdue(item) && <span className='text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium mt-0.5 inline-block'>Terlambat</span>}
-        </td>
-        <td className='px-3 py-1.5 text-gray-800 font-medium text-xs'>
-          {item.module||<span className='text-gray-300'>—</span>}
-          {mgrOnly && <span className='ml-1.5 text-[9px] bg-purple-100 text-purple-600 px-1 py-0.5 rounded font-semibold'>Manager</span>}
-        </td>
-        <td className='px-3 py-1.5 text-gray-600 text-xs w-36'>{item.type||<span className='text-gray-300'>—</span>}</td>
-        <td className='px-3 py-1.5 text-xs'>
+      <div key={item.id} className={`px-5 py-3 flex items-start gap-4 transition ${mgrOnly ? 'bg-gray-50 opacity-70' : item.completed ? 'bg-green-50' : 'hover:bg-gray-50'}`}>
+        {/* Checkbox / status circle */}
+        <div className='mt-0.5 flex-shrink-0'>
+          {mgrOnly ? (
+            <div className='w-6 h-6 rounded-full flex items-center justify-center border-2 border-purple-200 bg-purple-50'>
+              <span className='text-purple-400 text-[10px]'>M</span>
+            </div>
+          ) : (
+            <button
+              disabled={isRejected || item.completed}
+              onClick={() => !item.completed && markDone(ms.id, item.id)}
+              className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition
+                ${item.completed ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-red-400'}`}
+            >
+              {item.completed && <span className='text-white text-xs font-bold'>✓</span>}
+            </button>
+          )}
+        </div>
+
+        {/* Task info */}
+        <div className='flex-1 min-w-0'>
+          <p className={`text-sm font-medium ${item.completed ? 'text-gray-400 line-through' : mgrOnly ? 'text-gray-500' : 'text-gray-800'}`}>
+            {item.module || item.agenda || t('Task','Task')}
+            {mgrOnly && <span className='ml-1.5 text-[9px] bg-purple-100 text-purple-600 px-1 py-0.5 rounded font-semibold align-middle'>{t('Dikerjakan oleh Manager','Manager Task')}</span>}
+          </p>
+          <div className='flex items-center gap-2 mt-0.5 flex-wrap'>
+            {item.type && <span className='text-xs text-gray-400'>{item.type}</span>}
+            {item.date && (
+              <span className={`text-xs ${isOverdue(item) ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
+                📅 {item.date}
+                {isOverdue(item) && <span className='ml-1 bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[10px] font-bold'>Terlambat</span>}
+              </span>
+            )}
+            {item.mentorName && <span className='text-xs text-gray-400'>👤 {item.mentorName}{item.mentorPosition ? ` · ${item.mentorPosition}` : ''}</span>}
+          </div>
+          {/* Editable date for non-rejected, non-manager tasks */}
+          {!isRejected && !mgrOnly && (
+            <div className='mt-1.5'>
+              <input type='date' value={toDateInput(item.date||'')} onChange={e=>updItem(ms.id,item.id,'date',e.target.value)}
+                className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
+            </div>
+          )}
+        </div>
+
+        {/* Action button */}
+        <div className='flex-shrink-0'>
           {!mgrOnly
             ? <ItemActionButton {...actionProps(ms, item)} />
             : <span className='text-gray-300 text-xs'>—</span>}
-        </td>
-        <td className='px-3 py-1.5 text-gray-700 text-xs w-28'>{item.mentorName||<span className='text-gray-300'>—</span>}</td>
-        <td className='px-3 py-1.5 text-gray-600 text-xs w-28'>{item.mentorPosition||<span className='text-gray-300'>—</span>}</td>
-        <td className='px-3 py-1.5 text-center w-16'>
-          <input type='checkbox' checked={!!item.completed}
-            onChange={e=>!mgrOnly&&updItem(ms.id,item.id,'completed',e.target.checked)}
-            disabled={isRejected||mgrOnly}
-            className='w-4 h-4 accent-red-600 disabled:cursor-not-allowed disabled:opacity-40' />
-        </td>
-      </tr>
+        </div>
+      </div>
     )
   }
 

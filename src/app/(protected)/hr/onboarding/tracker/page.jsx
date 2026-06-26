@@ -497,6 +497,21 @@ export default function OnboardingTrackerPage() {
     flash(t('Berhasil disubmit untuk approval', 'Submitted for approval'))
   }
 
+  // Improvement 3 — Bulk submit
+  const handleBulkSubmit = () => {
+    const levels = getLevelsForPage('Employee Onboarding')
+    let count = 0
+    selected.forEach(id => {
+      const ob = onboardings.find(o => o.id === id)
+      if (ob && (ob.workflowStatus === 'Preparation' || ob.workflowStatus === 'Draft')) {
+        submitOnboarding(ob.id, currentUser, levels)
+        count++
+      }
+    })
+    setSelected(new Set())
+    flash(t(`${count} onboarding disubmit.`, `${count} onboarding(s) submitted.`))
+  }
+
   const confirmDelete = () => {
     const id = delId
     setDelId(null)
@@ -536,11 +551,46 @@ export default function OnboardingTrackerPage() {
       'bg-teal-50 text-teal-700 border-teal-400',
     ]
 
+    // Improvement 4 — Status Timeline
+    const STAGES = [
+      t('Persiapan', 'Preparation'),
+      t('Pending Approval', 'Pending Approval'),
+      t('Aktif', 'Active'),
+      t('Selesai', 'Completed'),
+    ]
+    const stageIdx = (status) => {
+      if (['Preparation', 'Draft'].includes(status)) return 0
+      if (status === 'Pending') return 1
+      if (['Active', 'Approved'].includes(status)) return 2
+      if (status === 'Completed') return 3
+      return 0
+    }
+
     return (
       <div>
+        {/* Improvement 5 — Leave confirmation dialog */}
+        {showLeaveConfirm && (
+          <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50'>
+            <div className='bg-white rounded-2xl shadow-2xl p-6 w-80'>
+              <h3 className='text-base font-bold text-gray-800 mb-2'>{t('Tinggalkan halaman?', 'Leave page?')}</h3>
+              <p className='text-sm text-gray-500 mb-5'>{t('Ada perubahan yang belum disimpan.', 'There are unsaved changes.')}</p>
+              <div className='flex gap-3'>
+                <button onClick={() => { setShowLeaveConfirm(false); setIsDirty(false); setView('list') }}
+                  className='flex-1 py-2 text-sm font-semibold bg-red-500 text-white rounded-xl hover:bg-red-600'>
+                  {t('Tinggalkan', 'Leave')}
+                </button>
+                <button onClick={() => setShowLeaveConfirm(false)}
+                  className='flex-1 py-2 text-sm font-semibold bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200'>
+                  {t('Batal', 'Cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Page header */}
         <div className='flex items-center gap-3 mb-5'>
-          <button onClick={() => setView('list')}
+          <button onClick={() => { if (isDirty) setShowLeaveConfirm(true); else setView('list') }}
             className='text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1'>
             ← {t('Kembali', 'Back')}
           </button>
@@ -568,6 +618,45 @@ export default function OnboardingTrackerPage() {
 
         {/* ── Form card ────────────────────────────────────────────── */}
         <div className='bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden'>
+
+          {/* Improvement 4 — Status Timeline */}
+          {editId && (
+            <div className='px-6 pt-5 pb-4 border-b border-gray-100'>
+              <div className='text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-3'>
+                {t('Status Workflow', 'Workflow Status')}
+              </div>
+              <div className='flex items-center gap-0'>
+                {STAGES.map((stage, i) => {
+                  const idx = stageIdx(savedStatus)
+                  const isRejected = savedStatus === 'Rejected'
+                  const done = i < idx
+                  const current = i === idx
+                  return (
+                    <React.Fragment key={stage}>
+                      <div className='flex flex-col items-center'>
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition
+                          ${current && isRejected ? 'bg-red-500 border-red-500 text-white'
+                            : done || (!isRejected && current) ? 'border-transparent text-white'
+                            : 'bg-white border-gray-200 text-gray-400'}`}
+                          style={done || (!isRejected && current) ? { background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' } : {}}>
+                          {done ? '✓' : i + 1}
+                        </div>
+                        <span className={`text-[10px] mt-1 text-center whitespace-nowrap ${current ? 'font-bold text-gray-800' : done ? 'text-gray-500' : 'text-gray-300'}`}>
+                          {stage}
+                        </span>
+                      </div>
+                      {i < STAGES.length - 1 && (
+                        <div className={`flex-1 h-0.5 mb-4 ${done ? 'bg-red-800' : 'bg-gray-200'}`} />
+                      )}
+                    </React.Fragment>
+                  )
+                })}
+              </div>
+              {savedStatus === 'Rejected' && (
+                <p className='text-xs text-red-500 font-semibold mt-1'>{t('Ditolak — perlu revisi', 'Rejected — revision required')}</p>
+              )}
+            </div>
+          )}
 
           {/* ── HEADER: Employee info ─────────────────────────────── */}
           <div style={{ background: BRAND_GRADIENT }} className='px-6 py-4'>
@@ -1158,7 +1247,7 @@ export default function OnboardingTrackerPage() {
           {/* ── Actions ─────────────────────────────────────────────── */}
           {viewOnly ? (
             <div className='px-6 pb-6 flex gap-3'>
-              <button onClick={() => { setViewOnly(false); setView('list') }}
+              <button onClick={() => { setViewOnly(false); setIsDirty(false); setView('list') }}
                 className='px-5 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition'>
                 ← {t('Kembali', 'Back')}
               </button>
