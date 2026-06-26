@@ -496,9 +496,13 @@ export default function MasterOnboardingPage() {
 
   const handleSave = () => {
     if (!form.name.trim()) return flash(t('Nama template wajib diisi.','Template name is required.'), 'error')
-    if (editId) { updateTemplate(editId, form); flash(t('Template berhasil diperbarui.','Template updated.')) }
-    else        { addTemplate(form);             flash(t('Template berhasil dibuat.','Template created.')) }
-    setView('list')
+    try {
+      if (editId) { updateTemplate(editId, form); flash(t('Template berhasil diperbarui.','Template updated.')) }
+      else        { addTemplate(form);             flash(t('Template berhasil dibuat.','Template created.')) }
+      setTimeout(() => setView('list'), 600)
+    } catch (e) {
+      flash(`Error: ${e.message}`, 'error')
+    }
   }
 
   const confirmDelete = () => {
@@ -813,8 +817,13 @@ export default function MasterOnboardingPage() {
           )}
 
           {/* ── Actions ── */}
+          {!form.name.trim() && (
+            <div className='px-4 py-2.5 bg-orange-50 border border-orange-200 rounded-xl text-xs text-orange-700 font-semibold'>
+              ⚠️ {t('Isi Nama Template terlebih dahulu sebelum menyimpan.','Fill in the Template Name before saving.')}
+            </div>
+          )}
           <div className='flex gap-3'>
-            <ActionButton icon='💾' onClick={handleSave}>
+            <ActionButton icon='💾' onClick={handleSave} disabled={!form.name.trim()}>
               {editId ? t('Simpan Perubahan','Save Changes') : t('Simpan Template','Save Template')}
             </ActionButton>
             <button onClick={() => setView('list')}
