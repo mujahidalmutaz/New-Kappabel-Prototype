@@ -496,13 +496,9 @@ export default function MasterOnboardingPage() {
 
   const handleSave = () => {
     if (!form.name.trim()) return flash(t('Nama template wajib diisi.','Template name is required.'), 'error')
-    try {
-      if (editId) { updateTemplate(editId, form); flash(t('Template berhasil diperbarui.','Template updated.')) }
-      else        { addTemplate(form);             flash(t('Template berhasil dibuat.','Template created.')) }
-      setTimeout(() => setView('list'), 600)
-    } catch (e) {
-      flash(`Error: ${e.message}`, 'error')
-    }
+    if (editId) updateTemplate(editId, form)
+    else addTemplate(form)
+    setView('list')
   }
 
   const confirmDelete = () => {
