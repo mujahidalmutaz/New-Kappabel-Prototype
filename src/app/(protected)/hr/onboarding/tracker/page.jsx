@@ -244,14 +244,30 @@ export default function OnboardingTrackerPage() {
   const [autoAssignOpen, setAutoAssignOpen] = useState(false)
   const [autoAssignRows, setAutoAssignRows] = useState([])
 
+  // Improvement 3 — Bulk Actions
+  const [selected, setSelected] = useState(new Set())
+
+  // Improvement 5 — Unsaved changes guard
+  const [isDirty,          setIsDirty         ] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+
   const flash = (text, type = 'success') => {
     setMsg({ text, type })
     setTimeout(() => setMsg(null), 3500)
   }
 
+  // Improvement 2 — date formatter
+  const fmtDate = (d) => {
+    if (!d) return '—'
+    const dt = new Date(d)
+    if (isNaN(dt)) return '—'
+    return dt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
   const openNew = () => {
     setEditId(null)
     setForm(JSON.parse(JSON.stringify(EMPTY_FORM)))
+    setIsDirty(false)
     setView('form')
   }
 
@@ -259,6 +275,7 @@ export default function OnboardingTrackerPage() {
     setEditId(ob.id)
     setForm(migrateOnboarding(ob))
     setViewOnly(false)
+    setIsDirty(false)
     setView('form')
   }
 
@@ -376,7 +393,7 @@ export default function OnboardingTrackerPage() {
     })
   }
 
-  const setField = (key, val) => setForm(f => {
+  const setField = (key, val) => { setIsDirty(true); setForm(f => {
     const updated = { ...f, [key]: val }
     if (key === 'joinDate' || key === 'probationPeriod') {
       const jd = key === 'joinDate' ? val : f.joinDate
@@ -388,7 +405,7 @@ export default function OnboardingTrackerPage() {
       }
     }
     return updated
-  })
+  }) }
 
   // ── Main Section item helpers ─────────────────────────────────────────────
   const updateMsItem = (msId, itemId, key, val) =>
@@ -446,6 +463,7 @@ export default function OnboardingTrackerPage() {
       addOnboarding({ ...form })
       flash(t('Onboarding baru dibuat', 'New onboarding created'))
     }
+    setIsDirty(false)
     setView('list')
   }
 
@@ -456,6 +474,7 @@ export default function OnboardingTrackerPage() {
       updateOnboarding(editId, { ...form })
       submitOnboarding(editId, currentUser, levels)
       flash(t('Berhasil disubmit untuk approval', 'Submitted for approval'))
+      setIsDirty(false)
       setView('list')
     } else {
       // Add then immediately submit using the id returned by the store action
@@ -466,6 +485,7 @@ export default function OnboardingTrackerPage() {
       } else {
         flash(t('Gagal membuat onboarding', 'Failed to create onboarding'), 'error')
       }
+      setIsDirty(false)
       setView('list')
     }
   }

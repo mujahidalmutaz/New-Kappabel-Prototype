@@ -38,8 +38,12 @@ const BLANK_RULE = {
   criteria: { employmentTypes: [], companyIds: [], departmentIds: [], positionIds: [] },
 }
 
-function RuleModal({ rule, templates, companies, departments, positions, t, onSave, onClose }) {
+function RuleModal({ rule, templates, companies, departments, positions, employees, t, onSave, onClose }) {
   const [form, setForm] = useState(() => rule ? JSON.parse(JSON.stringify(rule)) : JSON.parse(JSON.stringify(BLANK_RULE)))
+  const liveMatchCount = useMemo(
+    () => employees.filter(e => e.status === 'Active' && ruleMatchesEmployee(form, e)).length,
+    [employees, form]
+  )
   const setF  = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const setC  = (k, v) => setForm(f => ({ ...f, criteria: { ...f.criteria, [k]: v } }))
   const toggleC = (key, val) => {
@@ -154,6 +158,17 @@ function RuleModal({ rule, templates, companies, departments, positions, t, onSa
                   : t('Status Draft, HR perlu review', 'Draft status, HR reviews first')}
               </p>
             </div>
+          </div>
+
+          {/* Live match preview */}
+          <div className='flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl'>
+            <span className='text-base'>👥</span>
+            <p className='text-xs text-blue-700 font-semibold'>
+              {t(
+                `Rule ini akan cocok dengan ${liveMatchCount} karyawan aktif saat ini`,
+                `This rule will match ${liveMatchCount} active employees currently`
+              )}
+            </p>
           </div>
         </div>
 
@@ -297,7 +312,7 @@ export default function AutoAssignOnboardingPage() {
                 <div className='flex items-start justify-between gap-4'>
                   <div className='flex-1 min-w-0'>
                     {/* Header */}
-                    <div className='flex items-center gap-2 flex-wrap mb-3'>
+                    <div className='flex items-center gap-2 flex-wrap mb-1'>
                       <span className='text-xs font-bold text-gray-400'>#{idx + 1}</span>
                       <span className='font-bold text-gray-800'>{rule.name}</span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold
@@ -307,6 +322,9 @@ export default function AutoAssignOnboardingPage() {
                       {rule.autoSubmit && (
                         <span className='text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700'>⚡ Auto-submit</span>
                       )}
+                    </div>
+                    <div className='mb-3'>
+                      <span className='text-xs text-blue-600 font-medium'>👥 {matched.length} {t('karyawan cocok', 'employees match')}</span>
                     </div>
 
                     {/* Templates */}
@@ -374,6 +392,7 @@ export default function AutoAssignOnboardingPage() {
           companies={companies}
           departments={departments}
           positions={positions}
+          employees={employees}
           t={t}
           onSave={(data) => {
             if (modalRule?.id) {

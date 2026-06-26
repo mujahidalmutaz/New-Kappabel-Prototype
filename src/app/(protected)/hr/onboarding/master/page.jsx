@@ -777,6 +777,17 @@ export default function MasterOnboardingPage() {
                     className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
                     ✏️ {t('Edit','Edit')}
                   </button>
+                  <button onClick={() => {
+                    const copy = JSON.parse(JSON.stringify(tpl))
+                    copy.name = t(`Salinan dari ${tpl.name}`, `Copy of ${tpl.name}`)
+                    copy.active = false
+                    addTemplate(copy)
+                    flash(t('Template berhasil diduplikat.', 'Template duplicated.'))
+                  }}
+                    className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition'
+                    title={t('Duplikat', 'Duplicate')}>
+                    📋
+                  </button>
                   <button onClick={() => setDelId(tpl.id)}
                     className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition'>
                     🗑

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEmployeeStore } from '@/store/employeeStore'
 import { useStructureStore } from '@/store/structureStore'
+import { useOnboardingStore } from '@/store/onboardingStore'
 import { useT } from '@/store/languageStore'
 import { tenure, daysUntil } from '@/utils/dateUtils'
 import { exportCsv } from '@/utils/exportCsv'
@@ -32,6 +33,7 @@ function Avatar({ emp, size = 'sm' }) {
 export default function EmployeeDataPage() {
   const store     = useEmployeeStore()
   const structure = useStructureStore()
+  const { onboardings } = useOnboardingStore()
   const {
     employees, updateEmployee, addEmployee, deleteEmployee,
     setPhoto, addDependent, updateDependent, deleteDependent,
@@ -397,6 +399,24 @@ export default function EmployeeDataPage() {
                             🗓 {tenure(emp.joinDate)} {t('masa kerja', 'tenure')}
                           </span>
                         )}
+                        {(() => {
+                          const ob = onboardings.find(o => Number(o.employeeId) === Number(emp.id))
+                          if (!ob) return null
+                          const cfg = {
+                            Active:      { cls: 'bg-green-100 text-green-700',  label: t('Onboarding Aktif', 'Onboarding Active') },
+                            Completed:   { cls: 'bg-blue-100 text-blue-700',    label: t('Onboarding Selesai', 'Onboarding Completed') },
+                            Pending:     { cls: 'bg-yellow-100 text-yellow-700',label: t('Menunggu Approval', 'Pending Approval') },
+                            Preparation: { cls: 'bg-gray-100 text-gray-600',    label: t('Persiapan Onboarding', 'Onboarding Preparation') },
+                            Rejected:    { cls: 'bg-red-100 text-red-700',      label: t('Onboarding Ditolak', 'Onboarding Rejected') },
+                          }
+                          const { cls, label } = cfg[ob.workflowStatus] ?? {}
+                          if (!cls) return null
+                          return (
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
+                              {label}
+                            </span>
+                          )
+                        })()}
                       </div>
                     </>
                   )}
