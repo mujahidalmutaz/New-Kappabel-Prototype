@@ -260,6 +260,8 @@ export const useOnboardingStore = create(
             // When fully approved, stamp the employee record with onboardingCompletedAt
             if (newStatus === 'Approved' && o.employeeId) {
               try {
+                // Lazy import to avoid circular dependency (employeeStore → onboardingAutoAssign → onboardingStore)
+                const { useEmployeeStore } = require('@/store/employeeStore')
                 useEmployeeStore.getState().updateEmployee(Number(o.employeeId), {
                   onboardingStatus:      'Completed',
                   onboardingCompletedAt: new Date().toISOString(),
