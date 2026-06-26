@@ -379,7 +379,7 @@ export default function FuturePlanningPage() {
             <h3 className='text-base font-bold text-gray-800 mb-2'>Hapus Future Plan?</h3>
             <p className='text-sm text-gray-500 mb-5'>Data ini akan dihapus permanen beserta semua calon suksesornya.</p>
             <div className='flex gap-3'>
-              <button onClick={() => { deleteFuturePlan(delId); setDelId(null); if (selectedPlan?.id === delId) setSelectedPlan(null); flash('Future plan berhasil dihapus.') }}
+              <button onClick={() => { const id = delId; setDelId(null); deleteFuturePlan(id); if (selectedPlan?.id === id) setSelectedPlan(null); flash('Future plan berhasil dihapus.') }}
                 className='flex-1 py-2 text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition'>
                 Hapus
               </button>

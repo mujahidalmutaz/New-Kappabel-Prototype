@@ -373,7 +373,7 @@ export default function KeyPositionPage() {
             <h3 className='text-base font-bold text-gray-800 mb-2'>Hapus Key Position?</h3>
             <p className='text-sm text-gray-500 mb-5'>Data ini akan dihapus permanen.</p>
             <div className='flex gap-3'>
-              <button onClick={() => { deleteKeyPosition(delId); setDelId(null); flash('Data berhasil dihapus.') }}
+              <button onClick={() => { const id = delId; setDelId(null); deleteKeyPosition(id); flash('Data berhasil dihapus.') }}
                 className='flex-1 py-2 text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition'>
                 Hapus
               </button>

@@ -545,8 +545,9 @@ export default function OnboardingTrackerPage() {
   }
 
   const confirmDelete = () => {
-    deleteOnboarding(delId)
+    const id = delId
     setDelId(null)
+    deleteOnboarding(id)
     flash(t('Data onboarding dihapus', 'Onboarding record deleted'))
   }
 

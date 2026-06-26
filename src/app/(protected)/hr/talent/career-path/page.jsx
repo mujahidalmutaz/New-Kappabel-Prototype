@@ -417,7 +417,7 @@ export default function CareerPathPage() {
             <h3 className='text-base font-bold text-gray-800 mb-2'>Hapus Career Path?</h3>
             <p className='text-sm text-gray-500 mb-5'>Data ini akan dihapus permanen beserta semua stepnya.</p>
             <div className='flex gap-3'>
-              <button onClick={() => { deleteCareerPath(delId); setDelId(null); if (selectedPath?.id === delId) setSelectedPath(null); flash('Career path berhasil dihapus.') }}
+              <button onClick={() => { const id = delId; setDelId(null); deleteCareerPath(id); if (selectedPath?.id === id) setSelectedPath(null); flash('Career path berhasil dihapus.') }}
                 className='flex-1 py-2 text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition'>
                 Hapus
               </button>

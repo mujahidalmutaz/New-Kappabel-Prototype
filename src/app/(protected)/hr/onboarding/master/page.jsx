@@ -502,7 +502,9 @@ export default function MasterOnboardingPage() {
   }
 
   const confirmDelete = () => {
-    deleteTemplate(delId); setDelId(null)
+    const id = delId
+    setDelId(null)
+    deleteTemplate(id)
     flash(t('Template dihapus.','Template deleted.'))
   }
 

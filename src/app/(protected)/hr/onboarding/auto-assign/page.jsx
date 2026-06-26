@@ -396,7 +396,7 @@ export default function AutoAssignOnboardingPage() {
             <h3 className='text-base font-bold text-gray-800 mb-2'>{t('Hapus Rule?', 'Delete Rule?')}</h3>
             <p className='text-sm text-gray-500 mb-5'>{t('Rule ini akan dihapus permanen. Karyawan yang sudah punya onboarding tidak terpengaruh.', 'This rule will be permanently deleted. Employees who already have onboarding are not affected.')}</p>
             <div className='flex gap-3'>
-              <button onClick={() => { deleteRule(delId); setDelId(null); flash(t('Rule dihapus.', 'Rule deleted.')) }}
+              <button onClick={() => { const id = delId; setDelId(null); deleteRule(id); flash(t('Rule dihapus.', 'Rule deleted.')) }}
                 className='flex-1 py-2 text-sm font-semibold bg-red-500 text-white rounded-xl hover:bg-red-600'>
                 {t('Hapus', 'Delete')}
               </button>
