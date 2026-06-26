@@ -45,7 +45,7 @@ const PAGES = [
   { label: 'Position Profile',          href: '/hr/structure/position-profile',                icon: '🎯', section: 'HR · Structure' },
   { label: 'Org Tree',                  href: '/hr/org-tree',                                  icon: '🌲', section: 'HR · Structure' },
   // HR - Onboarding
-  { label: 'Onboarding Tracker (HR)',   href: '/hr/onboarding/tracker',                        icon: '📋', section: 'HR · Onboarding' },
+  { label: 'Employee Onboarding (HR)',   href: '/hr/onboarding/tracker',                        icon: '📋', section: 'HR · Onboarding' },
   { label: 'Onboarding Progress',       href: '/hr/onboarding/progress',                       icon: '📊', section: 'HR · Onboarding' },
   { label: 'Master Onboarding',         href: '/hr/onboarding/master',                         icon: '📄', section: 'HR · Onboarding' },
   // HR - Time & Labour

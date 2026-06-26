@@ -518,7 +518,7 @@ export default function OnboardingTrackerPage() {
 
   const handleSubmit = () => {
     if (!form.employeeId) return flash(t('Pilih karyawan terlebih dahulu', 'Please select an employee'), 'error')
-    const levels = getLevelsForPage('Onboarding Tracker')
+    const levels = getLevelsForPage('Employee Onboarding')
     if (editId) {
       updateOnboarding(editId, { ...form })
       submitOnboarding(editId, currentUser, levels)
@@ -539,7 +539,7 @@ export default function OnboardingTrackerPage() {
 
   const handleSubmitExisting = (ob) => {
     if (ob.workflowStatus !== 'Draft') return
-    const levels = getLevelsForPage('Onboarding Tracker')
+    const levels = getLevelsForPage('Employee Onboarding')
     submitOnboarding(ob.id, currentUser, levels)
     flash(t('Berhasil disubmit untuk approval', 'Submitted for approval'))
   }
@@ -1221,7 +1221,7 @@ export default function OnboardingTrackerPage() {
     <div>
       <PageHeader
         icon='🚀'
-        title={t('Onboarding Tracker', 'Onboarding Tracker')}
+        title={t('Employee Onboarding', 'Employee Onboarding')}
         subtitle={t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
         actions={
           <div className='flex gap-2'>

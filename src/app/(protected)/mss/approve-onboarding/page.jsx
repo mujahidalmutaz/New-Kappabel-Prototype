@@ -324,7 +324,7 @@ export default function ApproveOnboardingPage() {
     return (
       <div>
         <h1 className='text-2xl font-bold text-gray-800 mb-1'>
-          {t('Onboarding Tracker (My Team)', 'Onboarding Tracker (My Team)')}
+          {t('Employee Onboarding (My Team)', 'Employee Onboarding (My Team)')}
         </h1>
         <p className='text-gray-500 text-sm mb-6'>
           {t(

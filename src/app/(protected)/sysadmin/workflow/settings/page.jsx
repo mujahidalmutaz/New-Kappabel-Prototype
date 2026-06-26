@@ -124,8 +124,8 @@ const PAGE_LOV = [
   { name: 'Apply Leave (HR)',                   icon: '🗂️', section: 'HR · Leave' },
 
   // ── HR · Onboarding ──────────────────────────────────────────────────────
-  { name: 'Onboarding Tracker',                 icon: '📋', section: 'HR · Onboarding' },
-  { name: 'Master Onboarding Tracker',           icon: '📄', section: 'HR · Onboarding' },
+  { name: 'Employee Onboarding',                 icon: '📋', section: 'HR · Onboarding' },
+  { name: 'Master Employee Onboarding',           icon: '📄', section: 'HR · Onboarding' },
 
   // ── HR · Evaluation ──────────────────────────────────────────────────────
   { name: 'Form Evaluation',                    icon: '📊', section: 'HR · Evaluation' },

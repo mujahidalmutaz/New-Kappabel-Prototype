@@ -833,8 +833,8 @@ export default function MasterOnboardingPage() {
       {Toast}
       <PageHeader
         icon='🗂️'
-        title={t('Master Onboarding Tracker','Master Onboarding Tracker')}
-        subtitle={t('Kelola template agenda induksi yang dapat digunakan saat membuat Onboarding Tracker.', 'Manage induction agenda templates used when creating an Onboarding Tracker.')}
+        title={t('Master Employee Onboarding','Master Employee Onboarding')}
+        subtitle={t('Kelola template agenda induksi yang dapat digunakan saat membuat Employee Onboarding.', 'Manage induction agenda templates used when creating an Employee Onboarding.')}
         actions={
           <ActionButton icon='+' onClick={openNew}>
             {t('Template Baru','New Template')}

@@ -71,7 +71,7 @@ const INITIAL_WORKFLOWS = [
     submitters: [ mkRow([ mkLv('supervisor') ]) ],
   },
   {
-    id: 5, name: 'Onboarding Tracker',    icon: '🎯', active: true,
+    id: 5, name: 'Employee Onboarding',    icon: '🎯', active: true,
     notifications: [], elseRow: null,
     submitters: [ mkRow([ mkLv('role', { roles: ['hr', 'superadmin'] }) ]) ],
   },
