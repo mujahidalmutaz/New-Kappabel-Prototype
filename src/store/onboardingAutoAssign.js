@@ -1,12 +1,9 @@
-// ── Shared Auto-Assign Onboarding engine ──────────────────────────────────────
-// Single source of truth for "rule-based" onboarding assignment so the logic
-// stays identical whether triggered automatically (on new hire) or manually
-// (backfill / reconcile from the HR pages).
-//
-// NOTE: this module intentionally does NOT import employeeStore to avoid a
-// circular import — the caller passes the employee list in instead.
+// ── Auto-Assign Onboarding engine ─────────────────────────────────────────────
+// Single source of truth for rule-based onboarding assignment.
+// Caller passes the employee list to avoid circular imports with employeeStore.
 import { useMasterOnboardingStore } from './masterOnboardingStore'
 import { useOnboardingStore }       from './onboardingStore'
+import { useOnboardingRulesStore }  from './onboardingRulesStore'
 import { useStructureStore }        from './structureStore'
 
 const addRuntime = (item) => ({ ...item, id: Math.random(), date: '', completed: false })
@@ -17,7 +14,112 @@ const BLANK_BUDDY = {
   programStartDate: '', programEndDate: '', hrbpNotes: '',
 }
 
-// ── Does an Auto-Assign template apply to this employee? ───────────────────────
+// ── Does a rule match this employee? ──────────────────────────────────────────
+export function ruleMatchesEmployee(rule, emp) {
+  if (!rule?.active) return false
+  const c = rule.criteria ?? {}
+  if (c.employmentTypes?.length && !c.employmentTypes.includes(emp.employmentType)) return false
+  if (c.companyIds?.length      && !c.companyIds.includes(emp.companyId))           return false
+  if (c.departmentIds?.length   && !c.departmentIds.includes(emp.departmentId))     return false
+  if (c.positionIds?.length     && !c.positionIds.includes(emp.positionId))         return false
+  return true
+}
+
+// ── Build a section from a template ───────────────────────────────────────────
+function buildSection(tpl, type, fbItems, fbSecs) {
+  if (!tpl) return null
+  const ms = (tpl.mainSections ?? []).find(s => s.type === type)
+  if (ms) return {
+    ...ms,
+    id: `ms_${Date.now()}_${Math.floor(Math.random() * 9999)}`,
+    sections: (ms.sections ?? []).map(s => ({ ...s })),
+    items: (ms.items ?? []).map(addRuntime),
+  }
+  const items = (tpl[fbItems] ?? []).map(addRuntime)
+  const secs  = (tpl[fbSecs]  ?? []).map(s => ({ ...s }))
+  if (!items.length && !secs.length) return null
+  return { id: `ms_${type}_${Date.now()}`, type, sections: secs, items }
+}
+
+// ── Build onboarding record from a rule for one employee ──────────────────────
+export function buildOnboardingFromRule(rule, emp, employees) {
+  const { templates }           = useMasterOnboardingStore.getState()
+  const { positions, departments } = useStructureStore.getState()
+
+  const findTpl = (id) => id ? templates.find(t => String(t.id) === String(id)) : null
+  const tplG = findTpl(rule.tplGeneral)
+  const tplT = findTpl(rule.tplTeknis)
+  const tplR = findTpl(rule.tplReview)
+
+  const supervisor = (employees ?? []).find(e => e.id === emp.managerId)
+  const dept       = departments.find(d => d.id === emp.departmentId)
+
+  const mainSections = [
+    buildSection(tplG, 'Onboarding General', 'generalItems', 'generalSections'),
+    buildSection(tplT, 'Onboarding Teknis',  'technicalItems', 'technicalSections'),
+  ].filter(Boolean)
+
+  const rawReview = tplR ? (tplR.reviewItems ?? []).map(addRuntime) : []
+  const reviewItems = rawReview.length > 0
+    ? rawReview.map(item => item.isDirectManager
+        ? { ...item, reviewerEmpId: String(supervisor?.id ?? ''), reviewerName: supervisor?.name ?? 'Direct Manager', reviewerPosition: '' }
+        : item)
+    : null
+
+  return {
+    employeeId:         emp.id,
+    employeeName:       emp.name,
+    department:         dept?.name ?? '',
+    supervisorName:     supervisor?.name ?? '',
+    supervisorPosition: positions.find(p => p.id === supervisor?.positionId)?.name ?? '',
+    employmentStatus:   'New Hire',
+    probationPeriod:    '3',
+    mainSections,
+    reviewItems,
+    hasilInductionChecked: false,
+    buddyAssignment: {
+      ...BLANK_BUDDY,
+      programStartDate: emp.joinDate ? String(emp.joinDate).slice(0, 10) : '',
+    },
+    workflowStatus: rule.autoSubmit ? 'Pending' : 'Preparation',
+    steps: [],
+    submittedAt:     rule.autoSubmit ? new Date().toISOString() : null,
+    submittedBy:     null,
+    submittedByName: null,
+    createdVia:  `rule:${rule.id}`,
+    ruleId:      rule.id,
+    ruleName:    rule.name,
+  }
+}
+
+// ── Assign onboarding for a single new employee using active rules (idempotent) ─
+// Returns 1 if a record was created, 0 otherwise.
+export function autoAssignOnboardingForEmployee(emp, employees) {
+  if (!emp) return 0
+  const { onboardings, addOnboarding } = useOnboardingStore.getState()
+  const { rules }                      = useOnboardingRulesStore.getState()
+
+  // Skip employees who already have an onboarding record
+  if (onboardings.some(o => Number(o.employeeId) === Number(emp.id))) return 0
+
+  // First active rule that matches wins (rule order = priority)
+  const rule = rules.find(r => ruleMatchesEmployee(r, emp))
+  if (!rule) return 0
+
+  addOnboarding(buildOnboardingFromRule(rule, emp, employees))
+  return 1
+}
+
+// ── Backfill: scan all active employees and assign any that were missed ────────
+export function reconcileAutoAssign(employees) {
+  let count = 0
+  ;(employees ?? []).forEach(emp => {
+    if (emp.status === 'Active') count += autoAssignOnboardingForEmployee(emp, employees)
+  })
+  return count
+}
+
+// ── Legacy: template-level match check (kept for backward compat) ─────────────
 export function templateMatchesEmployee(tpl, emp) {
   if (!tpl?.active || !tpl?.autoAssign) return false
   const c = tpl.criteria ?? {}
@@ -28,7 +130,7 @@ export function templateMatchesEmployee(tpl, emp) {
   return etOk && deptOk && compOk && posOk
 }
 
-// ── Build a Draft onboarding record from a template for one employee ──────────
+// ── Legacy: build from a master template directly ────────────────────────────
 export function buildOnboardingFromTemplate(tpl, emp, employees) {
   const { positions, departments } = useStructureStore.getState()
   const supervisor = (employees ?? []).find(e => e.id === emp.managerId)
@@ -43,7 +145,6 @@ export function buildOnboardingFromTemplate(tpl, emp, employees) {
       items:    (ms.items    ?? []).map(addRuntime),
     }))
 
-  // Migrate old-format templates (generalItems/technicalItems)
   if (mainSections.length === 0) {
     const genSec   = (tpl.generalSections   ?? []).map(s => ({ ...s }))
     const genItem  = (tpl.generalItems      ?? []).map(addRuntime)
@@ -86,32 +187,4 @@ export function buildOnboardingFromTemplate(tpl, emp, employees) {
     templateId: tpl.id,
     templateName: tpl.name,
   }
-}
-
-// ── Assign onboarding for a single employee (idempotent) ──────────────────────
-// Returns 1 if a record was created, 0 otherwise.
-export function autoAssignOnboardingForEmployee(emp, employees) {
-  if (!emp) return 0
-  const { templates } = useMasterOnboardingStore.getState()
-  const { onboardings, addOnboarding } = useOnboardingStore.getState()
-
-  // Skip employees who already have an onboarding record
-  if (onboardings.some(o => Number(o.employeeId) === Number(emp.id))) return 0
-
-  // First matching active + auto-assign template wins (template ordering = priority)
-  const tpl = templates.find(t => templateMatchesEmployee(t, emp))
-  if (!tpl) return 0
-
-  addOnboarding(buildOnboardingFromTemplate(tpl, emp, employees))
-  return 1
-}
-
-// ── Backfill: scan all active employees and assign any that were missed ───────
-// Returns the number of records created.
-export function reconcileAutoAssign(employees) {
-  let count = 0
-  ;(employees ?? []).forEach(emp => {
-    if (emp.status === 'Active') count += autoAssignOnboardingForEmployee(emp, employees)
-  })
-  return count
 }
