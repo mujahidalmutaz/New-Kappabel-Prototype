@@ -1285,7 +1285,7 @@ export default function OnboardingTrackerPage() {
                     {t('Submit untuk Approval', 'Submit for Approval')}
                   </ActionButton>
                 )}
-                <button onClick={() => setView('list')}
+                <button onClick={() => { if (isDirty) setShowLeaveConfirm(true); else setView('list') }}
                   className='px-5 py-2.5 text-sm font-semibold rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition ml-auto'>
                   {t('Batal', 'Cancel')}
                 </button>
@@ -1353,25 +1353,49 @@ export default function OnboardingTrackerPage() {
       ) : (
         <DataTable
           columns={[
+            { label: '' },
             { label: t('Karyawan','Employee') },
             { label: 'Department' },
             { label: t('Status Karyawan','Employment Status') },
             { label: t('Masa Probasi','Probation') },
+            { label: t('Tgl Bergabung','Join Date') },
             { label: t('Atasan','Supervisor') },
             { label: t('Status Workflow','Workflow Status') },
             { label: t('Sumber','Source') },
             { label: t('Tanggal Dibuat','Created') },
             { label: t('Aksi','Action'), align: 'right' },
           ]}
+          headerExtra={
+            <th className='px-3 py-3 text-left text-xs font-semibold text-gray-500 w-8 hidden'>
+              <input type='checkbox'
+                className='w-4 h-4 accent-red-600 cursor-pointer'
+                checked={onboardings.length > 0 && onboardings.every(ob => selected.has(ob.id))}
+                onChange={e => {
+                  if (e.target.checked) setSelected(new Set(onboardings.map(ob => ob.id)))
+                  else setSelected(new Set())
+                }} />
+            </th>
+          }
         >
           {onboardings.map(ob => (
             <Tr key={ob.id}>
+              <Td>
+                <input type='checkbox'
+                  className='w-4 h-4 accent-red-600 cursor-pointer'
+                  checked={selected.has(ob.id)}
+                  onChange={e => {
+                    const next = new Set(selected)
+                    if (e.target.checked) next.add(ob.id); else next.delete(ob.id)
+                    setSelected(next)
+                  }} />
+              </Td>
               <Td className='font-medium text-gray-800'>{ob.employeeName || '—'}</Td>
               <Td>{ob.department || '—'}</Td>
               <Td>
                 <StatusBadge tone='info'>{ob.employmentStatus}</StatusBadge>
               </Td>
               <Td>{ob.probationPeriod} {t('bln','mo')}</Td>
+              <Td className='text-gray-600 text-xs'>{fmtDate(ob.joinDate)}</Td>
               <Td>{ob.supervisorName || '—'}</Td>
               <Td>
                 <StatusBadge status={ob.workflowStatus} />
@@ -1404,6 +1428,17 @@ export default function OnboardingTrackerPage() {
                     className='px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition'>
                     ✏️ {t('Edit','Edit')}
                   </button>
+                  {/* Improvement 1 — Quick action: Submit for Preparation */}
+                  {ob.workflowStatus === 'Preparation' && (
+                    <button onClick={() => {
+                        const levels = getLevelsForPage('Employee Onboarding')
+                        submitOnboarding(ob.id, currentUser, levels)
+                        flash(t('Berhasil disubmit untuk approval', 'Submitted for approval'))
+                      }}
+                      className='px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition'>
+                      ▶ {t('Submit','Submit')}
+                    </button>
+                  )}
                   {ob.workflowStatus === 'Preparation' && (() => {
                     const emp = employees.find(e => e.id === Number(ob.employeeId))
                     const joinDate = emp?.joinDate ? String(emp.joinDate).slice(0, 10) : null
@@ -1417,23 +1452,32 @@ export default function OnboardingTrackerPage() {
                   })()}
                   {ob.workflowStatus === 'Draft' && (
                     <button onClick={() => handleSubmitExisting(ob)}
-                      className='px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition'>
-                      📤 {t('Submit','Submit')}
+                      className='px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition'>
+                      ▶ {t('Submit','Submit')}
                     </button>
                   )}
+                  {/* Improvement 1 — Quick action: Aktifkan for Approved */}
+                  {ob.workflowStatus === 'Approved' && (
+                    <button onClick={() => {
+                        updateOnboarding(ob.id, { workflowStatus: 'Active', activatedAt: new Date().toISOString() })
+                        flash(t('Onboarding diaktifkan.', 'Onboarding activated.'))
+                      }}
+                      className='px-2.5 py-1 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition'>
+                      ✓ {t('Aktifkan','Activate')}
+                    </button>
+                  )}
+                  {/* Improvement 1 — Quick action: Ajukan Ulang for Rejected */}
                   {ob.workflowStatus === 'Rejected' && (
-                    <ActionButton
-                      variant='primary'
-                      onClick={() => {
+                    <button onClick={() => {
                         updateOnboarding(ob.id, {
                           workflowStatus: 'Pending',
                           submittedAt: new Date().toISOString(),
                         })
                         flash(t('Onboarding diajukan ulang.', 'Onboarding resubmitted.'))
                       }}
-                    >
-                      {t('Revisi & Submit Ulang', 'Revise & Resubmit')}
-                    </ActionButton>
+                      className='px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition'>
+                      ↺ {t('Ajukan Ulang','Resubmit')}
+                    </button>
                   )}
                   {(ob.workflowStatus === 'Draft' || ob.workflowStatus === 'Preparation') && (
                     <button onClick={() => setDelId(ob.id)}
@@ -1465,6 +1509,20 @@ export default function OnboardingTrackerPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Improvement 3 — Bulk action floating bar */}
+      {selected.size > 0 && (
+        <div className='fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-4'>
+          <span className='text-sm font-semibold'>{selected.size} {t('dipilih', 'selected')}</span>
+          <button onClick={handleBulkSubmit}
+            className='px-3 py-1.5 text-xs bg-blue-500 rounded-lg font-semibold hover:bg-blue-600'>
+            {t('Submit Semua', 'Submit All')}
+          </button>
+          <button onClick={() => setSelected(new Set())} className='text-xs text-gray-300 hover:text-white'>
+            {t('Batal', 'Cancel')}
+          </button>
         </div>
       )}
 

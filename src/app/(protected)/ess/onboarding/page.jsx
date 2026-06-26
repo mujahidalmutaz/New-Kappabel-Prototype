@@ -910,84 +910,117 @@ export default function EssOnboardingPage() {
           <div className='px-6 py-12 text-center text-gray-400 text-sm'>{t('Belum ada materi onboarding.','No onboarding material yet.')}</div>
         ) : mainSections.map((ms) => {
           const isReview = ms.type === 'Periodic Review'
-          return (
-            <div key={ms.id} className='px-6 pt-5 pb-2'>
-              <div className='flex items-center gap-2 mb-3'>
-                <div className='w-1 h-5 rounded-full' style={{background:'linear-gradient(#8B1A1A,#D7252B)'}} />
-                <h3 className='text-sm font-bold text-gray-800'>{ms.type}</h3>
+
+          if (isReview) {
+            // Keep Periodic Review as a table inside a card with gradient header
+            return (
+              <div key={ms.id} className='px-6 pt-5 pb-4'>
+                <div className='bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden'>
+                  <div className='px-5 py-3 flex items-center justify-between' style={{background:BRAND}}>
+                    <h3 className='text-sm font-bold text-white'>{ms.type}</h3>
+                    <span className='text-xs text-red-200'>
+                      {(ms.items??[]).filter(i=>i.completed).length}/{(ms.items??[]).length} {t('selesai','done')}
+                    </span>
+                  </div>
+                  <div className='overflow-x-auto'>
+                    <table className='w-full text-xs'>
+                      <ReviewHead t={t} />
+                      <tbody>
+                        {(ms.items??[]).length===0
+                          ? <tr><td colSpan={8} className='px-6 py-6 text-center text-gray-400 text-sm'>{t('Tidak ada data.','No data.')}</td></tr>
+                          : (ms.items??[]).map((item,idx)=>(
+                            <tr key={item.id} className={idx%2===0?'bg-white':'bg-gray-50/60'}>
+                              <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx+1}</td>
+                              <td className='px-2 py-1.5 w-28'>
+                                {!isRejected
+                                  ? <input type='date' value={toDateInput(item.date||'')} onChange={e=>updItem(ms.id,item.id,'date',e.target.value)}
+                                      className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
+                                  : <span className={`text-xs px-2 ${isOverdue(item) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>{item.date||<span className='text-gray-300'>—</span>}</span>}
+                                {isOverdue(item) && <span className='text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium mt-0.5 inline-block'>Terlambat</span>}
+                              </td>
+                              <td className='px-3 py-1.5 text-gray-800'>{item.agenda||item.module||<span className='text-gray-300'>—</span>}</td>
+                              <td className='px-3 py-1.5 text-gray-600 w-36 text-xs'>{item.masterFormName||item.type||<span className='text-gray-300'>—</span>}</td>
+                              <td className='px-3 py-1.5 text-xs'>
+                                {item.masterFormId ? (() => {
+                                  const evaluators = item.evaluators??[]
+                                  const myId = `emp:${currentUser?.id}`
+                                  const canFill = evaluators.length===0||evaluators.some(e=>e.id==='self'||e.id===myId)
+                                  const mySubmission = (item.formSubmissions??[]).find(s=>s.evaluatorId==='self'||s.evaluatorId===myId)
+                                  const doneEval = (item.formSubmissions??[]).length
+                                  return (
+                                    <div className='flex items-center gap-1.5'>
+                                      {canFill && (
+                                        <button onClick={()=>setFillModal({msId:ms.id,item,evaluatorId:evaluators.some(e=>e.id===myId)?myId:'self',evaluatorName:currentUser?.name??'Saya'})}
+                                          disabled={isRejected}
+                                          className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
+                                          {mySubmission?'✏ Edit':'📋 Isi Form'}
+                                        </button>
+                                      )}
+                                      {evaluators.length>0&&<span className='text-[10px] text-gray-400'>{doneEval}/{evaluators.length}</span>}
+                                    </div>
+                                  )
+                                })() : <span className='text-gray-300'>—</span>}
+                              </td>
+                              <td className='px-3 py-1.5 text-gray-700 w-28'>{item.reviewerName||item.mentorName||<span className='text-gray-300'>—</span>}</td>
+                              <td className='px-3 py-1.5 text-gray-600 w-28'>{item.reviewerPosition||item.mentorPosition||<span className='text-gray-300'>—</span>}</td>
+                              <td className='px-3 py-1.5 text-center w-16'>
+                                <input type='checkbox' checked={!!item.completed} onChange={e=>updItem(ms.id,item.id,'completed',e.target.checked)}
+                                  disabled={isRejected} className='w-4 h-4 accent-red-600 disabled:cursor-not-allowed disabled:opacity-40' />
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-              <div className='overflow-x-auto rounded-lg border border-gray-200'>
-                {isReview ? (
-                  <table className='w-full text-xs'>
-                    <ReviewHead t={t} />
-                    <tbody>
-                      {(ms.items??[]).length===0
-                        ? <tr><td colSpan={8} className='px-6 py-6 text-center text-gray-400 text-sm'>{t('Tidak ada data.','No data.')}</td></tr>
-                        : (ms.items??[]).map((item,idx)=>(
-                          <tr key={item.id} className={idx%2===0?'bg-white':'bg-gray-50/60'}>
-                            <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx+1}</td>
-                            <td className='px-2 py-1.5 w-28'>
-                              {!isRejected
-                                ? <input type='date' value={toDateInput(item.date||'')} onChange={e=>updItem(ms.id,item.id,'date',e.target.value)}
-                                    className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
-                                : <span className={`text-xs px-2 ${isOverdue(item) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>{item.date||<span className='text-gray-300'>—</span>}</span>}
-                              {isOverdue(item) && <span className='text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium mt-0.5 inline-block'>Terlambat</span>}
-                            </td>
-                            <td className='px-3 py-1.5 text-gray-800'>{item.agenda||item.module||<span className='text-gray-300'>—</span>}</td>
-                            <td className='px-3 py-1.5 text-gray-600 w-36 text-xs'>{item.masterFormName||item.type||<span className='text-gray-300'>—</span>}</td>
-                            <td className='px-3 py-1.5 text-xs'>
-                              {item.masterFormId ? (() => {
-                                const evaluators = item.evaluators??[]
-                                const myId = `emp:${currentUser?.id}`
-                                const canFill = evaluators.length===0||evaluators.some(e=>e.id==='self'||e.id===myId)
-                                const mySubmission = (item.formSubmissions??[]).find(s=>s.evaluatorId==='self'||s.evaluatorId===myId)
-                                const doneEval = (item.formSubmissions??[]).length
-                                return (
-                                  <div className='flex items-center gap-1.5'>
-                                    {canFill && (
-                                      <button onClick={()=>setFillModal({msId:ms.id,item,evaluatorId:evaluators.some(e=>e.id===myId)?myId:'self',evaluatorName:currentUser?.name??'Saya'})}
-                                        disabled={isRejected}
-                                        className='px-3 py-1 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40'>
-                                        {mySubmission?'✏ Edit':'📋 Isi Form'}
-                                      </button>
-                                    )}
-                                    {evaluators.length>0&&<span className='text-[10px] text-gray-400'>{doneEval}/{evaluators.length}</span>}
-                                  </div>
-                                )
-                              })() : <span className='text-gray-300'>—</span>}
-                            </td>
-                            <td className='px-3 py-1.5 text-gray-700 w-28'>{item.reviewerName||item.mentorName||<span className='text-gray-300'>—</span>}</td>
-                            <td className='px-3 py-1.5 text-gray-600 w-28'>{item.reviewerPosition||item.mentorPosition||<span className='text-gray-300'>—</span>}</td>
-                            <td className='px-3 py-1.5 text-center w-16'>
-                              <input type='checkbox' checked={!!item.completed} onChange={e=>updItem(ms.id,item.id,'completed',e.target.checked)}
-                                disabled={isRejected} className='w-4 h-4 accent-red-600 disabled:cursor-not-allowed disabled:opacity-40' />
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                ) : (ms.sections??[]).length===0 ? (
-                  <table className='w-full text-xs'>
-                    <AgendaHead t={t} />
-                    <tbody>
-                      {(ms.items??[]).length===0
-                        ? <tr><td colSpan={8} className='px-6 py-6 text-center text-gray-400 text-sm'>{t('Tidak ada data.','No data.')}</td></tr>
-                        : (ms.items??[]).map((item,idx) => renderRow(item,idx,ms))}
-                    </tbody>
-                  </table>
+            )
+          }
+
+          // Non-review sections: checklist card style
+          const allItems = ms.items ?? []
+          const hasSections = (ms.sections??[]).length > 0
+          const sectionDone = allItems.filter(i => {
+            const v = i.assignedTo; return (!v||v==='self'||v==='employee') && i.completed
+          }).length
+          const sectionTotal = allItems.filter(i => {
+            const v = i.assignedTo; return !v||v==='self'||v==='employee'
+          }).length
+
+          return (
+            <div key={ms.id} className='px-6 pt-5 pb-4'>
+              <div className='bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden'>
+                {/* Section header */}
+                <div className='px-5 py-3 flex items-center justify-between' style={{background:BRAND}}>
+                  <h3 className='text-sm font-bold text-white'>{ms.type}</h3>
+                  <span className='text-xs text-red-200'>
+                    {sectionDone}/{sectionTotal} {t('selesai','done')}
+                  </span>
+                </div>
+
+                {/* Items */}
+                {!hasSections ? (
+                  <div className='divide-y divide-gray-50'>
+                    {allItems.length===0
+                      ? <p className='px-5 py-6 text-center text-gray-400 text-sm'>{t('Tidak ada data.','No data.')}</p>
+                      : allItems.map(item => renderCardItem(item, ms))}
+                  </div>
                 ) : (
-                  (ms.sections??[]).map((sec,secIdx)=>{
-                    const cls  = SEC_COLORS[secIdx%SEC_COLORS.length]
-                    const rows = (ms.items??[]).filter(i=>i.category===sec.id)
+                  (ms.sections??[]).map((sec, secIdx) => {
+                    const cls  = SEC_COLORS[secIdx % SEC_COLORS.length]
+                    const rows = allItems.filter(i => i.category === sec.id)
                     return (
-                      <table key={sec.id} className='w-full text-xs border-b border-gray-100 last:border-b-0'>
-                        <AgendaHead t={t} />
-                        <tbody>
-                          <tr className={cls.bg}><td colSpan={8} className='px-3 py-2'><span className={`text-xs font-semibold ${cls.text}`}>{sec.label||'—'}</span></td></tr>
-                          {rows.length===0&&<tr><td colSpan={8} className='px-4 py-3 text-center text-gray-300 text-xs italic'>{t('Tidak ada baris.','No rows.')}</td></tr>}
-                          {rows.map((item,idx) => renderRow(item,idx,ms))}
-                        </tbody>
-                      </table>
+                      <div key={sec.id} className='border-t border-gray-100 first:border-t-0'>
+                        {/* Sub-section header */}
+                        <div className={`px-5 py-2 ${cls.bg}`}>
+                          <span className={`text-xs font-semibold ${cls.text}`}>{sec.label||'—'}</span>
+                        </div>
+                        <div className='divide-y divide-gray-50'>
+                          {rows.length===0
+                            ? <p className='px-5 py-3 text-center text-gray-300 text-xs italic'>{t('Tidak ada baris.','No rows.')}</p>
+                            : rows.map(item => renderCardItem(item, ms))}
+                        </div>
+                      </div>
                     )
                   })
                 )}
