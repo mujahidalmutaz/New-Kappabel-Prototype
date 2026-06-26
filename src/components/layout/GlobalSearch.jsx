@@ -46,7 +46,6 @@ const PAGES = [
   { label: 'Org Tree',                  href: '/hr/org-tree',                                  icon: '🌲', section: 'HR · Structure' },
   // HR - Onboarding
   { label: 'Employee Onboarding (HR)',   href: '/hr/onboarding/tracker',                        icon: '📋', section: 'HR · Onboarding' },
-  { label: 'Onboarding Progress',       href: '/hr/onboarding/progress',                       icon: '📊', section: 'HR · Onboarding' },
   { label: 'Master Onboarding',         href: '/hr/onboarding/master',                         icon: '📄', section: 'HR · Onboarding' },
   // HR - Time & Labour
   { label: 'Shift Setting',             href: '/hr/time-labour/shift-setting',                 icon: '🕐', section: 'HR · Time & Labour' },
