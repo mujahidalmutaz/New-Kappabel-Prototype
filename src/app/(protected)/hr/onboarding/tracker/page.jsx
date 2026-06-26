@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect }   from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuthStore }          from '@/store/authStore'
 import { useEmployeeStore }      from '@/store/employeeStore'
 import { useWorkflowStore }      from '@/store/workflowStore'
@@ -313,6 +314,7 @@ function migrateOnboarding(ob) {
 
 export default function OnboardingTrackerPage() {
   const t                                           = useT()
+  const router                                      = useRouter()
   const { currentUser }                             = useAuthStore()
   const { employees }                               = useEmployeeStore()
   const { positions, departments, companies }        = useStructureStore()
@@ -1223,7 +1225,7 @@ export default function OnboardingTrackerPage() {
         subtitle={t('Kelola dan pantau proses onboarding/induksi karyawan baru.', 'Manage and monitor the onboarding/induction process for new employees.')}
         actions={
           <div className='flex gap-2'>
-            <button onClick={openAutoAssign}
+            <button onClick={() => router.push('/hr/onboarding/auto-assign')}
               className='px-4 py-2 text-sm font-semibold rounded-xl border border-violet-300 text-violet-700 hover:bg-violet-50 transition'>
               ⚡ {t('Auto Assign', 'Auto Assign')}
             </button>
