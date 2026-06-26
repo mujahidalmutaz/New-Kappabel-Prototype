@@ -406,7 +406,7 @@ export default function MasterOnboardingPage() {
   const handleAddSection = () => {
     if (!newSectionType) return
     if (newSectionType === 'Periodic Review') {
-      if (form.reviewItems === null) setForm(f => ({ ...f, reviewItems: JSON.parse(JSON.stringify(DEFAULT_REVIEW_ITEMS)) }))
+      if (form.reviewItems === null) setForm(f => ({ ...f, reviewItems: [] }))
     } else {
       addMainSection(newSectionType)
     }
@@ -569,7 +569,7 @@ export default function MasterOnboardingPage() {
                         setForm(f => ({
                           ...f,
                           mainSections: [],
-                          reviewItems: JSON.parse(JSON.stringify(DEFAULT_REVIEW_ITEMS)),
+                          reviewItems: [],
                         }))
                       } else {
                         setForm(f => ({
