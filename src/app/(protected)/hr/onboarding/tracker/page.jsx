@@ -14,118 +14,7 @@ import { useT }                  from '@/store/languageStore'
 import { PageHeader, StatCard, SectionCard, DataTable, Tr, Td, StatusBadge, ActionButton, EmptyState, BRAND_GRADIENT } from '@/components/ui'
 import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 import { exportCsv } from '@/utils/exportCsv'
-import { FIELD_TYPES, newField } from '@/utils/formBuilderUtils'
-
-// ── Form Picker Panel (library + custom) ──────────────────────────────────────
-function FormPickerPanel({ item, masterForms, onChange }) {
-  const [mode, setMode] = useState(item.masterFormId ? 'library' : (item.formSchema?.length > 0 ? 'custom' : 'library'))
-  const activeForms = masterForms.filter(f => f.active)
-
-  const pickLibrary = (formId) => {
-    const mf = masterForms.find(f => f.id === Number(formId))
-    if (!mf) { onChange({ masterFormId: null, formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [] }); return }
-    onChange({
-      masterFormId: mf.id,
-      formSchema: mf.fields ?? [],
-      formType: mf.formType ?? 'field',
-      evalMethod: mf.evalMethod ?? 'nilai',
-      evalTopics: mf.evalTopics ?? [],
-      ojtParams: mf.ojtParams ?? [],
-    })
-  }
-  const addField  = () => onChange({ formSchema: [...(item.formSchema ?? []), newField()] })
-  const delField  = (id) => onChange({ formSchema: (item.formSchema ?? []).filter(f => f.id !== id) })
-  const updField  = (id, key, val) => onChange({ formSchema: (item.formSchema ?? []).map(f => f.id === id ? { ...f, [key]: val } : f) })
-  const moveField = (idx, dir) => {
-    const arr = [...(item.formSchema ?? [])]; const swp = idx + dir
-    if (swp < 0 || swp >= arr.length) return
-    ;[arr[idx], arr[swp]] = [arr[swp], arr[idx]]; onChange({ formSchema: arr })
-  }
-
-  return (
-    <div className='mt-1 mb-1 ml-6 mr-1 rounded-lg border border-dashed border-red-200 bg-red-50/40 p-3'>
-      <div className='flex items-center gap-3 mb-2'>
-        <span className='text-xs font-bold text-red-700'>⚙ Form Fields</span>
-        <div className='flex rounded overflow-hidden border border-red-200 text-xs'>
-          <button onClick={() => setMode('library')} className={`px-2.5 py-1 font-semibold transition ${mode === 'library' ? 'bg-red-600 text-white' : 'bg-white text-red-600 hover:bg-red-50'}`}>Dari Library</button>
-          <button onClick={() => setMode('custom')} className={`px-2.5 py-1 font-semibold transition ${mode === 'custom' ? 'bg-red-600 text-white' : 'bg-white text-red-600 hover:bg-red-50'}`}>Custom</button>
-        </div>
-      </div>
-      {mode === 'library' ? (
-        <div>
-          {activeForms.length === 0
-            ? <p className='text-xs text-gray-400 italic'>Belum ada form di library. Buat di menu <strong>Master Form</strong>.</p>
-            : <select value={item.masterFormId ?? ''} onChange={e => pickLibrary(e.target.value)}
-                className='w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-red-400 bg-white'>
-                <option value=''>— Pilih Form dari Library —</option>
-                {activeForms.map(f => {
-                  const ft = f.formType ?? 'field'
-                  const suffix = ft === 'field' ? `${(f.fields ?? []).length} field`
-                    : ft === 'evaluasi' ? `Evaluasi · ${f.evalMethod ?? 'nilai'}`
-                    : ft === 'ojt' ? `OJT · ${(f.ojtParams ?? []).length} param`
-                    : 'Summary'
-                  return <option key={f.id} value={f.id}>{f.name} ({suffix})</option>
-                })}
-              </select>
-          }
-          {item.masterFormId && (() => {
-            const ft = item.formType ?? 'field'
-            if (ft === 'summary') return <p className='mt-1 text-[10px] text-teal-600 italic'>Form Summary: ringkasan otomatis task selesai.</p>
-            if (ft === 'evaluasi') return (
-              <p className='mt-1 text-[10px] text-amber-600 italic'>
-                Form Evaluasi · metode: {item.evalMethod ?? 'nilai'} · {(item.evalTopics ?? []).length} topik
-              </p>
-            )
-            if (ft === 'ojt') return (
-              <p className='mt-1 text-[10px] text-violet-600 italic'>
-                Form OJT · {(item.ojtParams ?? []).length} parameter · {(item.ojtParams ?? []).reduce((s, p) => s + (p.activities ?? []).length, 0)} aktivitas
-              </p>
-            )
-            return (
-              <div className='mt-2 flex flex-wrap gap-1'>
-                {(item.formSchema ?? []).map(f => (
-                  <span key={f.id} className='text-[10px] px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-600'>{f.label || f.type}{f.required ? ' *' : ''}</span>
-                ))}
-              </div>
-            )
-          })()}
-        </div>
-      ) : (
-        <div>
-          <div className='flex justify-end mb-1'>
-            <button onClick={addField} className='text-xs px-2.5 py-1 rounded border border-red-300 text-red-600 hover:bg-red-100 font-semibold transition'>+ Tambah Field</button>
-          </div>
-          {(item.formSchema ?? []).length === 0 && <p className='text-xs text-gray-400 italic text-center py-2'>Belum ada field.</p>}
-          <div className='space-y-2'>
-            {(item.formSchema ?? []).map((f, idx) => (
-              <div key={f.id} className='flex items-start gap-2 bg-white rounded border border-gray-200 px-2 py-1.5'>
-                <div className='flex flex-col gap-0.5 pt-0.5'>
-                  <button onClick={() => moveField(idx, -1)} disabled={idx === 0} className='text-[10px] text-gray-400 hover:text-gray-600 disabled:opacity-30 leading-none'>▲</button>
-                  <button onClick={() => moveField(idx, 1)} disabled={idx === (item.formSchema ?? []).length - 1} className='text-[10px] text-gray-400 hover:text-gray-600 disabled:opacity-30 leading-none'>▼</button>
-                </div>
-                <div className='flex-1 grid grid-cols-1 md:grid-cols-4 gap-1.5'>
-                  <input value={f.label} onChange={e => updField(f.id, 'label', e.target.value)} placeholder='Label field…' className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 md:col-span-2' />
-                  <select value={f.type} onChange={e => updField(f.id, 'type', e.target.value)} className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
-                    {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                  <div className='flex items-center gap-2'>
-                    <label className='flex items-center gap-1 text-xs text-gray-600 cursor-pointer'>
-                      <input type='checkbox' checked={!!f.required} onChange={e => updField(f.id, 'required', e.target.checked)} className='w-3 h-3 accent-red-600' />Wajib
-                    </label>
-                    <button onClick={() => delField(f.id)} className='ml-auto text-red-400 hover:text-red-600 text-sm font-bold'>✕</button>
-                  </div>
-                  {(f.type === 'dropdown' || f.type === 'radio') && (
-                    <input value={f.options || ''} onChange={e => updField(f.id, 'options', e.target.value)} placeholder='Opsi dipisah koma: A, B, C' className='px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 md:col-span-4' />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+import FormPickerPanel from '@/components/onboarding/FormPickerPanel'
 
 // ── Evaluator Picker ──────────────────────────────────────────────────────────
 function EvaluatorPicker({ evaluators = [], employees = [], onChange }) {
@@ -251,6 +140,24 @@ const STATUS_BADGE = {
   Rejected:    'bg-red-100 text-red-700',
 }
 
+const calcProgress = (ob) => {
+  let total = 0, done = 0
+  ;(ob.mainSections ?? []).forEach(ms => {
+    ;(ms.items ?? []).forEach(item => { total++; if (item.completed) done++ })
+    ;(ms.sections ?? []).forEach(sec => {
+      ;(sec.items ?? []).forEach(item => { total++; if (item.completed) done++ })
+    })
+  })
+  ;(ob.generalItems ?? []).forEach(item => { total++; if (item.completed) done++ })
+  ;(ob.technicalItems ?? []).forEach(item => { total++; if (item.completed) done++ })
+  return { total, done }
+}
+
+const isOverdue = (item) => {
+  if (item.completed || !item.date) return false
+  return new Date(item.date) < new Date(new Date().toDateString())
+}
+
 function toDateInput(val) {
   if (!val) return ''
   if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val
@@ -361,7 +268,7 @@ export default function OnboardingTrackerPage() {
         ? { ...item,
             reviewerEmpId:    String(supervisor?.id ?? ''),
             reviewerName:     supervisor?.name ?? 'Direct Manager',
-            reviewerPosition: supervisor ? `Position ${supervisor.positionId}` : '',
+            reviewerPosition: positions.find(p => p.id === supervisor?.positionId)?.name ?? '',
           }
         : item
     )
@@ -371,7 +278,17 @@ export default function OnboardingTrackerPage() {
     if (!tplId) return
     const tpl = templates.find(t => String(t.id) === String(tplId))
     if (!tpl) return
-    const addRuntime = (item) => ({ ...item, id: Math.random(), date: '', completed: false })
+    const _uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
+    const addRuntime = (item) => {
+      const joinDate = form?.joinDate
+      let date = ''
+      if (joinDate && item.dueDate != null && item.dueDate !== '') {
+        const d = new Date(joinDate)
+        d.setDate(d.getDate() + Number(item.dueDate))
+        date = d.toISOString().slice(0, 10)
+      }
+      return { ...item, id: _uid(), date, completed: false }
+    }
 
     if (type === 'Periodic Review') {
       const rawReview = (tpl.reviewItems ?? []).map(addRuntime)
@@ -459,17 +376,31 @@ export default function OnboardingTrackerPage() {
     })
   }
 
-  const setField = (key, val) => setForm(f => ({ ...f, [key]: val }))
+  const setField = (key, val) => setForm(f => {
+    const updated = { ...f, [key]: val }
+    if (key === 'joinDate' || key === 'probationPeriod') {
+      const jd = key === 'joinDate' ? val : f.joinDate
+      const mp = key === 'probationPeriod' ? val : f.probationPeriod
+      if (jd && mp) {
+        const d = new Date(jd)
+        d.setMonth(d.getMonth() + Number(mp))
+        updated.probationEndDate = isNaN(d.getTime()) ? f.probationEndDate : d.toISOString().slice(0, 10)
+      }
+    }
+    return updated
+  })
 
   // ── Main Section item helpers ─────────────────────────────────────────────
   const updateMsItem = (msId, itemId, key, val) =>
     setForm(f => ({ ...f, mainSections: f.mainSections.map(ms => ms.id !== msId ? ms :
       { ...ms, items: ms.items.map(i => i.id === itemId ? { ...i, [key]: val } : i) }) }))
-  const addMsItem = (msId, category) =>
+  const addMsItem = (msId, category) => {
+    const _uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
     setForm(f => ({ ...f, mainSections: f.mainSections.map(ms => ms.id !== msId ? ms :
-      { ...ms, items: [...ms.items, { id: Math.random(), module: '', type: '', link: '',
+      { ...ms, items: [...ms.items, { id: _uid(), module: '', type: '', link: '',
           date: '', dueDate: '', mentorName: '', mentorPosition: '', mentorEmpId: '', completed: false,
           assignedTo: 'employee', category }] }) }))
+  }
   const delMsItem = (msId, itemId) =>
     setForm(f => ({ ...f, mainSections: f.mainSections.map(ms => ms.id !== msId ? ms :
       { ...ms, items: ms.items.filter(i => i.id !== itemId) }) }))
@@ -491,8 +422,10 @@ export default function OnboardingTrackerPage() {
     setForm(f => ({ ...f, reviewItems: (f.reviewItems ?? []).map(i => i.id === itemId ? { ...i, [key]: val } : i) }))
   const patchReview = (itemId, patch) =>
     setForm(f => ({ ...f, reviewItems: (f.reviewItems ?? []).map(i => i.id === itemId ? { ...i, ...patch } : i) }))
-  const addReviewItem = () =>
-    setForm(f => ({ ...f, reviewItems: [...(f.reviewItems ?? []), { id: Math.random(), agenda: '', type: '', date: '', reviewerEmpId: '', reviewerName: '', reviewerPosition: '', completed: false }] }))
+  const addReviewItem = () => {
+    const _uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
+    setForm(f => ({ ...f, reviewItems: [...(f.reviewItems ?? []), { id: _uid(), agenda: '', type: '', date: '', reviewerEmpId: '', reviewerName: '', reviewerPosition: '', completed: false }] }))
+  }
   const delReviewItem = (itemId) =>
     setForm(f => ({ ...f, reviewItems: (f.reviewItems ?? []).filter(i => i.id !== itemId) }))
 
@@ -656,13 +589,24 @@ export default function OnboardingTrackerPage() {
 
               <div className='flex items-center gap-2'>
                 <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Masa Probation/Orientasi', 'Probation Period')} :</span>
-                <select value={form.probationPeriod} onChange={e => setField('probationPeriod', e.target.value)}
-                  disabled={isReadOnly}
-                  className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white outline-none focus:border-white disabled:opacity-60'>
-                  {PROBATION_OPTIONS.map(p => (
-                    <option key={p} value={p} className='text-gray-800'>{p} {t('Bulan', 'Month(s)')}</option>
-                  ))}
-                </select>
+                <div className='flex-1 flex items-center gap-1'>
+                  <input
+                    type='number'
+                    min='0'
+                    list='probation-options'
+                    value={form.probationPeriod}
+                    onChange={e => setField('probationPeriod', e.target.value)}
+                    disabled={isReadOnly}
+                    className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white outline-none focus:border-white disabled:opacity-60'
+                  />
+                  <datalist id='probation-options'>
+                    <option value='0'/>
+                    <option value='3'/>
+                    <option value='6'/>
+                    <option value='12'/>
+                  </datalist>
+                  <span className='text-xs text-red-200 flex-shrink-0'>{t('Bulan', 'Month(s)')}</span>
+                </div>
               </div>
 
               {/* Row 3: NIK | Join Date */}
@@ -690,9 +634,12 @@ export default function OnboardingTrackerPage() {
 
               <div className='flex items-center gap-2'>
                 <span className='text-xs text-red-200 w-28 flex-shrink-0'>{t('Akhir Probation', 'Probation End')} :</span>
-                <input type='date' value={form.probationEndDate || ''} onChange={e => setField('probationEndDate', e.target.value)}
-                  disabled={isReadOnly}
-                  className='flex-1 text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white outline-none focus:border-white disabled:opacity-60' />
+                <div className='flex-1'>
+                  <input type='date' value={form.probationEndDate || ''} onChange={e => setField('probationEndDate', e.target.value)}
+                    disabled={isReadOnly}
+                    className='w-full text-xs px-2 py-1 rounded border border-red-300 bg-white/10 text-white outline-none focus:border-white disabled:opacity-60' />
+                  <p className='text-[10px] text-red-300 mt-0.5'>{t('Otomatis dari masa probasi','Auto from probation period')}</p>
+                </div>
               </div>
 
               {/* Row 5: Atasan (full width) */}
@@ -733,10 +680,11 @@ export default function OnboardingTrackerPage() {
             }
 
             const addBlankSection = (type) => {
+              const _uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
               if (type === 'Periodic Review') {
                 setForm(f => f.reviewItems !== null ? f : {
                   ...f,
-                  reviewItems: [{ id: Math.random(), agenda: '', type: '', date: '', reviewerEmpId: '', reviewerName: 'Direct Manager', reviewerPosition: '', completed: false, isDirectManager: true }],
+                  reviewItems: [{ id: _uid(), agenda: '', type: '', date: '', reviewerEmpId: '', reviewerName: 'Direct Manager', reviewerPosition: '', completed: false, isDirectManager: true }],
                 })
               } else {
                 setForm(f => {
@@ -880,6 +828,7 @@ export default function OnboardingTrackerPage() {
                             <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
                             <td className='px-2 py-1.5 w-32'>
                               <InputCell value={item.date || ''} onChange={v => updateMsItem(ms.id, item.id, 'date', v)} type='date' disabled={isReadOnly} />
+                              {isOverdue(item) && <span className='text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium mt-0.5 inline-block'>Terlambat</span>}
                             </td>
                             <td className='px-2 py-1.5'>
                               <InputCell value={item.module || ''} onChange={v => updateMsItem(ms.id, item.id, 'module', v)} disabled={isReadOnly} />
@@ -1008,6 +957,7 @@ export default function OnboardingTrackerPage() {
                           <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
                           <td className='px-2 py-1.5 w-32'>
                             <InputCell value={item.date || ''} onChange={v => updateReview(item.id, 'date', v)} type='date' disabled={isReadOnly} />
+                            {isOverdue(item) && <span className='text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium mt-0.5 inline-block'>Terlambat</span>}
                           </td>
                           <td className='px-2 py-1.5'>
                             {isReadOnly
@@ -1063,6 +1013,35 @@ export default function OnboardingTrackerPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* ── Template info (only if created via rule with template versioning) ── */}
+          {(form.templateGeneralName || form.templateTekniName || form.templateReviewName) && (
+            <div className='px-6 pt-4 pb-2'>
+              <div className='flex items-center gap-2 mb-2'>
+                <div className='w-1 h-4 rounded-full flex-shrink-0' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
+                <span className='text-xs font-bold text-gray-600 uppercase tracking-wide'>
+                  {t('Dibuat dari Template', 'Created from Template')}
+                </span>
+              </div>
+              <div className='flex flex-wrap gap-2 ml-3'>
+                {form.templateGeneralName && (
+                  <span className='flex items-center gap-1 text-xs px-2.5 py-1 bg-red-50 text-red-700 rounded-full border border-red-100 font-semibold'>
+                    🗂️ General: {form.templateGeneralName}
+                  </span>
+                )}
+                {form.templateTekniName && (
+                  <span className='flex items-center gap-1 text-xs px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-100 font-semibold'>
+                    🔧 Teknis: {form.templateTekniName}
+                  </span>
+                )}
+                {form.templateReviewName && (
+                  <span className='flex items-center gap-1 text-xs px-2.5 py-1 bg-orange-50 text-orange-700 rounded-full border border-orange-100 font-semibold'>
+                    📋 Review: {form.templateReviewName}
+                  </span>
+                )}
               </div>
             </div>
           )}
@@ -1287,6 +1266,19 @@ export default function OnboardingTrackerPage() {
               <Td>{ob.supervisorName || '—'}</Td>
               <Td>
                 <StatusBadge status={ob.workflowStatus} />
+                {(() => {
+                  const { total, done } = calcProgress(ob)
+                  if (total === 0) return null
+                  const pct = Math.round((done/total)*100)
+                  return (
+                    <div className='flex items-center gap-2 mt-1'>
+                      <div className='flex-1 bg-gray-100 rounded-full h-1.5'>
+                        <div className='h-1.5 rounded-full bg-green-500 transition-all' style={{width:`${pct}%`}}/>
+                      </div>
+                      <span className='text-xs text-gray-400 whitespace-nowrap'>{done}/{total}</span>
+                    </div>
+                  )
+                })()}
               </Td>
               <Td>
                 {ob.createdVia === 'auto-assign'
@@ -1319,6 +1311,20 @@ export default function OnboardingTrackerPage() {
                       className='px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition'>
                       📤 {t('Submit','Submit')}
                     </button>
+                  )}
+                  {ob.workflowStatus === 'Rejected' && (
+                    <ActionButton
+                      variant='primary'
+                      onClick={() => {
+                        updateOnboarding(ob.id, {
+                          workflowStatus: 'Pending',
+                          submittedAt: new Date().toISOString(),
+                        })
+                        flash(t('Onboarding diajukan ulang.', 'Onboarding resubmitted.'))
+                      }}
+                    >
+                      {t('Revisi & Submit Ulang', 'Revise & Resubmit')}
+                    </ActionButton>
                   )}
                   {(ob.workflowStatus === 'Draft' || ob.workflowStatus === 'Preparation') && (
                     <button onClick={() => setDelId(ob.id)}

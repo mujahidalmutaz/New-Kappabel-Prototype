@@ -2,14 +2,16 @@ import { create }         from 'zustand'
 import { persist }        from 'zustand/middleware'
 import { generateSteps }  from '@/store/workflowStore'
 
+const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
+
 // ── Default agenda templates (matches Excel induction form) ───────────────────
 const mkG = (no, module, tujuan, mentorName = '', mentorPosition = '') => ({
-  id: Math.random(), no, date: '', module, tujuan,
+  id: uid(), no, date: '', module, tujuan,
   mentorName, mentorPosition, completed: false,
 })
 
 const mkT = (no, module, tujuan, category = 'all_level', mentorName = '', mentorPosition = '') => ({
-  id: Math.random(), no, date: '', module, tujuan, category,
+  id: uid(), no, date: '', module, tujuan, category,
   mentorName, mentorPosition, completed: false,
 })
 
@@ -74,10 +76,10 @@ export const DEFAULT_TECHNICAL_ITEMS = () => [
 
 // ── Seed helpers — pre-filled items for demo ─────────────────────────────────
 const mkGFilled = (no, module, tujuan, date, mentorName, mentorPosition, completed = false) => ({
-  id: Math.random(), no, date, module, tujuan, mentorName, mentorPosition, completed,
+  id: uid(), no, date, module, tujuan, mentorName, mentorPosition, completed,
 })
 const mkTFilled = (no, module, tujuan, category, date, mentorName, mentorPosition, completed = false) => ({
-  id: Math.random(), no, date, module, tujuan, category, mentorName, mentorPosition, completed,
+  id: uid(), no, date, module, tujuan, category, mentorName, mentorPosition, completed,
 })
 
 // ── Seed data ─────────────────────────────────────────────────────────────────
@@ -175,10 +177,10 @@ export const useOnboardingStore = create(
 
       addOnboarding: (data) => {
         const id = _nextId++
+        const hasNewFormat = data.mainSections && data.mainSections.length > 0
         set(s => ({
           onboardings: [...s.onboardings, {
-            generalItems: DEFAULT_GENERAL_ITEMS(),
-            technicalItems: DEFAULT_TECHNICAL_ITEMS(),
+            ...(hasNewFormat ? {} : { generalItems: DEFAULT_GENERAL_ITEMS(), technicalItems: DEFAULT_TECHNICAL_ITEMS() }),
             hasilInductionChecked: false,
             workflowStatus: 'Draft',
             steps: [],
@@ -254,7 +256,19 @@ export const useOnboardingStore = create(
                 ? { ...step, status: 'Pending' }
                 : step
             )
-            return { ...o, steps, workflowStatus: deriveStatus(steps) }
+            const newStatus = deriveStatus(steps)
+            // When fully approved, stamp the employee record with onboardingCompletedAt
+            if (newStatus === 'Approved' && o.employeeId) {
+              try {
+                useEmployeeStore.getState().updateEmployee(Number(o.employeeId), {
+                  onboardingStatus:      'Completed',
+                  onboardingCompletedAt: new Date().toISOString(),
+                })
+              } catch (e) {
+                console.error('Failed to update employee onboarding status:', e)
+              }
+            }
+            return { ...o, steps, workflowStatus: newStatus }
           }),
         })),
 

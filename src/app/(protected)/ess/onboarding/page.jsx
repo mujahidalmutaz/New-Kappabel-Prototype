@@ -539,6 +539,11 @@ function ItemActionButton({ item, msId, disabled, onFillForm, onSign, onUpload, 
 }
 
 // ── Misc helpers ──────────────────────────────────────────────────────────────
+const isOverdue = (item) => {
+  if (item.completed || !item.date) return false
+  return new Date(item.date) < new Date(new Date().toDateString())
+}
+
 const STATUS_CLS = {
   Draft:       'bg-gray-100 text-gray-600',
   Preparation: 'bg-indigo-100 text-indigo-700',
@@ -633,10 +638,16 @@ export default function EssOnboardingPage() {
 
   const [form,        setForm       ] = useState(null)
   const [saved,       setSaved      ] = useState(false)
+  const [msg,         setMsg        ] = useState(null)
   const [fillModal,   setFillModal  ] = useState(null)
   const [signModal,   setSignModal  ] = useState(null)  // { msId, item }
   const [uploadModal, setUploadModal] = useState(null)  // { msId, item }
   const [videoModal,  setVideoModal ] = useState(null)  // { msId, item }
+
+  const flash = (text, type = 'success') => {
+    setMsg({ text, type })
+    setTimeout(() => setMsg(null), 3000)
+  }
 
   useEffect(() => {
     if (myOnboarding) setForm(JSON.parse(JSON.stringify(myOnboarding)))
@@ -718,7 +729,8 @@ export default function EssOnboardingPage() {
           {(!isRejected && !mgrOnly)
             ? <input type='date' value={toDateInput(item.date||'')} onChange={e=>updItem(ms.id,item.id,'date',e.target.value)}
                 className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
-            : <span className='text-xs text-gray-600 px-2'>{item.date||<span className='text-gray-300'>—</span>}</span>}
+            : <span className={`text-xs px-2 ${isOverdue(item) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>{item.date||<span className='text-gray-300'>—</span>}</span>}
+          {isOverdue(item) && <span className='text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium mt-0.5 inline-block'>Terlambat</span>}
         </td>
         <td className='px-3 py-1.5 text-gray-800 font-medium text-xs'>
           {item.module||<span className='text-gray-300'>—</span>}
@@ -785,6 +797,15 @@ export default function EssOnboardingPage() {
         />
       )}
 
+      {/* Flash message */}
+      {msg && (
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold
+          ${msg.type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+          <span>{msg.type === 'error' ? '⚠️' : '✅'}</span>
+          <span>{msg.text}</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className='flex items-center justify-between mb-1'>
         <h1 className='text-2xl font-bold text-gray-800'>{t('Onboarding Saya','My Onboarding')}</h1>
@@ -800,7 +821,8 @@ export default function EssOnboardingPage() {
         </div>
       ) : isRejected ? (
         <div className='mb-5 rounded-xl px-5 py-3.5 text-sm font-medium border bg-red-50 border-red-200 text-red-700'>
-          ❌ {t('Pengajuan onboarding ditolak. Hubungi HR.','Onboarding was rejected. Contact HR.')}
+          <div>❌ {t('Pengajuan onboarding ditolak. Hubungi HR.','Onboarding was rejected. Contact HR.')}</div>
+          <div className='mt-1 text-xs text-red-600'>{t('HR akan melakukan revisi dan mengajukan ulang onboarding Anda.','HR will revise and resubmit your onboarding.')}</div>
         </div>
       ) : (
         <div className='mb-5 rounded-xl px-5 py-3.5 text-sm font-medium border bg-blue-50 border-blue-200 text-blue-700'>
@@ -864,7 +886,8 @@ export default function EssOnboardingPage() {
                               {!isRejected
                                 ? <input type='date' value={toDateInput(item.date||'')} onChange={e=>updItem(ms.id,item.id,'date',e.target.value)}
                                     className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white' />
-                                : <span className='text-xs text-gray-600 px-2'>{item.date||<span className='text-gray-300'>—</span>}</span>}
+                                : <span className={`text-xs px-2 ${isOverdue(item) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>{item.date||<span className='text-gray-300'>—</span>}</span>}
+                              {isOverdue(item) && <span className='text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium mt-0.5 inline-block'>Terlambat</span>}
                             </td>
                             <td className='px-3 py-1.5 text-gray-800'>{item.agenda||item.module||<span className='text-gray-300'>—</span>}</td>
                             <td className='px-3 py-1.5 text-gray-600 w-36 text-xs'>{item.masterFormName||item.type||<span className='text-gray-300'>—</span>}</td>
@@ -931,12 +954,42 @@ export default function EssOnboardingPage() {
 
         {/* Save */}
         {isActive && (
-          <div className='px-6 py-5 flex gap-3'>
+          <div className='px-6 py-5 flex gap-3 flex-wrap'>
             <button onClick={handleSave} className='px-6 py-2.5 text-sm font-bold text-white rounded-xl transition' style={{background:BRAND}}>
               💾 {t('Simpan Perubahan','Save Changes')}
             </button>
           </div>
         )}
+
+        {/* Selesaikan Onboarding */}
+        {(() => {
+          const allSelfDone = (() => {
+            let allDone = true, hasAny = false
+            ;(form.mainSections ?? []).forEach(ms => {
+              ;[...(ms.items ?? []), ...(ms.sections ?? []).flatMap(s => s.items ?? [])].forEach(item => {
+                if (item.assignedTo === 'self' || item.assignedTo === 'employee' || !item.assignedTo) {
+                  hasAny = true
+                  if (!item.completed) allDone = false
+                }
+              })
+            })
+            return hasAny && allDone
+          })()
+          return myOnboarding.workflowStatus === 'Active' && allSelfDone ? (
+            <div className='mt-6 flex justify-center pb-4'>
+              <button
+                onClick={() => {
+                  updateOnboarding(form.id, { workflowStatus: 'Completed', completedAt: new Date().toISOString() })
+                  flash(t('Onboarding selesai! Selamat bergabung.', 'Onboarding complete! Welcome aboard.'))
+                }}
+                className='px-8 py-3 rounded-xl text-white font-semibold text-sm shadow-lg'
+                style={{background:'linear-gradient(135deg,#8B1A1A,#D7252B)'}}
+              >
+                ✓ {t('Selesaikan Onboarding', 'Complete Onboarding')}
+              </button>
+            </div>
+          ) : null
+        })()}
       </div>
     </div>
   )

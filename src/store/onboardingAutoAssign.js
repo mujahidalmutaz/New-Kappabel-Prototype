@@ -6,7 +6,17 @@ import { useOnboardingStore }       from './onboardingStore'
 import { useOnboardingRulesStore }  from './onboardingRulesStore'
 import { useStructureStore }        from './structureStore'
 
-const addRuntime = (item) => ({ ...item, id: Math.random(), date: '', completed: false })
+const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
+
+const addRuntime = (item, joinDate) => {
+  let date = ''
+  if (joinDate && item.dueDate != null && item.dueDate !== '') {
+    const d = new Date(joinDate)
+    d.setDate(d.getDate() + Number(item.dueDate))
+    date = d.toISOString().slice(0, 10)
+  }
+  return { ...item, id: uid(), date, completed: false }
+}
 
 const BLANK_BUDDY = {
   buddyEmpId: '', buddyName: '', buddyPosition: '',
@@ -26,16 +36,16 @@ export function ruleMatchesEmployee(rule, emp) {
 }
 
 // ── Build a section from a template ───────────────────────────────────────────
-function buildSection(tpl, type, fbItems, fbSecs) {
+function buildSection(tpl, type, fbItems, fbSecs, joinDate) {
   if (!tpl) return null
   const ms = (tpl.mainSections ?? []).find(s => s.type === type)
   if (ms) return {
     ...ms,
     id: `ms_${Date.now()}_${Math.floor(Math.random() * 9999)}`,
     sections: (ms.sections ?? []).map(s => ({ ...s })),
-    items: (ms.items ?? []).map(addRuntime),
+    items: (ms.items ?? []).map(item => addRuntime(item, joinDate)),
   }
-  const items = (tpl[fbItems] ?? []).map(addRuntime)
+  const items = (tpl[fbItems] ?? []).map(item => addRuntime(item, joinDate))
   const secs  = (tpl[fbSecs]  ?? []).map(s => ({ ...s }))
   if (!items.length && !secs.length) return null
   return { id: `ms_${type}_${Date.now()}`, type, sections: secs, items }
@@ -54,12 +64,14 @@ export function buildOnboardingFromRule(rule, emp, employees) {
   const supervisor = (employees ?? []).find(e => e.id === emp.managerId)
   const dept       = departments.find(d => d.id === emp.departmentId)
 
+  const joinDate = emp.joinDate ? String(emp.joinDate).slice(0, 10) : undefined
+
   const mainSections = [
-    buildSection(tplG, 'Onboarding General', 'generalItems', 'generalSections'),
-    buildSection(tplT, 'Onboarding Teknis',  'technicalItems', 'technicalSections'),
+    buildSection(tplG, 'Onboarding General', 'generalItems', 'generalSections', joinDate),
+    buildSection(tplT, 'Onboarding Teknis',  'technicalItems', 'technicalSections', joinDate),
   ].filter(Boolean)
 
-  const rawReview = tplR ? (tplR.reviewItems ?? []).map(addRuntime) : []
+  const rawReview = tplR ? (tplR.reviewItems ?? []).map(item => addRuntime(item, joinDate)) : []
   const reviewItems = rawReview.length > 0
     ? rawReview.map(item => item.isDirectManager
         ? { ...item, reviewerEmpId: String(supervisor?.id ?? ''), reviewerName: supervisor?.name ?? 'Direct Manager', reviewerPosition: '' }
@@ -89,6 +101,13 @@ export function buildOnboardingFromRule(rule, emp, employees) {
     createdVia:  `rule:${rule.id}`,
     ruleId:      rule.id,
     ruleName:    rule.name,
+    // Template versioning — record which templates were used
+    templateGeneralId:   tplG?.id   ?? null,
+    templateGeneralName: tplG?.name ?? '',
+    templateTekniId:     tplT?.id   ?? null,
+    templateTekniName:   tplT?.name ?? '',
+    templateReviewId:    tplR?.id   ?? null,
+    templateReviewName:  tplR?.name ?? '',
   }
 }
 
@@ -136,27 +155,29 @@ export function buildOnboardingFromTemplate(tpl, emp, employees) {
   const supervisor = (employees ?? []).find(e => e.id === emp.managerId)
   const dept       = departments.find(d => d.id === emp.departmentId)
 
+  const joinDate = emp.joinDate ? String(emp.joinDate).slice(0, 10) : undefined
+
   let mainSections = (tpl.mainSections ?? [])
     .filter(ms => ms.type)
     .map(ms => ({
       ...ms,
       id:       `ms_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
       sections: (ms.sections ?? []).map(s => ({ ...s })),
-      items:    (ms.items    ?? []).map(addRuntime),
+      items:    (ms.items    ?? []).map(item => addRuntime(item, joinDate)),
     }))
 
   if (mainSections.length === 0) {
     const genSec   = (tpl.generalSections   ?? []).map(s => ({ ...s }))
-    const genItem  = (tpl.generalItems      ?? []).map(addRuntime)
+    const genItem  = (tpl.generalItems      ?? []).map(item => addRuntime(item, joinDate))
     const techSec  = (tpl.technicalSections ?? []).map(s => ({ ...s }))
-    const techItem = (tpl.technicalItems    ?? []).map(addRuntime)
+    const techItem = (tpl.technicalItems    ?? []).map(item => addRuntime(item, joinDate))
     if (genItem.length || genSec.length)
       mainSections.push({ id: `ms_gen_${Date.now()}`,  type: 'Onboarding General', sections: genSec,  items: genItem  })
     if (techItem.length || techSec.length)
       mainSections.push({ id: `ms_tech_${Date.now()}`, type: 'Onboarding Teknis',  sections: techSec, items: techItem })
   }
 
-  const rawReview   = (tpl.reviewItems ?? []).map(addRuntime)
+  const rawReview   = (tpl.reviewItems ?? []).map(item => addRuntime(item, joinDate))
   const reviewItems = rawReview.length > 0
     ? rawReview.map(item => item.isDirectManager
         ? { ...item, reviewerEmpId: String(supervisor?.id ?? ''), reviewerName: supervisor?.name ?? 'Direct Manager', reviewerPosition: '' }

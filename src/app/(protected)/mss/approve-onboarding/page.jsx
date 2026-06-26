@@ -255,7 +255,7 @@ export default function ApproveOnboardingPage() {
   const myTurn      = selected && pendingStep && canActOnStep(pendingStep, selected, currentUser, employees)
 
   const openDetail = (id) => {
-    const ob = submitted.find(o => o.id === id)
+    const ob = onboardings.find(o => o.id === id)
     setLocalGeneralItems(JSON.parse(JSON.stringify(ob?.generalItems   || [])))
     setLocalTechnicalItems(JSON.parse(JSON.stringify(ob?.technicalItems || [])))
     setLocalReviewItems(JSON.parse(JSON.stringify(ob?.reviewItems     || [])))

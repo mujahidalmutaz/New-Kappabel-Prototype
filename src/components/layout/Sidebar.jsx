@@ -238,6 +238,7 @@ const HR_GROUPS = [
     { label: 'Employee Onboarding',         href: '/hr/onboarding/tracker',    icon: ic('users') },
     { label: 'Master Onboarding',          href: '/hr/onboarding/master',     icon: ic('clipboard') },
     { label: 'Master Form',                href: '/hr/onboarding/forms',      icon: ic('fileText') },
+    { label: 'Laporan Onboarding',         href: '/hr/onboarding/laporan',    icon: ic('chart') },
   ]},
   { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Personnel Action', href: '/hr/employee/personnel-action', icon: ic('list') },
