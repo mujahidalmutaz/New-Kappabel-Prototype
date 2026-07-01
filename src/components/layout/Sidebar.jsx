@@ -68,19 +68,20 @@ const icons = {
 const ic = (name) => icons[name] || icons.list
 
 // ─── Flyout nav item ──────────────────────────────────────────────────────────
-function FlyItem({ label, icon, href, onClick }) {
+function FlyItem({ label, href, onClick }) {
   const pathname = usePathname()
   const active   = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
   return (
     <Link href={href} onClick={onClick}
-      className={`flex items-center gap-2.5 px-3 py-2 mx-1 rounded-lg text-[13px] transition-colors ${
+      className={`group relative flex items-center gap-2.5 pl-5 pr-3 py-1.5 mx-1 rounded-lg text-[13px] transition-colors ${
         active
           ? 'bg-red-50 text-red-800 font-semibold'
           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
       }`}>
-      <span className={`shrink-0 ${active ? 'text-red-700' : 'text-gray-400'}`}>
-        {icon || ic('list')}
-      </span>
+      {/* Minimal bullet indicator instead of a per-item icon */}
+      <span className={`absolute left-2.5 h-1.5 w-1.5 rounded-full transition-colors ${
+        active ? 'bg-red-600' : 'bg-gray-300 group-hover:bg-gray-400'
+      }`} />
       <span className='leading-snug'>{label}</span>
     </Link>
   )
