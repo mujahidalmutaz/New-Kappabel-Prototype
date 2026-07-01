@@ -226,6 +226,7 @@ export default function MasterOnboardingPage() {
   const [form,           setForm          ] = useState(EMPTY_FORM)
   const [msg,            setMsg           ] = useState(null)
   const [delId,          setDelId         ] = useState(null)
+  const [savedInfo,      setSavedInfo     ] = useState(null)   // { name, isEdit } → success modal
   const [newSectionType, setNewSectionType] = useState('')
 
   const flash = (text, type = 'success') => {
@@ -365,10 +366,11 @@ export default function MasterOnboardingPage() {
 
   const handleSave = () => {
     if (!form.name.trim()) return flash(t('Nama template wajib diisi.','Template name is required.'), 'error')
-    if (editId) updateTemplate(editId, form)
+    const isEdit = !!editId
+    if (isEdit) updateTemplate(editId, form)
     else addTemplate(form)
-    flash(t('Template berhasil disimpan.','Template saved.'))
     setView('list')
+    setSavedInfo({ name: form.name.trim(), isEdit })
   }
 
   const confirmDelete = () => {
@@ -828,6 +830,31 @@ export default function MasterOnboardingPage() {
                 {t('Batal','Cancel')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save success modal */}
+      {savedInfo && (
+        <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50'
+          onClick={() => setSavedInfo(null)}>
+          <div className='bg-white rounded-2xl shadow-2xl p-6 w-80 text-center' onClick={e => e.stopPropagation()}>
+            <div className='w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center'>
+              <span className='text-3xl'>✅</span>
+            </div>
+            <h3 className='text-base font-bold text-gray-800 mb-2'>
+              {t('Template Tersimpan','Template Saved')}
+            </h3>
+            <p className='text-sm text-gray-500 mb-5'>
+              {savedInfo.isEdit
+                ? t(`Perubahan pada template “${savedInfo.name}” berhasil disimpan.`, `Changes to “${savedInfo.name}” have been saved.`)
+                : t(`Template “${savedInfo.name}” berhasil dibuat.`, `Template “${savedInfo.name}” has been created.`)}
+            </p>
+            <button onClick={() => setSavedInfo(null)}
+              className='w-full py-2 text-sm font-semibold text-white rounded-xl transition'
+              style={{ background: BRAND_GRADIENT }}>
+              {t('OK','OK')}
+            </button>
           </div>
         </div>
       )}
