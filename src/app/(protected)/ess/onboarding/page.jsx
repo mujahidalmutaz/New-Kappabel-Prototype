@@ -727,7 +727,7 @@ export default function EssOnboardingPage() {
   )
 
   const mainSections = form.mainSections ?? []
-  const isMgrTask = (item) => { const v=item.assignedTo; return v==='manager'||(typeof v==='string'&&v.startsWith('emp:')) }
+  const isMgrTask = (item) => { const v=item.assignedTo; return v==='manager'||v==='hr'||(typeof v==='string'&&v.startsWith('emp:')) }
 
   // Shared action props
   const actionProps = (ms, item) => ({
@@ -743,13 +743,14 @@ export default function EssOnboardingPage() {
 
   const renderCardItem = (item, ms) => {
     const mgrOnly = isMgrTask(item)
+    const isHrTask = item.assignedTo === 'hr'
     return (
       <div key={item.id} className={`px-5 py-3 flex items-start gap-4 transition ${mgrOnly ? 'bg-gray-50 opacity-70' : item.completed ? 'bg-green-50' : 'hover:bg-gray-50'}`}>
         {/* Checkbox / status circle */}
         <div className='mt-0.5 flex-shrink-0'>
           {mgrOnly ? (
-            <div className='w-6 h-6 rounded-full flex items-center justify-center border-2 border-purple-200 bg-purple-50'>
-              <span className='text-purple-400 text-[10px]'>M</span>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${isHrTask ? 'border-cyan-200 bg-cyan-50' : 'border-purple-200 bg-purple-50'}`}>
+              <span className={`text-[10px] ${isHrTask ? 'text-cyan-400' : 'text-purple-400'}`}>{isHrTask ? 'H' : 'M'}</span>
             </div>
           ) : (
             <button
@@ -767,7 +768,14 @@ export default function EssOnboardingPage() {
         <div className='flex-1 min-w-0'>
           <p className={`text-sm font-medium ${item.completed ? 'text-gray-400 line-through' : mgrOnly ? 'text-gray-500' : 'text-gray-800'}`}>
             {item.module || item.agenda || t('Task','Task')}
-            {mgrOnly && <span className='ml-1.5 text-[9px] bg-purple-100 text-purple-600 px-1 py-0.5 rounded font-semibold align-middle'>{t('Dikerjakan oleh Manager','Manager Task')}</span>}
+            {mgrOnly && (
+              <span className={`ml-1.5 text-[9px] px-1 py-0.5 rounded font-semibold align-middle ${isHrTask ? 'bg-cyan-100 text-cyan-600' : 'bg-purple-100 text-purple-600'}`}>
+                {isHrTask ? t('Dikerjakan oleh HR','HR Task') : t('Dikerjakan oleh Manager','Manager Task')}
+              </span>
+            )}
+            {item.mandatory === false && (
+              <span className='ml-1.5 text-[9px] bg-gray-100 text-gray-500 px-1 py-0.5 rounded font-semibold align-middle'>{t('Opsional','Optional')}</span>
+            )}
           </p>
           <div className='flex items-center gap-2 mt-0.5 flex-wrap'>
             {item.type && <span className='text-xs text-gray-400'>{item.type}</span>}
@@ -777,8 +785,10 @@ export default function EssOnboardingPage() {
                 {isOverdue(item) && <span className='ml-1 bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[10px] font-bold'>Terlambat</span>}
               </span>
             )}
+            {item.duration && <span className='text-xs text-gray-400'>⏱ {item.duration} {t('menit','min')}</span>}
             {item.mentorName && <span className='text-xs text-gray-400'>👤 {item.mentorName}{item.mentorPosition ? ` · ${item.mentorPosition}` : ''}</span>}
           </div>
+          {item.description && <p className='text-xs text-gray-400 mt-1'>{item.description}</p>}
           {/* Editable date for non-rejected, non-manager tasks */}
           {!isRejected && !mgrOnly && (
             <div className='mt-1.5'>

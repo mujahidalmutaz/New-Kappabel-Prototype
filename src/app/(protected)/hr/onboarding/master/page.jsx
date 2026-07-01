@@ -12,8 +12,8 @@ import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 import FormPickerPanel from '@/components/onboarding/FormPickerPanel'
 
 // ── Row factory helpers ───────────────────────────────────────────────────────
-const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
-const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
+const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', description: '', duration: '', mandatory: true, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
+const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', description: '', duration: '', mandatory: true, category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
 const newR = () => ({ id: Math.random(), agenda: '', evaluationType: '', masterFormId: null, masterFormName: '', formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [], evaluators: [], reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
 
 const EVAL_TYPE_LOV = [
@@ -116,13 +116,13 @@ function MentorSelect({ empId, employees, positions, onChange }) {
 }
 
 function AssigneeSelect({ value, onChange, employees = [] }) {
-  const normalized = (!value || value === 'employee' || value === 'hr') ? 'self' : value
-  const isEmp = normalized.startsWith('emp:')
+  const normalized = (!value || value === 'employee') ? 'self' : value
   return (
     <select value={normalized} onChange={e => onChange(e.target.value)}
       className={`px-2 py-1 text-xs border rounded outline-none focus:border-red-400 w-full min-w-[120px] font-semibold ${assigneeBadgeCls(normalized)}`}>
       <option value='self'>Self (Karyawan)</option>
       <option value='manager'>Manager Langsung</option>
+      <option value='hr'>HR / Admin</option>
       {employees.length > 0 && <option disabled>──────────────</option>}
       {employees.map(e => (
         <option key={e.id} value={`emp:${e.id}`}>{e.name}</option>
@@ -202,9 +202,9 @@ function TableHead({ t }) {
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
         {['NO', t('AGENDA [Module]','AGENDA [Module]'), 'H+', 'Type', 'Link',
-          t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'), ''].map((h, i) => (
+          t('Mentor','Mentor'), t('Wajib','Mandatory'), t('Durasi','Duration'), t('Assignee','Assignee'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
-            style={{ minWidth: i === 1 ? 200 : i === 2 ? 70 : i === 3 ? 160 : i === 4 ? 200 : i === 7 ? 130 : i === 0 ? 40 : 110 }}>
+            style={{ minWidth: i === 1 ? 200 : i === 2 ? 70 : i === 3 ? 160 : i === 4 ? 200 : i === 8 ? 130 : i === 6 ? 70 : i === 7 ? 90 : i === 0 ? 40 : 110 }}>
             {h}
           </th>
         ))}
@@ -517,7 +517,7 @@ export default function MasterOnboardingPage() {
                         <TableHead t={t} />
                         <tbody>
                           <tr className={colors.rowCls}>
-                            <td colSpan={9} className='px-3 py-2'>
+                            <td colSpan={10} className='px-3 py-2'>
                               <div className='flex items-center justify-between gap-3'>
                                 <input
                                   value={sec.label}
@@ -538,7 +538,7 @@ export default function MasterOnboardingPage() {
                           </tr>
                           {rows.length === 0 && (
                             <tr>
-                              <td colSpan={9} className='px-4 py-3 text-center text-gray-300 text-xs italic'>
+                              <td colSpan={10} className='px-4 py-3 text-center text-gray-300 text-xs italic'>
                                 {t('Belum ada baris di seksi ini.','No rows in this section.')}
                               </td>
                             </tr>
@@ -548,13 +548,18 @@ export default function MasterOnboardingPage() {
                               <tr className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                                 <td className='px-2 py-1.5 w-12 text-center text-xs text-gray-500 font-medium'>{idx + 1}</td>
                                 <td className='px-2 py-1.5'>
-                                  <IC value={row.module} onChange={v => updGeneral(ms.id, row.id, 'module', v)}
-                                    placeholder={t('Nama modul…','Module name…')} wide />
+                                  <div className='flex flex-col gap-1'>
+                                    <IC value={row.module} onChange={v => updGeneral(ms.id, row.id, 'module', v)}
+                                      placeholder={t('Nama modul…','Module name…')} wide />
+                                    <input value={row.description || ''} onChange={e => updGeneral(ms.id, row.id, 'description', e.target.value)}
+                                      placeholder={t('Instruksi tambahan (opsional)…','Additional instructions (optional)…')}
+                                      className='px-2 py-1 text-[11px] border border-gray-100 rounded outline-none focus:border-red-300 bg-gray-50 w-full min-w-[160px] text-gray-500' />
+                                  </div>
                                 </td>
                                 <td className='px-2 py-1.5 w-20'>
                                   <div className='flex items-center gap-1'>
                                     <span className='text-[10px] font-bold text-red-600'>H+</span>
-                                    <input type='number' min='0' value={row.dueDate || ''} onChange={e => updGeneral(ms.id, row.id, 'dueDate', e.target.value)}
+                                    <input type='number' value={row.dueDate || ''} onChange={e => updGeneral(ms.id, row.id, 'dueDate', e.target.value)}
                                       placeholder='0'
                                       className='w-14 px-1.5 py-0.5 text-xs border border-gray-200 rounded outline-none focus:border-red-400 text-center' />
                                   </div>
@@ -569,9 +574,19 @@ export default function MasterOnboardingPage() {
                                 <td className='px-2 py-1.5 w-36'>
                                   <MentorSelect empId={row.mentorEmpId} employees={employees} positions={positions}
                                     onChange={(empId, name, pos) => patchGeneral(ms.id, row.id, { mentorEmpId: empId, mentorName: name, mentorPosition: pos })} />
+                                  {row.mentorPosition && (
+                                    <div className='text-[10px] text-gray-400 mt-0.5 truncate'>{row.mentorPosition}</div>
+                                  )}
                                 </td>
-                                <td className='px-2 py-1.5 w-32 text-xs text-gray-500'>
-                                  {row.mentorPosition || <span className='text-gray-300 italic'>{t('Otomatis','Auto')}</span>}
+                                <td className='px-2 py-1.5 w-14 text-center'>
+                                  <input type='checkbox' checked={row.mandatory !== false}
+                                    onChange={e => updGeneral(ms.id, row.id, 'mandatory', e.target.checked)}
+                                    className='w-4 h-4 accent-red-600' title={t('Wajib diisi','Required')} />
+                                </td>
+                                <td className='px-2 py-1.5 w-20'>
+                                  <input type='number' min='0' value={row.duration || ''} onChange={e => updGeneral(ms.id, row.id, 'duration', e.target.value)}
+                                    placeholder={t('menit','min')}
+                                    className='w-16 px-1.5 py-0.5 text-xs border border-gray-200 rounded outline-none focus:border-red-400 text-center' />
                                 </td>
                                 <td className='px-2 py-1.5 w-36'>
                                   <AssigneeSelect value={row.assignedTo || 'self'} employees={employees}
@@ -584,7 +599,7 @@ export default function MasterOnboardingPage() {
                               </tr>
                               {row.type === 'Configurable Form' && (
                                 <tr>
-                                  <td colSpan={9} className='px-2 pb-2'>
+                                  <td colSpan={10} className='px-2 pb-2'>
                                     <FormPickerPanel row={row} masterForms={masterForms}
                                       onChange={patch => patchGeneral(ms.id, row.id, patch)} />
                                   </td>

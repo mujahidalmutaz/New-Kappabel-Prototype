@@ -415,6 +415,7 @@ export default function OnboardingTrackerPage() {
     const _uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
     setForm(f => ({ ...f, mainSections: f.mainSections.map(ms => ms.id !== msId ? ms :
       { ...ms, items: [...ms.items, { id: _uid(), module: '', type: '', link: '',
+          description: '', duration: '', mandatory: true,
           date: '', dueDate: '', mentorName: '', mentorPosition: '', mentorEmpId: '', completed: false,
           assignedTo: 'employee', category }] }) }))
   }
@@ -941,6 +942,14 @@ export default function OnboardingTrackerPage() {
                             </td>
                             <td className='px-2 py-1.5'>
                               <InputCell value={item.module || ''} onChange={v => updateMsItem(ms.id, item.id, 'module', v)} disabled={isReadOnly} />
+                              <div className='flex items-center gap-1.5 mt-0.5'>
+                                {item.mandatory === false && (
+                                  <span className='text-[10px] text-gray-400 italic'>{t('Opsional','Optional')}</span>
+                                )}
+                                {item.duration && (
+                                  <span className='text-[10px] text-gray-400'>⏱ {item.duration} {t('menit','min')}</span>
+                                )}
+                              </div>
                             </td>
                             <td className='px-2 py-1.5 w-36'>
                               {isReadOnly
@@ -989,6 +998,7 @@ export default function OnboardingTrackerPage() {
                                     className={`px-2 py-1 text-xs border rounded outline-none focus:border-red-400 w-full font-semibold ${assigneeBadgeCls(item.assignedTo || 'self')}`}>
                                     <option value='self'>Self (Karyawan)</option>
                                     <option value='manager'>Manager Langsung</option>
+                                    <option value='hr'>HR / Admin</option>
                                     {employees.length > 0 && <option disabled>──────────────</option>}
                                     {employees.map(e => <option key={e.id} value={`emp:${e.id}`}>{e.name}</option>)}
                                   </select>
