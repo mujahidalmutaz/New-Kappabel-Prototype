@@ -250,17 +250,34 @@ export default function DashboardPage() {
     }))
   }
 
-  // Onboarding pending approval
+  // Onboarding pending approval — only for the user who can act on the current step
   if (role === 'hr' || role === 'superadmin' || role === 'manager') {
+    const getDir = (id) => employees.find(e => e.id === id)?.managerId
+    const getInd = (id) => getDir(getDir(id))
+    // Mirrors canActOnStep() in /mss/approve-onboarding so the dashboard only
+    // surfaces onboardings this user can actually approve/reject.
+    const canActOnboarding = (step, ob) => {
+      const rid = ob.employeeId
+      switch (step.type) {
+        case 'supervisor':        return getDir(rid) === uid
+        case 'indirect_sup':      return getInd(rid) === uid
+        case 'supervisor_pc53':
+        case 'indirect_sup_pc53': return role === 'manager' || role === 'superadmin'
+        case 'role':              return (step.roles ?? []).includes(role) || role === 'superadmin'
+        case 'userlist':
+        case 'employee':          return role === 'hr' || role === 'superadmin'
+        default:                  return role === 'superadmin'
+      }
+    }
     onboardings.filter(o => {
       const ps = (o.steps || []).find(s => s.status === 'Pending')
-      return ps && ps.status === 'Pending'
+      return ps && canActOnboarding(ps, o)
     }).forEach(o => tasks.push({
       id: `ob-${o.id}`, icon: '🎯',
       title: t(`Onboarding: ${o.employeeName}`, `Onboarding: ${o.employeeName}`),
       subtitle: o.department || '',
       badge: t('Pending', 'Pending'),
-      href: '/hr/onboarding',
+      href: '/mss/approve-onboarding',
     }))
   }
 
