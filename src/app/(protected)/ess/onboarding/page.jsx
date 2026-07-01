@@ -582,7 +582,7 @@ function AgendaHead({ t }) {
   return (
     <thead>
       <tr style={{background:BRAND}}>
-        {['NO',t('Tanggal','Date'),t('AGENDA [Module]','AGENDA [Module]'),'Type',t('Aksi','Action'),
+        {['NO',t('Tanggal','Date'),t('AGENDA','AGENDA'),'Type',t('Aksi','Action'),
           t('Nama Mentor','Mentor Name'),t('Posisi Mentor','Mentor Position'),t('Completed','Completed')].map((h,i)=>(
           <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap text-xs'
             style={{minWidth:i===2?180:i===4?160:i===7?80:i===0?40:100}}>{h}</th>

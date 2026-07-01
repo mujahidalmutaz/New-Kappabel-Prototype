@@ -201,10 +201,10 @@ function TableHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('AGENDA [Module]','AGENDA [Module]'), 'H+', 'Type', 'Link',
+        {['NO', t('AGENDA','AGENDA'), t('Jatuh Tempo (H+)','Due Date (H+)'), 'Type', 'Link',
           t('Mentor','Mentor'), t('Wajib','Mandatory'), t('Durasi','Duration'), t('Assignee','Assignee'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
-            style={{ minWidth: i === 1 ? 200 : i === 2 ? 70 : i === 3 ? 160 : i === 4 ? 200 : i === 8 ? 130 : i === 6 ? 70 : i === 7 ? 90 : i === 0 ? 40 : 110 }}>
+            style={{ minWidth: i === 1 ? 200 : i === 2 ? 110 : i === 3 ? 160 : i === 4 ? 200 : i === 8 ? 130 : i === 6 ? 70 : i === 7 ? 90 : i === 0 ? 40 : 110 }}>
             {h}
           </th>
         ))}

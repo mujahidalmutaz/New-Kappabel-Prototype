@@ -57,7 +57,7 @@ function AgendaHead({ t }) {
   return (
     <thead>
       <tr style={{ background: BRAND_GRADIENT }}>
-        {['NO', t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
+        {['NO', t('AGENDA','AGENDA'), 'Type', 'Link',
           t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Completed','Completed')].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap text-xs'
             style={{ minWidth: i===1?200 : i===2?160 : i===3?200 : i===0?40 : 100 }}>{h}</th>

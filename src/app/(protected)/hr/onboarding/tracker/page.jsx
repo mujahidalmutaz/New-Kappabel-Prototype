@@ -901,7 +901,7 @@ export default function OnboardingTrackerPage() {
                     <table key={sec.id} className='w-full text-xs border-b border-gray-100 last:border-b-0'>
                       <thead>
                         <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                          {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
+                          {['NO', t('Tanggal','Date'), t('AGENDA','AGENDA'), 'Type', 'Link',
                             t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position'), t('Assignee','Assignee'),
                             showCompleted ? t('Completed','Completed') : ''].map((h, i) => (
                             <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'

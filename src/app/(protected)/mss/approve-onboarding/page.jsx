@@ -116,7 +116,7 @@ function LinkCell({ type, value, onChange, batches }) {
 
 // ── Table header: General / Technical ────────────────────────────────────────
 function AgendaHead({ t, showCompleted = false }) {
-  const cols = ['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', 'Link',
+  const cols = ['NO', t('Tanggal','Date'), t('AGENDA','AGENDA'), 'Type', 'Link',
     t('Nama Mentor','Mentor Name'), t('Posisi Mentor','Mentor Position')]
   if (showCompleted) cols.push(t('Completed','Completed'))
   return (
@@ -616,7 +616,7 @@ export default function ApproveOnboardingPage() {
                     <table key={sec.id} className='w-full text-xs border-b border-gray-100 last:border-b-0'>
                       <thead>
                         <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                          {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', t('Nama Mentor','Mentor'),
+                          {['NO', t('Tanggal','Date'), t('AGENDA','AGENDA'), 'Type', t('Nama Mentor','Mentor'),
                             t('Assignee','Assignee'), t('Completed','Completed'), ''].map((h, i) => (
                             <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
                               style={{ minWidth: i===2?180 : i===0?40 : i===6?80 : i===7?36 : 90 }}>{h}</th>
@@ -1051,7 +1051,7 @@ export default function ApproveOnboardingPage() {
                 <table className='w-full text-xs'>
                   <thead>
                     <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                      {['NO', t('Tanggal','Date'), t('AGENDA [Module]','AGENDA [Module]'), 'Type', t('Section','Section'), t('Completed','Completed'), ''].map((h, i) => (
+                      {['NO', t('Tanggal','Date'), t('AGENDA','AGENDA'), 'Type', t('Section','Section'), t('Completed','Completed'), ''].map((h, i) => (
                         <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
                           style={{ minWidth: i===2?180 : i===5?80 : i===6?36 : i===0?40 : 100 }}>{h}</th>
                       ))}
