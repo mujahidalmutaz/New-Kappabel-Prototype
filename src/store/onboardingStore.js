@@ -4,9 +4,10 @@ import { generateSteps }  from '@/store/workflowStore'
 
 const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
 
-// Default onboarding approval chain: HR first, then the direct supervisor (atasan).
+// Manual onboarding approval: the direct supervisor (atasan) approves the plan
+// that HR prepared. (Auto-assigned onboarding needs no approval — see
+// buildOnboardingFromRule.)
 export const onboardingApprovalSteps = () => generateSteps([
-  { type: 'role', roles: ['hr', 'superadmin'] },
   { type: 'supervisor' },
 ])
 
@@ -227,7 +228,8 @@ export const useOnboardingStore = create(
         set(s => ({
           onboardings: s.onboardings.map(o => {
             if (o.id !== id) return o
-            const steps = pageLevels?.length ? generateSteps(pageLevels) : onboardingApprovalSteps()
+            // Manual onboarding is always approved by the direct supervisor.
+            const steps = onboardingApprovalSteps()
             return {
               ...o,
               workflowStatus: 'Pending',

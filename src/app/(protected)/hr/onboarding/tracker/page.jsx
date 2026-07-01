@@ -536,6 +536,9 @@ export default function OnboardingTrackerPage() {
   // ── FORM VIEW ─────────────────────────────────────────────────────────────
   if (view === 'form' && form) {
     const savedStatus   = editId ? (onboardings.find(o => o.id === editId)?.workflowStatus ?? 'Draft') : 'Draft'
+    const rejectedStep  = savedStatus === 'Rejected'
+      ? (onboardings.find(o => o.id === editId)?.steps ?? []).find(s => s.status === 'Rejected')
+      : null
     // HRBP may edit the onboarding agenda in ANY status (Draft / Pending / Approved).
     // The form is only locked when explicitly opened in view-only mode.
     const isReadOnly    = viewOnly
@@ -1283,6 +1286,14 @@ export default function OnboardingTrackerPage() {
                     'Onboarding is active. Employee can now see and complete their tasks.')}
                 </div>
               )}
+              {savedStatus === 'Rejected' && (
+                <div className='mb-3 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-xs text-red-700'>
+                  ✗ {t('Ditolak oleh atasan','Rejected by supervisor')}
+                  {rejectedStep?.approverName ? ` (${rejectedStep.approverName})` : ''}
+                  {rejectedStep?.note ? ` — "${rejectedStep.note}"` : ''}.{' '}
+                  {t('Perbaiki lalu ajukan ulang.','Revise then resubmit.')}
+                </div>
+              )}
               <div className='flex gap-3'>
                 <ActionButton variant='secondary' icon='💾' onClick={handleSaveDraft}>
                   {savedStatus === 'Draft' ? t('Simpan Draft', 'Save Draft') : t('Simpan', 'Save')}
@@ -1290,6 +1301,11 @@ export default function OnboardingTrackerPage() {
                 {savedStatus === 'Draft' && (
                   <ActionButton icon='📤' onClick={handleSubmit}>
                     {t('Submit untuk Approval', 'Submit for Approval')}
+                  </ActionButton>
+                )}
+                {savedStatus === 'Rejected' && (
+                  <ActionButton icon='🔁' onClick={handleSubmit}>
+                    {t('Perbaiki & Ajukan Ulang', 'Revise & Resubmit')}
                   </ActionButton>
                 )}
                 <button onClick={() => { if (isDirty) setShowLeaveConfirm(true); else setView('list') }}
@@ -1473,13 +1489,10 @@ export default function OnboardingTrackerPage() {
                       ✓ {t('Aktifkan','Activate')}
                     </button>
                   )}
-                  {/* Improvement 1 — Quick action: Ajukan Ulang for Rejected */}
+                  {/* Quick action: Ajukan Ulang for Rejected (regenerates a fresh atasan step) */}
                   {ob.workflowStatus === 'Rejected' && (
                     <button onClick={() => {
-                        updateOnboarding(ob.id, {
-                          workflowStatus: 'Pending',
-                          submittedAt: new Date().toISOString(),
-                        })
+                        submitOnboarding(ob.id, currentUser, getLevelsForPage('Employee Onboarding'))
                         flash(t('Onboarding diajukan ulang.', 'Onboarding resubmitted.'))
                       }}
                       className='px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition'>

@@ -392,6 +392,35 @@ export default function NotificationBell() {
         })
       })
 
+    // Auto-assigned onboarding (no approval) — notify HR and the direct atasan
+    // so they can add/remove technical tasks. Shown for ~30 days after creation.
+    const WINDOW_MS = 30 * 24 * 60 * 60 * 1000
+    onboardings
+      .filter(o =>
+        typeof o.createdVia === 'string' && o.createdVia.startsWith('rule:') &&
+        (o.workflowStatus === 'Active' || o.workflowStatus === 'Preparation') &&
+        (!o.createdAt || (Date.now() - new Date(o.createdAt).getTime()) < WINDOW_MS)
+      )
+      .forEach(o => {
+        const isAtasan = getDirectManagerId(Number(o.employeeId), employees) === uid
+        const isHr     = role === 'hr' || role === 'superadmin'
+        if (isAtasan) {
+          notifications.push({
+            id: `ob-auto-mgr-${o.id}`,
+            icon: '🧩',
+            text: t(`Karyawan baru ${o.employeeName} di tim Anda — tinjau & sesuaikan task teknis onboarding.`, `New hire ${o.employeeName} on your team — review and adjust the technical onboarding tasks.`),
+            at: o.createdAt, type: 'onboarding', recordId: o.id,
+          })
+        } else if (isHr) {
+          notifications.push({
+            id: `ob-auto-hr-${o.id}`,
+            icon: '🧩',
+            text: t(`Onboarding otomatis dibuat untuk ${o.employeeName} — tinjau bila perlu penyesuaian.`, `Auto onboarding created for ${o.employeeName} — review if adjustments are needed.`),
+            at: o.createdAt, type: 'onboarding', recordId: o.id,
+          })
+        }
+      })
+
     // ── HAY (Performance Check-In) ──────────────────────────────────────────
     haySessions
       .filter(h => h.status === 'Pending Manager' && h.managerId === uid)

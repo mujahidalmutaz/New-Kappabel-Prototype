@@ -509,6 +509,9 @@ export default function ApproveOnboardingPage() {
   if (!selected) { setView('list'); return null }
 
   const isApproved        = selected.workflowStatus === 'Approved'
+  // Auto-assigned / active records have no approval step but the atasan can
+  // still adjust the technical tasks and save.
+  const isAdjustable      = !pendingStep && (selected.workflowStatus === 'Active' || selected.workflowStatus === 'Preparation')
   const generalSections   = selected.generalSections   ?? []
   const technicalSections = selected.technicalSections ?? []
 
@@ -1203,18 +1206,23 @@ export default function ApproveOnboardingPage() {
         </div>
       </div>
 
-      {/* ── Sticky Save bar (Approved) ── */}
-      {isApproved && (
+      {/* ── Sticky Save bar (Approved / adjustable active records) ── */}
+      {(isApproved || isAdjustable) && (
         <div className='fixed bottom-0 left-60 right-0 z-40 bg-white border-t border-gray-200 shadow-lg px-8 py-4'>
-          <div className='max-w-4xl mx-auto flex justify-end gap-3'>
-            <button onClick={() => setView('list')}
-              className='px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold rounded-xl transition'>
-              {t('Kembali', 'Back')}
-            </button>
-            <button onClick={persistLocalChanges}
-              className='px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold rounded-xl transition flex items-center gap-2'>
-              💾 {t('Simpan', 'Save')}
-            </button>
+          <div className='max-w-4xl mx-auto flex items-center justify-between gap-3'>
+            {isAdjustable
+              ? <span className='text-xs text-gray-500'>{t('Anda dapat menambah/mengurangi task teknis lalu simpan.','You can add/remove technical tasks then save.')}</span>
+              : <span />}
+            <div className='flex gap-3'>
+              <button onClick={() => setView('list')}
+                className='px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold rounded-xl transition'>
+                {t('Kembali', 'Back')}
+              </button>
+              <button onClick={() => { persistLocalChanges(); setView('list') }}
+                className='px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold rounded-xl transition flex items-center gap-2'>
+                💾 {t('Simpan', 'Save')}
+              </button>
+            </div>
           </div>
         </div>
       )}
