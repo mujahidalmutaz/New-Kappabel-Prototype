@@ -634,7 +634,9 @@ export default function EssOnboardingPage() {
   const status       = myOnboarding?.workflowStatus
   const isPreparation = status === 'Preparation'
   const isRejected    = status === 'Rejected'
-  const isActive      = myOnboarding && !isRejected && !isPreparation
+  // Awaiting HR / atasan approval — employee cannot fill tasks yet.
+  const isAwaitingApproval = status === 'Pending' || status === 'Draft'
+  const isActive      = myOnboarding && !isRejected && !isPreparation && !isAwaitingApproval
 
   const [form,        setForm       ] = useState(null)
   const [saved,       setSaved      ] = useState(false)
@@ -722,6 +724,33 @@ export default function EssOnboardingPage() {
             📅 {t('Mulai','Starts')}: {new Date(myOnboarding.buddyAssignment.programStartDate).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}
           </div>
         )}
+      </div>
+    </div>
+  )
+
+  if (isAwaitingApproval) return (
+    <div>
+      <div className='flex items-center justify-between mb-1'>
+        <h1 className='text-2xl font-bold text-gray-800'>{t('Onboarding Saya','My Onboarding')}</h1>
+        <span className='text-xs font-bold px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700'>{t('Menunggu Persetujuan','Pending Approval')}</span>
+      </div>
+      <p className='text-gray-500 text-sm mb-5'>{t('Formulir induksi / onboarding karyawan.','Employee induction / onboarding form.')}</p>
+      <div className='bg-white rounded-xl shadow-sm px-8 py-14 text-center'>
+        <div className='text-5xl mb-4'>⏳</div>
+        <h2 className='text-lg font-bold text-gray-800 mb-2'>{t('Program onboarding menunggu persetujuan','Your onboarding is awaiting approval')}</h2>
+        <p className='text-gray-500 text-sm max-w-md mx-auto mb-6'>{t('Program onboarding Anda sedang direview oleh HR dan atasan. Anda dapat mulai mengisi task setelah disetujui.','Your onboarding program is being reviewed by HR and your manager. You can start once it is approved.')}</p>
+        <div className='flex flex-wrap justify-center gap-3'>
+          {(myOnboarding.steps ?? []).map(step => {
+            const done = step.status === 'Approved'
+            const pending = step.status === 'Pending'
+            return (
+              <div key={step.level}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold border ${done ? 'bg-green-50 text-green-700 border-green-200' : pending ? 'bg-amber-50 text-amber-700 border-amber-300' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
+                {done ? '✅' : pending ? '⏳' : '⬜'} {step.label}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
@@ -1061,7 +1090,7 @@ export default function EssOnboardingPage() {
             })
             return hasAny && allDone
           })()
-          return myOnboarding.workflowStatus === 'Active' && allSelfDone ? (
+          return (myOnboarding.workflowStatus === 'Active' || myOnboarding.workflowStatus === 'Approved') && allSelfDone ? (
             <div className='mt-6 flex justify-center pb-4'>
               <button
                 onClick={() => {

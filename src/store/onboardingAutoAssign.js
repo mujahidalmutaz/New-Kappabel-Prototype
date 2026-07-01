@@ -2,7 +2,7 @@
 // Single source of truth for rule-based onboarding assignment.
 // Caller passes the employee list to avoid circular imports with employeeStore.
 import { useMasterOnboardingStore } from './masterOnboardingStore'
-import { useOnboardingStore }       from './onboardingStore'
+import { useOnboardingStore, onboardingApprovalSteps } from './onboardingStore'
 import { useOnboardingRulesStore }  from './onboardingRulesStore'
 import { useStructureStore }        from './structureStore'
 
@@ -93,8 +93,10 @@ export function buildOnboardingFromRule(rule, emp, employees) {
       ...BLANK_BUDDY,
       programStartDate: emp.joinDate ? String(emp.joinDate).slice(0, 10) : '',
     },
+    // Auto-submit → enter the HR → atasan approval chain; otherwise stay in
+    // Preparation until HR submits it manually.
     workflowStatus: rule.autoSubmit ? 'Pending' : 'Preparation',
-    steps: [],
+    steps:           rule.autoSubmit ? onboardingApprovalSteps() : [],
     submittedAt:     rule.autoSubmit ? new Date().toISOString() : null,
     submittedBy:     null,
     submittedByName: null,

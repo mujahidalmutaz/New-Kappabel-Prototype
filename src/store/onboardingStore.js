@@ -4,6 +4,12 @@ import { generateSteps }  from '@/store/workflowStore'
 
 const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
 
+// Default onboarding approval chain: HR first, then the direct supervisor (atasan).
+export const onboardingApprovalSteps = () => generateSteps([
+  { type: 'role', roles: ['hr', 'superadmin'] },
+  { type: 'supervisor' },
+])
+
 // ── Default agenda templates (matches Excel induction form) ───────────────────
 const mkG = (no, module, tujuan, mentorName = '', mentorPosition = '') => ({
   id: uid(), no, date: '', module, tujuan,
@@ -221,15 +227,7 @@ export const useOnboardingStore = create(
         set(s => ({
           onboardings: s.onboardings.map(o => {
             if (o.id !== id) return o
-            const defaultSteps = [
-              {
-                level: 1, type: 'role', label: 'HR / Atasan',
-                approverId: null, approverName: null,
-                status: 'Pending', actedAt: null, note: '',
-                roles: ['hr', 'superadmin'],
-              },
-            ]
-            const steps = pageLevels?.length ? generateSteps(pageLevels) : defaultSteps
+            const steps = pageLevels?.length ? generateSteps(pageLevels) : onboardingApprovalSteps()
             return {
               ...o,
               workflowStatus: 'Pending',
