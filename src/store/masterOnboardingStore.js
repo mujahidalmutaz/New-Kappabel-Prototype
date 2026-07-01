@@ -4,7 +4,10 @@ import { persist } from 'zustand/middleware'
 // ── Seed templates ────────────────────────────────────────────────────────────
 const SEED = []
 
-let _nextId = 1
+// Next id derived from existing templates so it never collides after a reload
+// (a module-level counter would reset to its initial value on every page load).
+const nextId = (templates) =>
+  templates.reduce((max, t) => Math.max(max, Number(t.id) || 0), 0) + 1
 
 function migrateTemplate(t) {
   const copy = { ...t }
@@ -31,7 +34,7 @@ export const useMasterOnboardingStore = create(
             active: true,
             createdAt: new Date().toISOString(),
             ...data,
-            id: _nextId++,
+            id: nextId(s.templates),
           }],
         })),
 
@@ -45,11 +48,15 @@ export const useMasterOnboardingStore = create(
     }),
     {
       name: 'hcm-master-onboarding-v3',
-      migrate: (persisted) => ({
-        ...persisted,
-        templates: (persisted.templates ?? SEED).map(migrateTemplate),
-      }),
-      version: 3,
+      migrate: (persisted) => {
+        const templates = (persisted?.templates ?? SEED).map(migrateTemplate)
+        // Repair legacy duplicate ids (caused by a reset id counter) by
+        // reassigning unique sequential ids. Template ids are not referenced
+        // elsewhere — onboarding records copy template content, not its id.
+        templates.forEach((t, i) => { t.id = i + 1 })
+        return { ...persisted, templates }
+      },
+      version: 4,
     }
   )
 )
