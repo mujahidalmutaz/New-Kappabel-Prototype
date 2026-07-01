@@ -785,7 +785,6 @@ export default function EssOnboardingPage() {
                 {isOverdue(item) && <span className='ml-1 bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[10px] font-bold'>Terlambat</span>}
               </span>
             )}
-            {item.duration && <span className='text-xs text-gray-400'>⏱ {item.duration} {t('menit','min')}</span>}
             {item.mentorName && <span className='text-xs text-gray-400'>👤 {item.mentorName}{item.mentorPosition ? ` · ${item.mentorPosition}` : ''}</span>}
           </div>
           {item.description && <p className='text-xs text-gray-400 mt-1'>{item.description}</p>}

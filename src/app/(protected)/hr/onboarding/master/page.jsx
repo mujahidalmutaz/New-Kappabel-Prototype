@@ -12,8 +12,8 @@ import { assigneeLabel, assigneeBadgeCls } from '@/utils/assigneeUtils'
 import FormPickerPanel from '@/components/onboarding/FormPickerPanel'
 
 // ── Row factory helpers ───────────────────────────────────────────────────────
-const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', description: '', duration: '', mandatory: true, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
-const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', description: '', duration: '', mandatory: true, category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
+const newG = (category) => ({ id: Math.random(), module: '', type: '', link: '', description: '', mandatory: true, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee', category })
+const newT = (category) => ({ id: Math.random(), module: '', type: '', link: '', description: '', mandatory: true, category, mentorEmpId: '', mentorName: '', mentorPosition: '', assignedTo: 'employee' })
 const newR = () => ({ id: Math.random(), agenda: '', evaluationType: '', masterFormId: null, masterFormName: '', formSchema: [], formType: null, evalMethod: null, evalTopics: [], ojtParams: [], evaluators: [], reviewerEmpId: '', reviewerName: '', reviewerPosition: '' })
 
 const EVAL_TYPE_LOV = [
@@ -201,10 +201,10 @@ function TableHead({ t }) {
   return (
     <thead>
       <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-        {['NO', t('AGENDA','AGENDA'), t('Jatuh Tempo (H+)','Due Date (H+)'), 'Type', 'Link',
-          t('Mentor','Mentor'), t('Wajib','Mandatory'), t('Durasi','Duration'), t('Assignee','Assignee'), ''].map((h, i) => (
+        {['No', t('Agenda','Agenda'), t('Jatuh Tempo (H+)','Due Date (H+)'), 'Type', 'Link',
+          t('Mentor','Mentor'), t('Wajib','Mandatory'), t('Assignee','Assignee'), ''].map((h, i) => (
           <th key={i} className='text-left px-3 py-2 text-white font-semibold text-xs whitespace-nowrap'
-            style={{ minWidth: i === 1 ? 200 : i === 2 ? 110 : i === 3 ? 160 : i === 4 ? 200 : i === 8 ? 130 : i === 6 ? 70 : i === 7 ? 90 : i === 0 ? 40 : 110 }}>
+            style={{ minWidth: i === 1 ? 200 : i === 2 ? 110 : i === 3 ? 160 : i === 4 ? 200 : i === 7 ? 130 : i === 6 ? 70 : i === 0 ? 40 : 110 }}>
             {h}
           </th>
         ))}
@@ -517,7 +517,7 @@ export default function MasterOnboardingPage() {
                         <TableHead t={t} />
                         <tbody>
                           <tr className={colors.rowCls}>
-                            <td colSpan={10} className='px-3 py-2'>
+                            <td colSpan={9} className='px-3 py-2'>
                               <div className='flex items-center justify-between gap-3'>
                                 <input
                                   value={sec.label}
@@ -538,7 +538,7 @@ export default function MasterOnboardingPage() {
                           </tr>
                           {rows.length === 0 && (
                             <tr>
-                              <td colSpan={10} className='px-4 py-3 text-center text-gray-300 text-xs italic'>
+                              <td colSpan={9} className='px-4 py-3 text-center text-gray-300 text-xs italic'>
                                 {t('Belum ada baris di seksi ini.','No rows in this section.')}
                               </td>
                             </tr>
@@ -583,11 +583,6 @@ export default function MasterOnboardingPage() {
                                     onChange={e => updGeneral(ms.id, row.id, 'mandatory', e.target.checked)}
                                     className='w-4 h-4 accent-red-600' title={t('Wajib diisi','Required')} />
                                 </td>
-                                <td className='px-2 py-1.5 w-20'>
-                                  <input type='number' min='0' value={row.duration || ''} onChange={e => updGeneral(ms.id, row.id, 'duration', e.target.value)}
-                                    placeholder={t('menit','min')}
-                                    className='w-16 px-1.5 py-0.5 text-xs border border-gray-200 rounded outline-none focus:border-red-400 text-center' />
-                                </td>
                                 <td className='px-2 py-1.5 w-36'>
                                   <AssigneeSelect value={row.assignedTo || 'self'} employees={employees}
                                     onChange={v => updGeneral(ms.id, row.id, 'assignedTo', v)} />
@@ -599,7 +594,7 @@ export default function MasterOnboardingPage() {
                               </tr>
                               {row.type === 'Configurable Form' && (
                                 <tr>
-                                  <td colSpan={10} className='px-2 pb-2'>
+                                  <td colSpan={9} className='px-2 pb-2'>
                                     <FormPickerPanel row={row} masterForms={masterForms}
                                       onChange={patch => patchGeneral(ms.id, row.id, patch)} />
                                   </td>
