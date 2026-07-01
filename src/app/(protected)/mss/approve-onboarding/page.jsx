@@ -594,8 +594,8 @@ export default function ApproveOnboardingPage() {
           )
         })()}
 
-        {/* ── Main Sections (new format) ── */}
-        {localMainSections.length > 0 && localMainSections.map(ms => {
+        {/* ── Main Sections (new format) — Teknis handled by the editable block below ── */}
+        {localMainSections.length > 0 && localMainSections.filter(ms => ms.type !== 'Onboarding Teknis').map(ms => {
           const allMsItems = ms.items ?? []
           if (allMsItems.length === 0 && (ms.sections ?? []).length === 0) return null
           return (
@@ -1008,81 +1008,120 @@ export default function ApproveOnboardingPage() {
         </div>
       </div>
 
-      {/* ── Tugas Saya (Manager tasks from new mainSections format) ── */}
+      {/* ── Onboarding Teknis (Manager dapat menambahkan saat approval) ── */}
       {(() => {
-        const managerTasks = localMainSections.flatMap(ms =>
-          (ms.items ?? []).filter(i => i.assignedTo === 'manager').map(i => ({ ...i, _msId: ms.id, _msType: ms.type }))
-        )
-        // Find first mainSection to attach new manager tasks to
-        const firstMsId = localMainSections[0]?.id ?? null
-        const addManagerTask = () => {
-          if (!firstMsId) return
-          setLocalMainSections(p => p.map(ms => ms.id !== firstMsId ? ms : {
-            ...ms,
-            items: [...ms.items, { id: Math.random(), module: '', type: '', link: '', date: '', completed: false, assignedTo: 'manager', category: ms.sections[0]?.id ?? 'default' }],
-          }))
+        const TEKNIS = 'Onboarding Teknis'
+        const teknisMs = localMainSections.find(ms => ms.type === TEKNIS)
+        const rows = teknisMs?.items ?? []
+
+        const addTeknisRow = () => {
+          setLocalMainSections(prev => {
+            const exists = prev.find(m => m.type === TEKNIS)
+            const newRow = () => ({
+              id: Math.random(), module: '', type: '', link: '', date: '',
+              mentorName: '', mentorPosition: '', mentorEmpId: '',
+              completed: false, assignedTo: 'employee',
+            })
+            if (!exists) {
+              const secId = `sec_teknis_${Date.now()}`
+              return [...prev, {
+                id: `ms_teknis_${Date.now()}`, type: TEKNIS,
+                sections: [{ id: secId, label: t('Materi Teknis','Technical Material'), colorIdx: 1 }],
+                items: [{ ...newRow(), category: secId }],
+              }]
+            }
+            return prev.map(m => {
+              if (m.type !== TEKNIS) return m
+              const sections = (m.sections ?? []).length
+                ? m.sections
+                : [{ id: `sec_teknis_${Date.now()}`, label: t('Materi Teknis','Technical Material'), colorIdx: 1 }]
+              return { ...m, sections, items: [...(m.items ?? []), { ...newRow(), category: sections[0].id }] }
+            })
+          })
         }
-        const delManagerTask = (msId, itemId) =>
-          setLocalMainSections(p => p.map(ms => ms.id !== msId ? ms : { ...ms, items: ms.items.filter(i => i.id !== itemId) }))
-        const patchManagerTask = (msId, itemId, patch) =>
-          setLocalMainSections(p => p.map(ms => ms.id !== msId ? ms : { ...ms, items: ms.items.map(i => i.id === itemId ? { ...i, ...patch } : i) }))
+        const delTeknisRow = (itemId) =>
+          setLocalMainSections(prev => prev.map(m => m.type !== TEKNIS ? m : { ...m, items: m.items.filter(i => i.id !== itemId) }))
+        const updTeknisRow = (itemId, key, val) =>
+          setLocalMainSections(prev => prev.map(m => m.type !== TEKNIS ? m : { ...m, items: m.items.map(i => i.id === itemId ? { ...i, [key]: val } : i) }))
+        const patchTeknisRow = (itemId, patch) =>
+          setLocalMainSections(prev => prev.map(m => m.type !== TEKNIS ? m : { ...m, items: m.items.map(i => i.id === itemId ? { ...i, ...patch } : i) }))
 
         return (
           <div className='bg-white rounded-xl shadow-sm overflow-hidden mb-5'>
             <div className='px-6 py-4 border-b border-gray-100 flex items-center gap-2'>
               <div className='w-1 h-5 rounded-full' style={{ background: 'linear-gradient(#8B1A1A,#D7252B)' }} />
-              <h3 className='text-sm font-bold text-gray-800'>👔 {t('Tugas Saya (Manager)','My Tasks (Manager)')}</h3>
-              <span className='text-xs bg-purple-100 text-purple-700 font-semibold px-2 py-0.5 rounded-full'>
-                {managerTasks.filter(i => i.completed).length}/{managerTasks.length} {t('selesai','done')}
+              <h3 className='text-sm font-bold text-gray-800'>🔧 {t('Onboarding Teknis','Technical Induction')}</h3>
+              <span className='text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full'>
+                {rows.filter(i => i.completed).length}/{rows.length} {t('selesai','done')}
               </span>
-              {firstMsId && (
-                <button onClick={addManagerTask}
-                  className='ml-auto px-3 py-1.5 text-xs font-semibold rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition'>
-                  + {t('Tambah Tugas','Add Task')}
-                </button>
-              )}
+              <button onClick={addTeknisRow}
+                className='ml-auto px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition'>
+                + {t('Tambah Materi Teknis','Add Technical Item')}
+              </button>
             </div>
-            {managerTasks.length === 0 ? (
+            {rows.length === 0 ? (
               <div className='px-6 py-8 text-center text-gray-400 text-sm'>
-                {t('Belum ada tugas. Klik "+ Tambah Tugas" untuk menambahkan.','No tasks yet. Click "+ Add Task" to add one.')}
+                {t('Belum ada materi teknis. Klik "+ Tambah Materi Teknis" untuk menambahkan.','No technical items yet. Click "+ Add Technical Item" to add one.')}
               </div>
             ) : (
               <div className='overflow-x-auto'>
                 <table className='w-full text-xs'>
                   <thead>
                     <tr style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                      {['NO', t('Tanggal','Date'), t('AGENDA','AGENDA'), 'Type', t('Section','Section'), t('Completed','Completed'), ''].map((h, i) => (
+                      {['NO', t('Tanggal','Date'), t('AGENDA','AGENDA'), 'Type', 'Link',
+                        t('Nama Mentor','Mentor'), t('Assignee','Assignee'), t('Completed','Completed'), ''].map((h, i) => (
                         <th key={i} className='text-left px-3 py-2 text-white font-semibold whitespace-nowrap'
-                          style={{ minWidth: i===2?180 : i===5?80 : i===6?36 : i===0?40 : 100 }}>{h}</th>
+                          style={{ minWidth: i===2?180 : i===4?160 : i===7?80 : i===8?36 : i===0?40 : 100 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {managerTasks.map((item, idx) => (
+                    {rows.map((item, idx) => (
                       <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
                         <td className='px-3 py-1.5 text-center text-gray-500 font-medium w-8'>{idx + 1}</td>
                         <td className='px-2 py-1.5 w-28'>
-                          <DateCell value={item.date || ''} onChange={v => updMsItem(item._msId, item.id, 'date', v)} />
+                          <DateCell value={item.date || ''} onChange={v => updTeknisRow(item.id, 'date', v)} />
                         </td>
                         <td className='px-2 py-1.5'>
-                          <IC value={item.module || ''} onChange={v => updMsItem(item._msId, item.id, 'module', v)}
-                            placeholder={t('Nama tugas…','Task name…')} />
+                          <IC value={item.module || ''} onChange={v => updTeknisRow(item.id, 'module', v)}
+                            placeholder={t('Nama modul…','Module name…')} />
                         </td>
                         <td className='px-2 py-1.5 w-40'>
-                          <select value={item.type || ''} onChange={e => patchManagerTask(item._msId, item.id, { type: e.target.value })}
+                          <select value={item.type || ''} onChange={e => patchTeknisRow(item.id, { type: e.target.value, link: '' })}
                             className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white'>
                             <option value=''>— Pilih —</option>
                             {TYPE_LOV.map(o => <option key={o} value={o}>{o}</option>)}
                           </select>
                         </td>
-                        <td className='px-2 py-1.5 text-gray-500 w-36'>{item._msType}</td>
+                        <td className='px-2 py-1.5'>
+                          <LinkCell type={item.type} value={item.link || ''} onChange={v => updTeknisRow(item.id, 'link', v)} batches={batches} />
+                        </td>
+                        <td className='px-2 py-1.5 w-36'>
+                          <select value={item.mentorEmpId || ''} onChange={e => {
+                            const emp = employees.find(em => em.id === Number(e.target.value))
+                            const pos = positions.find(p => p.id === emp?.positionId)
+                            patchTeknisRow(item.id, { mentorEmpId: e.target.value, mentorName: emp?.name ?? '', mentorPosition: pos?.name ?? '' })
+                          }}
+                            className='w-full px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-red-400 bg-white min-w-[130px]'>
+                            <option value=''>— Pilih Mentor —</option>
+                            {employees.map(em => <option key={em.id} value={em.id}>{em.name}</option>)}
+                          </select>
+                        </td>
+                        <td className='px-2 py-1.5 w-28'>
+                          <select value={item.assignedTo || 'employee'} onChange={e => updTeknisRow(item.id, 'assignedTo', e.target.value)}
+                            className={`px-2 py-1 text-xs border rounded outline-none focus:border-red-400 w-full font-semibold ${assigneeBadgeCls(item.assignedTo || 'self')}`}>
+                            <option value='self'>Self (Karyawan)</option>
+                            <option value='manager'>Manager Langsung</option>
+                            <option value='hr'>HR / Admin</option>
+                          </select>
+                        </td>
                         <td className='px-2 py-1.5 text-center w-16'>
                           <input type='checkbox' checked={!!item.completed}
-                            onChange={e => updMsItem(item._msId, item.id, 'completed', e.target.checked)}
+                            onChange={e => updTeknisRow(item.id, 'completed', e.target.checked)}
                             className='w-4 h-4 accent-red-600' />
                         </td>
                         <td className='px-2 py-1.5 w-9 text-center'>
-                          <button onClick={() => delManagerTask(item._msId, item.id)}
+                          <button onClick={() => delTeknisRow(item.id)}
                             className='text-red-400 hover:text-red-600 text-sm font-bold transition'>✕</button>
                         </td>
                       </tr>
