@@ -787,7 +787,7 @@ export default function MssCheckInPage() {
 
               {/* Pernyataan preview */}
               <div className='bg-gray-50 rounded-xl p-4 border border-gray-200 mb-5'>
-                <h3 className='text-xs font-bold text-gray-600 mb-3'>{t('Pernyataan', 'Declaration')} ({t('akan ditampilkan ke karyawan untuk disetujui', 'will be shown to employee for approval')})</h3>
+                <h3 className='text-xs font-bold text-gray-600 mb-3'>{t('Pernyataan', 'Declaration')} ({t('akan ditampilkan ke karyawan untuk diterima & diketahui setelah HR menyetujui', 'will be shown to the employee for acknowledgement after HR approval')})</h3>
                 <ul className='space-y-2'>
                   {PERNYATAAN.map((p, i) => (
                     <li key={i} className='flex gap-2 text-xs text-gray-500 leading-relaxed'>
@@ -802,7 +802,7 @@ export default function MssCheckInPage() {
                 <button onClick={handlePipCreate}
                   className='px-6 py-2.5 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition'
                   style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                  📤 {t('Kirim PIP ke Karyawan', 'Send PIP to Employee')}
+                  📤 {t('Kirim PIP ke HR untuk Review', 'Send PIP to HR for Review')}
                 </button>
                 <button onClick={() => setPipView('list')}
                   className='px-6 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-200 transition'>
