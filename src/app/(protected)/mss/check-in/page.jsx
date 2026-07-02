@@ -52,7 +52,7 @@ export default function MssCheckInPage() {
   const { currentUser } = useAuthStore()
   const { employees } = useEmployeeStore()
   const { fillManagerAnswers, getByManager: getHayByManager, submitHayByManager } = useHayStore()
-  const { getByManager: getVipByManager } = useVipStore()
+  const { getByManager: getVipByManager, approveVip, rateVip } = useVipStore()
   const { submitPip, resubmitPip, setPipOutcome, getByManager: getPipByManager } = usePipStore()
 
   const { departments, positions } = useStructureStore()
@@ -72,6 +72,8 @@ export default function MssCheckInPage() {
 
   /* ── VIP state ───────────────────────────────────────────────────── */
   const [selectedVipId, setSelectedVipId] = useState(null)
+  const [vipScore, setVipScore] = useState('')
+  const [vipRateNote, setVipRateNote] = useState('')
 
   /* ── PIP state ───────────────────────────────────────────────────── */
   const [pipView, setPipView] = useState('list') // 'list' | 'create'
@@ -545,10 +547,15 @@ export default function MssCheckInPage() {
                       <div className='flex items-center gap-2 mb-0.5'>
                         <span className='text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold'>VIP</span>
                         <h2 className='font-bold text-gray-800'>{selectedVip.name}</h2>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${selectedVip.status === 'Closed' ? 'bg-green-50 text-green-700' : selectedVip.status === 'Active' ? 'bg-blue-50 text-blue-700' : 'bg-yellow-50 text-yellow-700'}`}>
+                          {selectedVip.status === 'Closed' ? t('Selesai Dinilai', 'Rated') : selectedVip.status === 'Active' ? t('Berjalan', 'Active') : t('Menunggu Approval', 'Awaiting Approval')}
+                        </span>
                       </div>
                       <p className='text-xs text-gray-400'>{selectedVip.employeeName} · {selectedVip.date}</p>
                     </div>
-                    <span className='text-xs text-gray-400'>{selectedVip.topics.length} {t('topik', 'topic(s)')}</span>
+                    <span className='text-xs text-gray-400'>
+                      {t('Total Bobot', 'Total Weight')}: {selectedVip.topics.reduce((s, tp) => s + (Number(tp.weight) || 0), 0)}%
+                    </span>
                   </div>
 
                   <h3 className='text-sm font-bold text-gray-600 mb-3'>{t('Performance Goal Discussion Topics', 'Performance Goal Discussion Topics')}</h3>
@@ -582,6 +589,46 @@ export default function MssCheckInPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Manager approval / rating */}
+                  {selectedVip.status === 'Pending Manager' && (
+                    <div className='mt-5 border-t border-gray-100 pt-4'>
+                      <p className='text-xs text-gray-500 mb-2'>{t('Setujui goal & bobot ini agar periode berjalan.', 'Approve these goals & weights to start the period.')}</p>
+                      <button onClick={() => { approveVip(selectedVip.id, currentUser); flash(t('Goal VIP disetujui.', 'VIP goals approved.')) }}
+                        className='px-5 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition'>
+                        ✓ {t('Setujui Goal', 'Approve Goals')}
+                      </button>
+                    </div>
+                  )}
+                  {selectedVip.status === 'Active' && (
+                    <div className='mt-5 border-t border-gray-100 pt-4'>
+                      <p className='text-xs font-bold text-gray-600 mb-2'>{t('Penilaian Akhir Periode', 'End-of-period Rating')}</p>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <input type='number' min='0' max='100' value={vipScore} onChange={e => setVipScore(e.target.value)}
+                          placeholder={t('Skor 0-100', 'Score 0-100')}
+                          className='w-28 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                        <input value={vipRateNote} onChange={e => setVipRateNote(e.target.value)}
+                          placeholder={t('Catatan (opsional)', 'Note (optional)')}
+                          className='flex-1 min-w-[180px] px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400' />
+                        <button onClick={() => {
+                            if (vipScore === '') return flash(t('Isi skor terlebih dahulu.', 'Enter a score first.'), 'error')
+                            rateVip(selectedVip.id, Number(vipScore), vipRateNote)
+                            setVipScore(''); setVipRateNote('')
+                            flash(t('Penilaian VIP tersimpan.', 'VIP rating saved.'))
+                          }}
+                          className='px-5 py-2 text-white text-sm font-bold rounded-xl transition'
+                          style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                          ⭐ {t('Simpan Nilai', 'Save Rating')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {selectedVip.status === 'Closed' && (
+                    <div className='mt-5 border-t border-gray-100 pt-4 bg-green-50 rounded-xl p-4'>
+                      <p className='text-sm font-bold text-green-700'>⭐ {t('Skor Akhir', 'Final Score')}: {selectedVip.finalScore}</p>
+                      {selectedVip.ratingNote && <p className='text-xs text-green-700 mt-1'>{selectedVip.ratingNote}</p>}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

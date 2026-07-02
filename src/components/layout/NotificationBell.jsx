@@ -465,17 +465,33 @@ export default function NotificationBell() {
       })
 
     // ── VIP (Performance Goal Check-In) ────────────────────────────────────
+    // Manager: VIP goals awaiting approval at the start of the period.
     vipSessions
-      .filter(v => v.managerId === uid)
+      .filter(v => v.managerId === uid && v.status === 'Pending Manager')
       .forEach(v => {
         notifications.push({
           id: `vip-mgr-${v.id}`,
           icon: '🎯',
           text: t(
-            `${v.employeeName} telah mengisi VIP Goal Check-In "${v.name}" dan perlu ditinjau.`,
-            `${v.employeeName} submitted VIP Goal Check-In "${v.name}" and it needs your review.`,
+            `Goal VIP "${v.name}" dari ${v.employeeName} menunggu persetujuan Anda.`,
+            `VIP goals "${v.name}" from ${v.employeeName} are awaiting your approval.`,
           ),
           at: v.submittedAt, type: 'vip', recordId: v.id, href: '/mss/check-in',
+        })
+      })
+
+    // Employee: VIP goals rated at period end.
+    vipSessions
+      .filter(v => v.employeeId === uid && v.status === 'Closed')
+      .forEach(v => {
+        notifications.push({
+          id: `vip-rated-${v.id}`,
+          icon: '⭐',
+          text: t(
+            `Goal VIP "${v.name}" telah dinilai (skor ${v.finalScore}).`,
+            `VIP goals "${v.name}" have been rated (score ${v.finalScore}).`,
+          ),
+          at: v.ratedAt, type: 'vip', recordId: v.id, href: '/ess/check-in',
         })
       })
 

@@ -11,6 +11,12 @@ const SEED = [
     name: 'OKR Q2 2025',
     date: '2025-06-10',
     submittedAt: '2025-06-10T09:00:00+07:00',
+    status: 'Active',
+    managerApprovedAt: '2025-06-11T09:00:00+07:00',
+    managerApprovedBy: 'Ahmad Fauzi',
+    finalScore: null,
+    ratingNote: '',
+    ratedAt: null,
     topics: [
       {
         id: 1,
@@ -34,6 +40,14 @@ const SEED = [
   },
 ]
 
+// Goal lifecycle: employee submits goals → Pending Manager (approve goals &
+// weights) → Active (period runs) → Closed (manager rates at period end).
+export const VIP_STATUS = {
+  PENDING: 'Pending Manager',
+  ACTIVE:  'Active',
+  CLOSED:  'Closed',
+}
+
 export const useVipStore = create(
   persist(
     (set, get) => ({
@@ -43,11 +57,33 @@ export const useVipStore = create(
         const newSession = {
           id: Date.now(),
           submittedAt: new Date().toISOString(),
+          status: VIP_STATUS.PENDING,
+          managerApprovedAt: null,
+          managerApprovedBy: null,
+          finalScore: null,
+          ratingNote: '',
+          ratedAt: null,
           ...data,
         }
         set(s => ({ sessions: [newSession, ...s.sessions] }))
         return newSession.id
       },
+
+      // Manager approves the goals & weights at the start of the period.
+      approveVip: (id, mgr) =>
+        set(s => ({
+          sessions: s.sessions.map(v => v.id === id
+            ? { ...v, status: VIP_STATUS.ACTIVE, managerApprovedAt: new Date().toISOString(), managerApprovedBy: mgr?.name ?? 'Manager' }
+            : v),
+        })),
+
+      // Manager rates achievement at the end of the period.
+      rateVip: (id, finalScore, note) =>
+        set(s => ({
+          sessions: s.sessions.map(v => v.id === id
+            ? { ...v, status: VIP_STATUS.CLOSED, finalScore, ratingNote: note || '', ratedAt: new Date().toISOString() }
+            : v),
+        })),
 
       getByEmployee: (employeeId) =>
         get().sessions.filter(s => s.employeeId === employeeId),
@@ -55,6 +91,6 @@ export const useVipStore = create(
       getByManager: (managerId) =>
         get().sessions.filter(s => s.managerId === managerId),
     }),
-    { name: 'vip-store-v2' }
+    { name: 'vip-store-v3' }
   )
 )

@@ -143,6 +143,8 @@ export default function EssCheckInPage() {
   const handleVipSubmit = () => {
     if (!vipName.trim()) return flash(t('Nama sesi wajib diisi.', 'Session name is required.'), 'error')
     if (vipTopics.some(tp => !tp.title.trim())) return flash(t('Judul setiap topik wajib diisi.', 'Each topic title is required.'), 'error')
+    const totalWeight = vipTopics.reduce((sum, tp) => sum + (Number(tp.weight) || 0), 0)
+    if (totalWeight !== 100) return flash(t(`Total bobot harus 100% (saat ini ${totalWeight}%).`, `Total weight must be 100% (currently ${totalWeight}%).`), 'error')
     vipStore.submitVip({
       employeeId: uid,
       employeeName: currentUser?.name || '',
