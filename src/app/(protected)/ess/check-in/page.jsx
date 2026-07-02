@@ -83,8 +83,8 @@ export default function EssCheckInPage() {
   const uid = currentUser?.id || 1
   const myEmp    = employees.find(e => e.id === uid)
   const myMgr    = myEmp?.managerId ? employees.find(e => e.id === myEmp.managerId) : null
-  const managerId   = myMgr?.id   ?? 2
-  const managerName = myMgr?.name ?? 'Manager'
+  const managerId   = myMgr?.id   ?? null
+  const managerName = myMgr?.name ?? ''
 
   /* merged history */
   const hayItems = hayStore.getByEmployee(uid).map(h => ({ ...h, _type: 'hay' }))
@@ -114,6 +114,7 @@ export default function EssCheckInPage() {
 
   /* ── HAY submit ─────────────────────────────────────────────────────── */
   const handleHaySubmit = () => {
+    if (!managerId) return flash(t('Atasan Anda belum diatur. Hubungi HR.', 'Your manager is not set. Please contact HR.'), 'error')
     const missing = HAY_FIELDS.find(f => !hayForm[f.key]?.trim())
     if (missing) return flash(t('Semua field wajib diisi.', 'All fields are required.'), 'error')
     hayStore.submitHay({
@@ -141,6 +142,7 @@ export default function EssCheckInPage() {
 
   /* ── VIP submit ─────────────────────────────────────────────────────── */
   const handleVipSubmit = () => {
+    if (!managerId) return flash(t('Atasan Anda belum diatur. Hubungi HR.', 'Your manager is not set. Please contact HR.'), 'error')
     if (!vipName.trim()) return flash(t('Nama sesi wajib diisi.', 'Session name is required.'), 'error')
     if (vipTopics.some(tp => !tp.title.trim())) return flash(t('Judul setiap topik wajib diisi.', 'Each topic title is required.'), 'error')
     const totalWeight = vipTopics.reduce((sum, tp) => sum + (Number(tp.weight) || 0), 0)
@@ -280,6 +282,18 @@ export default function EssCheckInPage() {
           <div className='bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-700'>
             💡 {t('Form ini akan dikirim ke atasan langsung Anda untuk direview dan dibalas.', 'This form will be sent to your direct manager for review and reply.')}
           </div>
+
+          {(() => {
+            const last = hayItems
+              .filter(h => h.status === 'Completed' && h.employeeAnswers?.wayForward)
+              .sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+            return last ? (
+              <div className='bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6 text-sm text-amber-800'>
+                🔄 <span className='font-semibold'>{t('Tindak lanjut dari HAY sebelumnya', 'Follow-up from your previous HAY')}</span> ({last.date}):{' '}
+                <span className='italic'>"{last.employeeAnswers.wayForward}"</span>
+              </div>
+            ) : null
+          })()}
 
           <div className='space-y-5'>
             {HAY_FIELDS.map(f => (
