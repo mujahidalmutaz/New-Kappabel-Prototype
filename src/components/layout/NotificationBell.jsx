@@ -480,31 +480,50 @@ export default function NotificationBell() {
       })
 
     // ── PIP (Performance Improvement Plan) ─────────────────────────────────
+    // HR: PIP awaiting review before it reaches the employee.
+    if (role === 'hr' || role === 'superadmin') {
+      pipSessions
+        .filter(p => p.status === 'Pending HR Review')
+        .forEach(p => {
+          notifications.push({
+            id: `pip-hr-${p.id}`,
+            icon: '🛡️',
+            text: t(
+              `PIP untuk ${p.employeeName} menunggu review Anda.`,
+              `PIP for ${p.employeeName} is awaiting your review.`,
+            ),
+            at: p.submittedAt, type: 'pip', recordId: p.id, href: '/hr/performance/pip',
+          })
+        })
+    }
+
+    // Manager: PIP returned by HR for revision.
     pipSessions
-      .filter(p => p.status === 'Pending Approval' && p.managerId === uid)
+      .filter(p => p.status === 'Rejected by HR' && p.managerId === uid)
       .forEach(p => {
         notifications.push({
-          id: `pip-mgr-${p.id}`,
-          icon: '⚠️',
+          id: `pip-rejected-${p.id}`,
+          icon: '↩️',
           text: t(
-            `PIP untuk ${p.employeeName} menunggu persetujuan Anda.`,
-            `PIP for ${p.employeeName} is awaiting your approval.`,
+            `PIP untuk ${p.employeeName} dikembalikan HR untuk perbaikan.`,
+            `PIP for ${p.employeeName} was returned by HR for revision.`,
           ),
-          at: p.submittedAt, type: 'pip', recordId: p.id, href: '/mss/check-in',
+          at: p.hrReviewedAt, type: 'pip', recordId: p.id, href: '/mss/check-in',
         })
       })
 
+    // Employee: PIP approved by HR, awaiting acknowledgement.
     pipSessions
-      .filter(p => p.status === 'Approved' && p.employeeId === uid)
+      .filter(p => p.status === 'Pending Acknowledgement' && p.employeeId === uid)
       .forEach(p => {
         notifications.push({
-          id: `pip-approved-${p.id}`,
+          id: `pip-ack-${p.id}`,
           icon: '📄',
           text: t(
-            `PIP Anda telah disetujui oleh ${p.managerName}.`,
-            `Your PIP has been approved by ${p.managerName}.`,
+            `PIP Anda menunggu untuk diterima & diketahui.`,
+            `Your PIP is awaiting your acknowledgement.`,
           ),
-          at: p.approvedAt, type: 'pip', recordId: p.id, href: '/ess/check-in',
+          at: p.hrReviewedAt, type: 'pip', recordId: p.id, href: '/ess/check-in',
         })
       })
   }

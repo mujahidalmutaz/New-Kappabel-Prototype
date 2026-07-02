@@ -244,6 +244,9 @@ const HR_GROUPS = [
   { title: 'Personnel Action', icon: '🔄', items: [
     { label: 'Personnel Action', href: '/hr/employee/personnel-action', icon: ic('list') },
   ]},
+  { title: 'Performance', icon: '📈', items: [
+    { label: 'Review PIP', href: '/hr/performance/pip', icon: ic('shield') },
+  ]},
   { title: 'Time & Labour', icon: '🕐', items: [
     { label: 'Shift Setting',       href: '/hr/time-labour/shift-setting',       icon: ic('settings') },
     { label: 'Shift Pattern',       href: '/hr/time-labour/shift-pattern',       icon: ic('repeat') },

@@ -8,6 +8,15 @@ import { usePipStore, PERNYATAAN } from '@/store/pipStore'
 import { useEmployeeStore } from '@/store/employeeStore'
 import { useStructureStore } from '@/store/structureStore'
 
+const pipStatusLabel = (s, t) => ({
+  'Pending HR Review':       '⏳ ' + t('Menunggu Review HR', 'Awaiting HR Review'),
+  'Rejected by HR':          '✗ '  + t('Ditolak HR', 'Rejected by HR'),
+  'Pending Acknowledgement': '⏳ ' + t('Menunggu Karyawan', 'Awaiting Employee'),
+  'Active':                  '▶ '  + t('Berjalan', 'Active'),
+  'Passed':                  '✅ ' + t('Lulus', 'Passed'),
+  'Failed':                  '✗ '  + t('Gagal', 'Failed'),
+}[s] || s)
+
 const EMPTY_HAY = { topic: '', goal: '', reality: '', options: '', wayForward: '' }
 const HAY_FIELDS = [
   { key: 'topic',      label: '1. T — Topic',                labelEN: '1. T — Topic' },
@@ -44,7 +53,7 @@ export default function MssCheckInPage() {
   const { employees } = useEmployeeStore()
   const { fillManagerAnswers, getByManager: getHayByManager, submitHayByManager } = useHayStore()
   const { getByManager: getVipByManager } = useVipStore()
-  const { submitPip, getByManager: getPipByManager } = usePipStore()
+  const { submitPip, resubmitPip, setPipOutcome, getByManager: getPipByManager } = usePipStore()
 
   const { departments, positions } = useStructureStore()
 
@@ -144,12 +153,17 @@ export default function MssCheckInPage() {
       kpiRows: pipForm.kpiRows,
       evaluasiRows: pipForm.evaluasiRows,
     })
-    flash(t('Form PIP berhasil dikirim ke karyawan untuk disetujui.', 'PIP form sent to employee for approval.'))
+    flash(t('Form PIP dikirim ke HR untuk direview.', 'PIP form sent to HR for review.'))
     setPipForm(EMPTY_PIP)
     setPipView('list')
   }
 
-  const pipStatusColor = (s) => s === 'Approved' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
+  const pipStatusColor = (s) =>
+    s === 'Passed'  ? 'bg-green-50 text-green-700'
+    : s === 'Failed' ? 'bg-red-50 text-red-700'
+    : s === 'Rejected by HR' ? 'bg-red-50 text-red-700'
+    : s === 'Active' ? 'bg-blue-50 text-blue-700'
+    : 'bg-yellow-50 text-yellow-700'
 
   /* ── Manager fills T-G-R-O-W ────────────────────────────────────── */
   const handleManagerFill = () => {
@@ -780,7 +794,7 @@ export default function MssCheckInPage() {
                           <p className='text-xs text-gray-500 mt-0.5'>{p.startDate} → {p.endDate}</p>
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 ${pipStatusColor(p.status)}`}>
-                          {p.status === 'Approved' ? t('Disetujui', 'Approved') : t('Pending', 'Pending')}
+                          {pipStatusLabel(p.status, t)}
                         </span>
                       </button>
                     ))}
@@ -800,7 +814,7 @@ export default function MssCheckInPage() {
                     <div className='text-center border-b border-gray-100 pb-4'>
                       <p className='text-xs text-gray-400 mb-1'>FORM PERFORMANCE IMPROVEMENT PLAN (PIP)</p>
                       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${pipStatusColor(selectedPip.status)}`}>
-                        {selectedPip.status === 'Approved' ? '✅ ' + t('Disetujui oleh Karyawan', 'Approved by Employee') : '⏳ ' + t('Menunggu Persetujuan Karyawan', 'Awaiting Employee Approval')}
+                        {pipStatusLabel(selectedPip.status, t)}
                       </span>
                     </div>
 
@@ -841,11 +855,54 @@ export default function MssCheckInPage() {
                       </table>
                     </div>
 
-                    {selectedPip.status === 'Approved' && (
-                      <div className='bg-green-50 border border-green-100 rounded-xl p-4'>
-                        <p className='text-xs font-bold text-green-700 mb-1'>✅ {t('Disetujui oleh karyawan', 'Approved by employee')}</p>
-                        <p className='text-xs text-green-600'>{new Date(selectedPip.approvedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                        {selectedPip.employeeNote && <p className='text-xs text-green-700 mt-1'>{t('Catatan Karyawan', 'Employee Note')}: {selectedPip.employeeNote}</p>}
+                    {selectedPip.status === 'Pending HR Review' && (
+                      <div className='bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-xs text-yellow-700'>
+                        ⏳ {t('Menunggu review & persetujuan HR sebelum diberikan ke karyawan.', 'Awaiting HR review & approval before it goes to the employee.')}
+                      </div>
+                    )}
+
+                    {selectedPip.status === 'Rejected by HR' && (
+                      <div className='bg-red-50 border border-red-100 rounded-xl p-4'>
+                        <p className='text-xs font-bold text-red-700 mb-1'>✗ {t('Ditolak HR', 'Rejected by HR')}{selectedPip.hrReviewerName ? ` (${selectedPip.hrReviewerName})` : ''}</p>
+                        {selectedPip.hrRejectNote && <p className='text-xs text-red-600 mb-3'>"{selectedPip.hrRejectNote}"</p>}
+                        <button onClick={() => { resubmitPip(selectedPip.id); flash(t('PIP diajukan ulang ke HR.', 'PIP resubmitted to HR.')) }}
+                          className='px-4 py-2 text-white text-xs font-semibold rounded-lg hover:opacity-90 transition'
+                          style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
+                          🔁 {t('Perbaiki & Ajukan Ulang', 'Revise & Resubmit')}
+                        </button>
+                      </div>
+                    )}
+
+                    {(selectedPip.status === 'Active' || selectedPip.status === 'Passed' || selectedPip.status === 'Failed') && (
+                      <div className='bg-blue-50 border border-blue-100 rounded-xl p-4'>
+                        <p className='text-xs font-bold text-blue-700 mb-1'>✅ {t('Diterima karyawan', 'Acknowledged by employee')}</p>
+                        {selectedPip.acknowledgedAt && <p className='text-xs text-blue-600'>{new Date(selectedPip.acknowledgedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</p>}
+                        {selectedPip.employeeNote && <p className='text-xs text-blue-700 mt-1'>{t('Tanggapan Karyawan', 'Employee Response')}: {selectedPip.employeeNote}</p>}
+                      </div>
+                    )}
+
+                    {selectedPip.status === 'Active' && (
+                      <div className='border border-gray-200 rounded-xl p-4'>
+                        <p className='text-xs font-bold text-gray-600 mb-2'>{t('Tetapkan Hasil Akhir PIP', 'Set Final PIP Outcome')}</p>
+                        <div className='flex gap-2'>
+                          <button onClick={() => { setPipOutcome(selectedPip.id, 'Passed', ''); flash(t('PIP ditandai Lulus.', 'PIP marked Passed.')) }}
+                            className='px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition'>
+                            ✅ {t('Lulus', 'Passed')}
+                          </button>
+                          <button onClick={() => { setPipOutcome(selectedPip.id, 'Failed', ''); flash(t('PIP ditandai Gagal.', 'PIP marked Failed.')) }}
+                            className='px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition'>
+                            ✗ {t('Gagal', 'Failed')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {(selectedPip.status === 'Passed' || selectedPip.status === 'Failed') && (
+                      <div className={`rounded-xl p-4 ${selectedPip.status === 'Passed' ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
+                        <p className={`text-xs font-bold ${selectedPip.status === 'Passed' ? 'text-green-700' : 'text-red-700'}`}>
+                          {t('Hasil Akhir', 'Final Outcome')}: {selectedPip.status === 'Passed' ? t('Lulus', 'Passed') : t('Gagal', 'Failed')}
+                        </p>
+                        {selectedPip.closedAt && <p className='text-xs text-gray-500 mt-0.5'>{new Date(selectedPip.closedAt).toLocaleDateString('id-ID')}</p>}
                       </div>
                     )}
                   </div>

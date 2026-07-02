@@ -34,12 +34,30 @@ const SEED = [
       { bulan: 'Bulan II', tanggal: '2025-08-01', sudah: '', belum: '', rencana: '' },
       { bulan: 'Bulan III', tanggal: '2025-08-31', sudah: '', belum: '', rencana: '' },
     ],
-    status: 'Pending Approval',
+    status: 'Pending HR Review',
     submittedAt: '2025-06-01T09:00:00+07:00',
-    approvedAt: null,
+    hrReviewedAt: null,
+    hrReviewerName: null,
+    hrRejectNote: '',
+    acknowledgedAt: null,
     employeeNote: '',
+    outcome: null,
+    outcomeNote: '',
+    closedAt: null,
   },
 ]
+
+// Status flow: Pending HR Review → (HR approve) Pending Acknowledgement →
+// (Employee acknowledge) Active → (Manager) Passed / Failed.
+// HR can also reject → Rejected by HR (manager revises & resubmits).
+export const PIP_STATUS = {
+  HR_REVIEW:   'Pending HR Review',
+  HR_REJECTED: 'Rejected by HR',
+  ACK:         'Pending Acknowledgement',
+  ACTIVE:      'Active',
+  PASSED:      'Passed',
+  FAILED:      'Failed',
+}
 
 export const usePipStore = create(
   persist(
@@ -49,10 +67,16 @@ export const usePipStore = create(
       submitPip: (data) => {
         const newSession = {
           id: Date.now(),
-          status: 'Pending Approval',
+          status: PIP_STATUS.HR_REVIEW,
           submittedAt: new Date().toISOString(),
-          approvedAt: null,
+          hrReviewedAt: null,
+          hrReviewerName: null,
+          hrRejectNote: '',
+          acknowledgedAt: null,
           employeeNote: '',
+          outcome: null,
+          outcomeNote: '',
+          closedAt: null,
           ...data,
         }
         set(s => ({ sessions: [newSession, ...s.sessions] }))
@@ -65,13 +89,44 @@ export const usePipStore = create(
         }))
       },
 
-      approvePip: (id, note) => {
+      // Manager revises a rejected PIP and sends it back to HR.
+      resubmitPip: (id) =>
         set(s => ({
-          sessions: s.sessions.map(p =>
-            p.id === id ? { ...p, status: 'Approved', approvedAt: new Date().toISOString(), employeeNote: note || '' } : p
-          ),
-        }))
-      },
+          sessions: s.sessions.map(p => p.id === id
+            ? { ...p, status: PIP_STATUS.HR_REVIEW, submittedAt: new Date().toISOString(), hrRejectNote: '', hrReviewedAt: null, hrReviewerName: null }
+            : p),
+        })),
+
+      // HR gate — must approve before the employee sees it.
+      hrApprovePip: (id, hr) =>
+        set(s => ({
+          sessions: s.sessions.map(p => p.id === id
+            ? { ...p, status: PIP_STATUS.ACK, hrReviewedAt: new Date().toISOString(), hrReviewerName: hr?.name ?? 'HR', hrRejectNote: '' }
+            : p),
+        })),
+
+      hrRejectPip: (id, hr, note) =>
+        set(s => ({
+          sessions: s.sessions.map(p => p.id === id
+            ? { ...p, status: PIP_STATUS.HR_REJECTED, hrReviewedAt: new Date().toISOString(), hrReviewerName: hr?.name ?? 'HR', hrRejectNote: note || '' }
+            : p),
+        })),
+
+      // Employee acknowledges receipt (not necessarily agreement) → PIP active.
+      acknowledgePip: (id, note) =>
+        set(s => ({
+          sessions: s.sessions.map(p => p.id === id
+            ? { ...p, status: PIP_STATUS.ACTIVE, acknowledgedAt: new Date().toISOString(), employeeNote: note || '' }
+            : p),
+        })),
+
+      // Manager records the final outcome after the PIP period.
+      setPipOutcome: (id, outcome, note) =>
+        set(s => ({
+          sessions: s.sessions.map(p => p.id === id
+            ? { ...p, status: outcome === 'Passed' ? PIP_STATUS.PASSED : PIP_STATUS.FAILED, outcome, outcomeNote: note || '', closedAt: new Date().toISOString() }
+            : p),
+        })),
 
       getByEmployee: (employeeId) =>
         get().sessions.filter(p => p.employeeId === employeeId),
@@ -79,6 +134,6 @@ export const usePipStore = create(
       getByManager: (managerId) =>
         get().sessions.filter(p => p.managerId === managerId),
     }),
-    { name: 'pip-store' }
+    { name: 'pip-store-v2' }
   )
 )

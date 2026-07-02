@@ -303,14 +303,25 @@ export default function DashboardPage() {
     href: '/ess/check-in',
   }))
 
-  // PIP pending employee approval
-  pipStore.getByEmployee(uid).filter(p => p.status === 'Pending Approval').forEach(p => tasks.push({
+  // PIP pending employee acknowledgement
+  pipStore.getByEmployee(uid).filter(p => p.status === 'Pending Acknowledgement').forEach(p => tasks.push({
     id: `pip-${p.id}`, icon: '📋',
-    title: t(`PIP menunggu persetujuan Anda`, `PIP awaiting your approval`),
+    title: t(`PIP menunggu Anda terima & ketahui`, `PIP awaiting your acknowledgement`),
     subtitle: `${p.managerName} · ${p.startDate}`,
     badge: t('Pending', 'Pending'),
     href: '/ess/check-in',
   }))
+
+  // PIP pending HR review (HR / superadmin)
+  if (role === 'hr' || role === 'superadmin') {
+    pipStore.sessions.filter(p => p.status === 'Pending HR Review').forEach(p => tasks.push({
+      id: `pip-hr-${p.id}`, icon: '🛡️',
+      title: t(`Review PIP: ${p.employeeName}`, `Review PIP: ${p.employeeName}`),
+      subtitle: `${p.managerName} · ${p.startDate}`,
+      badge: t('Review', 'Review'),
+      href: '/hr/performance/pip',
+    }))
+  }
 
   // FYI items
   const fyiItems = []

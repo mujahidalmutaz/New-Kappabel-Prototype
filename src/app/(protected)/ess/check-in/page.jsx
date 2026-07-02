@@ -21,6 +21,15 @@ const HAY_FIELDS = [
 const EMPTY_VIP_TOPIC = () => ({ id: Date.now() + Math.random(), title: '', description: '', goalPlan: '', weight: '', status: 'In Progress', checkInNotes: '' })
 const VIP_STATUSES = ['Not Started', 'In Progress', 'Completed']
 
+const pipStatusLabel = (s, t) => ({
+  'Pending HR Review':       '⏳ ' + t('Review HR', 'HR Review'),
+  'Rejected by HR':          '✗ '  + t('Ditolak HR', 'Rejected by HR'),
+  'Pending Acknowledgement': '⏳ ' + t('Perlu Diterima', 'Awaiting Acknowledgement'),
+  'Active':                  '▶ '  + t('Berjalan', 'Active'),
+  'Passed':                  '✅ ' + t('Lulus', 'Passed'),
+  'Failed':                  '✗ '  + t('Gagal', 'Failed'),
+}[s] || s)
+
 /* ── Status helpers ─────────────────────────────────────────────────────── */
 const hayStatusColor = (s) =>
   s === 'Completed' ? 'bg-green-50 text-green-700'
@@ -85,17 +94,20 @@ export default function EssCheckInPage() {
   /* PIP */
   const myPips = pipStore.getByEmployee(uid).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
   const selectedPip = myPips.find(p => p.id === selectedPipId)
-  const pendingPips = myPips.filter(p => p.status === 'Pending Approval').length
+  const pendingPips = myPips.filter(p => p.status === 'Pending Acknowledgement').length
 
   const handlePipApprove = () => {
-    pipStore.approvePip(selectedPipId, pipApproveNote)
-    flash(t('PIP berhasil disetujui.', 'PIP approved successfully.'))
+    pipStore.acknowledgePip(selectedPipId, pipApproveNote)
+    flash(t('PIP telah Anda terima & ketahui.', 'PIP acknowledged.'))
     setShowPipApprove(false)
     setPipApproveNote('')
   }
 
   const pipStatusColor = (s) =>
-    s === 'Approved' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
+    s === 'Passed'  ? 'bg-green-50 text-green-700'
+    : s === 'Failed' ? 'bg-red-50 text-red-700'
+    : s === 'Active' ? 'bg-blue-50 text-blue-700'
+    : 'bg-yellow-50 text-yellow-700'
 
   const selectedHay = hayItems.find(h => h.id === selectedHayId)
   const selectedVip = vipItems.find(v => v.id === selectedVipId)
@@ -705,7 +717,7 @@ export default function EssCheckInPage() {
                         <p className='text-xs text-gray-400 mt-0.5'>{t('Atasan', 'Manager')}: {p.managerName}</p>
                       </div>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 ${pipStatusColor(p.status)}`}>
-                        {p.status === 'Approved' ? t('Disetujui', 'Approved') : t('Menunggu', 'Pending')}
+                        {pipStatusLabel(p.status, t)}
                       </span>
                     </button>
                   ))}
@@ -727,7 +739,7 @@ export default function EssCheckInPage() {
                   <div className='text-center border-b border-gray-100 pb-4'>
                     <p className='text-xs text-gray-400 mb-1'>FORM PERFORMANCE IMPROVEMENT PLAN (PIP)</p>
                     <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${pipStatusColor(selectedPip.status)}`}>
-                      {selectedPip.status === 'Approved' ? '✅ ' + t('Sudah Disetujui', 'Approved') : '⏳ ' + t('Menunggu Persetujuan Anda', 'Awaiting Your Approval')}
+                      {pipStatusLabel(selectedPip.status, t)}
                     </div>
                   </div>
 
@@ -830,12 +842,26 @@ export default function EssCheckInPage() {
                     </ul>
                   </div>
 
-                  {/* Approval section */}
-                  {selectedPip.status === 'Approved' ? (
-                    <div className='bg-green-50 border border-green-100 rounded-xl p-4'>
-                      <p className='text-xs font-bold text-green-700 mb-1'>✅ {t('Sudah Disetujui', 'Approved')}</p>
-                      <p className='text-xs text-green-600'>{new Date(selectedPip.approvedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                      {selectedPip.employeeNote && <p className='text-xs text-green-700 mt-1'>{t('Catatan', 'Note')}: {selectedPip.employeeNote}</p>}
+                  {/* Acknowledgement section */}
+                  {selectedPip.status === 'Pending HR Review' ? (
+                    <div className='bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-xs text-yellow-700'>
+                      ⏳ {t('PIP ini masih menunggu review HR sebelum dapat Anda terima.', 'This PIP is awaiting HR review before you can acknowledge it.')}
+                    </div>
+                  ) : selectedPip.status === 'Rejected by HR' ? (
+                    <div className='bg-red-50 border border-red-100 rounded-xl p-4 text-xs text-red-700'>
+                      ✗ {t('PIP ini dikembalikan HR ke atasan untuk perbaikan.', 'This PIP was returned by HR to the manager for revision.')}
+                    </div>
+                  ) : selectedPip.status !== 'Pending Acknowledgement' ? (
+                    <div className='bg-blue-50 border border-blue-100 rounded-xl p-4'>
+                      <p className='text-xs font-bold text-blue-700 mb-1'>✅ {t('Sudah Anda terima & ketahui', 'Acknowledged by you')}</p>
+                      {selectedPip.acknowledgedAt && <p className='text-xs text-blue-600'>{new Date(selectedPip.acknowledgedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</p>}
+                      {selectedPip.employeeNote && <p className='text-xs text-blue-700 mt-1'>{t('Tanggapan', 'Response')}: {selectedPip.employeeNote}</p>}
+                      {selectedPip.outcome && (
+                        <p className={`text-xs font-bold mt-2 ${selectedPip.outcome === 'Passed' ? 'text-green-700' : 'text-red-700'}`}>
+                          {t('Hasil akhir', 'Outcome')}: {selectedPip.outcome === 'Passed' ? t('Lulus', 'Passed') : t('Gagal', 'Failed')}
+                          {selectedPip.outcomeNote ? ` — ${selectedPip.outcomeNote}` : ''}
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <>
@@ -844,24 +870,24 @@ export default function EssCheckInPage() {
                           disabled={!pipChecked.every(Boolean)}
                           className='w-full py-3 text-white text-sm font-semibold rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90'
                           style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                          ✅ {t('Saya Menyetujui Pernyataan & Form PIP Ini', 'I Approve This Declaration & PIP Form')}
+                          ✅ {t('Saya Menerima & Mengetahui Form PIP Ini', 'I Acknowledge This PIP Form')}
                         </button>
                       ) : (
                         <div className='bg-red-50 border border-red-200 rounded-xl p-4'>
                           <p className='text-sm font-bold text-red-700 mb-3'>
-                            {t('Konfirmasi Persetujuan PIP', 'Confirm PIP Approval')}
+                            {t('Konfirmasi Penerimaan PIP', 'Confirm PIP Acknowledgement')}
                           </p>
                           <p className='text-xs text-red-600 mb-3'>
-                            {t('Dengan menyetujui, Anda menyatakan telah membaca dan memahami seluruh isi Form PIP serta Pernyataan di atas.', 'By approving, you confirm that you have read and understood the entire PIP Form and the Declaration above.')}
+                            {t('Dengan menerima, Anda menyatakan telah membaca dan memahami seluruh isi Form PIP serta Pernyataan di atas. Anda dapat menambahkan tanggapan bila tidak setuju.', 'By acknowledging, you confirm you have read and understood the entire PIP Form and the Declaration above. You may add a response if you disagree.')}
                           </p>
                           <textarea rows={2} value={pipApproveNote} onChange={e => setPipApproveNote(e.target.value)}
-                            placeholder={t('Catatan tambahan (opsional)...', 'Additional note (optional)...')}
+                            placeholder={t('Tanggapan / catatan (opsional)...', 'Response / note (optional)...')}
                             className='w-full px-3 py-2 border border-red-200 rounded-lg text-sm outline-none focus:border-red-400 resize-none transition mb-3 bg-white' />
                           <div className='flex gap-2'>
                             <button onClick={handlePipApprove}
                               className='px-5 py-2 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition'
                               style={{ background: 'linear-gradient(135deg,#8B1A1A,#D7252B)' }}>
-                              ✅ {t('Ya, Saya Setuju', 'Yes, I Approve')}
+                              ✅ {t('Ya, Saya Terima', 'Yes, I Acknowledge')}
                             </button>
                             <button onClick={() => setShowPipApprove(false)}
                               className='px-5 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-200 transition'>
